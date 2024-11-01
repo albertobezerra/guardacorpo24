@@ -13,21 +13,21 @@ class Raiz extends StatelessWidget {
       body: Column(
         children: [
           Flexible(
-            flex: 6,
+            flex: 4,
             child: Raiz01topo(),
           ),
           // SizedBox(height: 1),
           Flexible(
-            flex: 4,
+            flex: 3,
             child: Raiz02Mbuscados(),
           ),
           Flexible(
-            flex: 1,
+            flex: 7,
             child: Raiz03Maissaude(),
           ),
 
           Flexible(
-            flex: 3,
+            flex: 2,
             child: Raiz04Emergencia(),
           ),
         ],
