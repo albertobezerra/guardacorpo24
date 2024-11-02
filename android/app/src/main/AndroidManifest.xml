@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="guarda_corpo_2024"
+        android:label="Guarda Corpo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
