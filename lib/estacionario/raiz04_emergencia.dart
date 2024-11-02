@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class Raiz04Emergencia extends StatelessWidget {
   const Raiz04Emergencia({super.key});
@@ -30,7 +31,7 @@ class Raiz04Emergencia extends StatelessWidget {
             children: [
               MaterialButton(
                 padding: const EdgeInsets.all(0),
-                onPressed: () => _makePhoneCall('tel://192'),
+                onPressed: () => _makePhoneCall('192'),
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.3,
                   height: MediaQuery.of(context).size.height * 0.07,
@@ -57,7 +58,7 @@ class Raiz04Emergencia extends StatelessWidget {
               ),
               MaterialButton(
                 padding: const EdgeInsets.all(0),
-                onPressed: () => _makePhoneCall('tel://193'),
+                onPressed: () => _makePhoneCall('193'),
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.3,
                   height: MediaQuery.of(context).size.height * 0.07,
@@ -84,7 +85,7 @@ class Raiz04Emergencia extends StatelessWidget {
               ),
               MaterialButton(
                 padding: const EdgeInsets.all(0),
-                onPressed: () => _makePhoneCall('tel://190'),
+                onPressed: () => _makePhoneCall('190'),
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.3,
                   height: MediaQuery.of(context).size.height * 0.07,
@@ -116,11 +117,12 @@ class Raiz04Emergencia extends StatelessWidget {
     );
   }
 
-  Future<void> _makePhoneCall(String url) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      throw 'Could not launch $url';
+  Future<void> _makePhoneCall(String number) async {
+    var status = await Permission.phone.status;
+    if (!status.isGranted) {
+      await Permission.phone.request();
     }
+    bool? res = await FlutterPhoneDirectCaller.callNumber(number);
+    if (res != true) {}
   }
 }
