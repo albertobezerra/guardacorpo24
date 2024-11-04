@@ -29,8 +29,23 @@ class Raiz03Maissaude extends StatelessWidget {
     double screenHeight = MediaQuery.of(context).size.height;
 
     // Defina os tamanhos dinamicamente com base na altura da tela
-    double headerFontSize = screenHeight < 1200 ? 16 : 19;
-    double itemFontSize = screenHeight < 1200 ? 14 : 16;
+    double headerFontSize;
+    double itemFontSize;
+    double tamanhoBotaoLista;
+
+    if (screenHeight < 1000) {
+      headerFontSize = 14;
+      itemFontSize = 12;
+      tamanhoBotaoLista = 60;
+    } else if (screenHeight < 1200) {
+      headerFontSize = 16;
+      itemFontSize = 14;
+      tamanhoBotaoLista = 80;
+    } else {
+      headerFontSize = 19;
+      itemFontSize = 16;
+      tamanhoBotaoLista = 80;
+    }
 
     return SizedBox(
       width: double.infinity,
@@ -67,7 +82,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -100,7 +115,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -136,7 +151,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -171,7 +186,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -204,7 +219,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -239,7 +254,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -274,7 +289,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -307,7 +322,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -340,7 +355,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -373,7 +388,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -406,7 +421,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -439,7 +454,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -474,7 +489,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -509,7 +524,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -544,7 +559,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -579,7 +594,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -612,7 +627,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -645,7 +660,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -678,7 +693,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -711,7 +726,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
@@ -744,7 +759,7 @@ class Raiz03Maissaude extends StatelessWidget {
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 80,
+                    height: tamanhoBotaoLista,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.all(
                         Radius.circular(18),
