@@ -26,6 +26,12 @@ class Raiz03Maissaude extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    // Defina os tamanhos dinamicamente com base na altura da tela
+    double headerFontSize = screenHeight < 1200 ? 16 : 19;
+    double itemFontSize = screenHeight < 1200 ? 14 : 16;
+
     return SizedBox(
       width: double.infinity,
       child: Column(
@@ -36,10 +42,10 @@ class Raiz03Maissaude extends StatelessWidget {
             child: RichText(
               text: TextSpan(
                 text: 'Mais saúde e segurança'.toUpperCase(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Segoe Bold',
-                  color: Color(0xFF0C5422),
-                  fontSize: 19,
+                  color: const Color(0xFF0C5422),
+                  fontSize: headerFontSize,
                 ),
               ),
             ),
@@ -76,10 +82,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Mapa de Risco'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -110,10 +116,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Cipa'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -145,10 +151,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Primeiros Socorros'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -180,10 +186,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Sinalização de Segurança'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -213,10 +219,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Datas Importantes'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -248,10 +254,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Técnico em tst'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -283,10 +289,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'História da Segurança do Trabalho'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -316,10 +322,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'NBrs Relevantes'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -349,10 +355,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'nho'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -382,10 +388,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Tipos de EPi'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -415,10 +421,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'O.s'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -448,10 +454,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'P.P.P'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -483,10 +489,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Incêndio'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -518,10 +524,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Acidentes de Trabalho'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -553,10 +559,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Riscos Ambientais'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -588,10 +594,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'E-Social'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -621,10 +627,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'C.L.T'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -654,10 +660,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'C.I.D'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -687,10 +693,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'A.S.O'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -720,10 +726,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Consulta de Cnae'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),
@@ -753,10 +759,10 @@ class Raiz03Maissaude extends StatelessWidget {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Consulta de CNPJ'.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
-                          fontSize: 16,
+                          fontSize: itemFontSize,
                         ),
                       ),
                     ),

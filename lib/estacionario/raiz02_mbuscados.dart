@@ -9,6 +9,13 @@ class Raiz02Mbuscados extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    // Defina os tamanhos dinamicamente com base na altura da tela
+    double headerFontSize = screenHeight < 1200 ? 16 : 19;
+    double itemFontSize = screenHeight < 1200 ? 14 : 16;
+    double imagemBotao = screenHeight < 1200 ? 280 : 320;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 9),
@@ -20,10 +27,10 @@ class Raiz02Mbuscados extends StatelessWidget {
             RichText(
                 text: TextSpan(
               text: 'Mais Buscados'.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Segoe Bold',
-                color: Color(0xFF0C5422),
-                fontSize: 19,
+                color: const Color(0xFF0C5422),
+                fontSize: headerFontSize,
               ),
             )),
             const SizedBox(height: 9),
@@ -39,18 +46,13 @@ class Raiz02Mbuscados extends StatelessWidget {
                         MaterialButton(
                           padding: const EdgeInsets.only(left: 0, right: 8),
                           onPressed: () async {
-                            // if (!interstitialAd.isAvailable)
-                            //   await interstitialAd.load();
-                            // if (interstitialAd.isAvailable) {
-                            //   await interstitialAd.show();
-                            // }
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => const NrsRaiz()));
                           },
                           child: Container(
-                            width: 320,
+                            width: imagemBotao,
                             decoration: const BoxDecoration(
                               borderRadius: BorderRadius.all(
                                 Radius.circular(18),
@@ -67,10 +69,10 @@ class Raiz02Mbuscados extends StatelessWidget {
                                   const EdgeInsets.only(left: 12, bottom: 8),
                               child: Text(
                                 'Normas Regulamentadoras'.toUpperCase(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontFamily: 'Segoe Bold',
-                                  fontSize: 16,
+                                  fontSize: itemFontSize,
                                 ),
                               ),
                             ),
@@ -85,7 +87,7 @@ class Raiz02Mbuscados extends StatelessWidget {
                                     builder: (context) => const ConsultaCa()));
                           },
                           child: Container(
-                            width: 320,
+                            width: imagemBotao,
                             decoration: const BoxDecoration(
                               borderRadius: BorderRadius.all(
                                 Radius.circular(18),
@@ -101,10 +103,10 @@ class Raiz02Mbuscados extends StatelessWidget {
                                   const EdgeInsets.only(left: 12, bottom: 8),
                               child: Text(
                                 'Consulta de c.a'.toUpperCase(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontFamily: 'Segoe Bold',
-                                  fontSize: 16,
+                                  fontSize: itemFontSize,
                                 ),
                               ),
                             ),
@@ -120,7 +122,7 @@ class Raiz02Mbuscados extends StatelessWidget {
                                         const TreinamentoRaiz()));
                           },
                           child: Container(
-                            width: 320,
+                            width: imagemBotao,
                             decoration: const BoxDecoration(
                               borderRadius: BorderRadius.all(
                                 Radius.circular(18),
@@ -137,10 +139,10 @@ class Raiz02Mbuscados extends StatelessWidget {
                                   const EdgeInsets.only(left: 12, bottom: 8),
                               child: Text(
                                 'Treinamentos'.toUpperCase(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontFamily: 'Segoe Bold',
-                                  fontSize: 16,
+                                  fontSize: itemFontSize,
                                 ),
                               ),
                             ),
@@ -155,7 +157,7 @@ class Raiz02Mbuscados extends StatelessWidget {
                                     builder: (context) => const DdsRaiz()));
                           },
                           child: Container(
-                            width: 320,
+                            width: imagemBotao,
                             decoration: const BoxDecoration(
                               borderRadius: BorderRadius.all(
                                 Radius.circular(18),
@@ -171,10 +173,10 @@ class Raiz02Mbuscados extends StatelessWidget {
                                   const EdgeInsets.only(left: 12, bottom: 8),
                               child: Text(
                                 'temas de d.d.s'.toUpperCase(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontFamily: 'Segoe Bold',
-                                  fontSize: 16,
+                                  fontSize: itemFontSize,
                                 ),
                               ),
                             ),
