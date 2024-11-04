@@ -12,9 +12,9 @@ class Raiz02Mbuscados extends StatelessWidget {
     double screenHeight = MediaQuery.of(context).size.height;
 
     // Defina os tamanhos dinamicamente com base na altura da tela
-    double headerFontSize = screenHeight < 1200 ? 16 : 19;
-    double itemFontSize = screenHeight < 1200 ? 14 : 16;
-    double imagemBotao = screenHeight < 1200 ? 280 : 320;
+    double headerFontSize = screenHeight < 1000 ? 16 : 19;
+    double itemFontSize = screenHeight < 1000 ? 14 : 16;
+    double imagemBotao = screenHeight < 1000 ? 280 : 320;
 
     return Container(
       width: double.infinity,

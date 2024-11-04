@@ -13,6 +13,14 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    double textoPrincipalResponsivo = screenHeight < 1000 ? 26 : 37;
+    FontWeight fonteNegrito =
+        screenHeight < 1000 ? FontWeight.bold : FontWeight.normal;
+    EdgeInsets paddingBotaoComecar =
+        screenHeight < 1000 ? EdgeInsets.zero : const EdgeInsets.all(20);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -33,25 +41,26 @@ class SplashScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Center(
+                Center(
                   child: Text(
                     'Saúde e Segurança\ndo Trabalho na\npalma da mão.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 37,
+                        fontSize: textoPrincipalResponsivo,
                         fontFamily: 'Segoe Black'),
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Center(
+                Center(
                   child: Text(
                     'Tudo a um clique de distância!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
                       height: 1.4,
-                      fontSize: 18,
+                      fontSize: 13,
+                      fontWeight: fonteNegrito,
                     ),
                   ),
                 ),
@@ -69,7 +78,7 @@ class SplashScreen extends StatelessWidget {
                       ));
                     },
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: paddingBotaoComecar,
                       child: Text(
                         "Começar".toUpperCase(),
                         style: const TextStyle(
