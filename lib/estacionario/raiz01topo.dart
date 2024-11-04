@@ -8,9 +8,31 @@ class Raiz01topo extends StatelessWidget {
     double screenHeight = MediaQuery.of(context).size.height;
 
     // Defina os tamanhos dinamicamente com base na altura da tela
-    double logoHeight = screenHeight < 1200 ? 60 : 80;
-    double titleFontSize = screenHeight < 1200 ? 30 : 40;
-    double subtitleFontSize = screenHeight < 1200 ? 14 : 16;
+    double logoHeight;
+    double titleFontSize;
+    double subtitleFontSize;
+    FontWeight subtitleFontWeight;
+    double alturaDoSizedBox;
+
+    if (screenHeight < 1000) {
+      logoHeight = 50;
+      titleFontSize = 26;
+      subtitleFontSize = 12;
+      subtitleFontWeight = FontWeight.bold;
+      alturaDoSizedBox = 20;
+    } else if (screenHeight < 1200) {
+      logoHeight = 60;
+      titleFontSize = 30;
+      subtitleFontSize = 14;
+      subtitleFontWeight = FontWeight.normal;
+      alturaDoSizedBox = 40;
+    } else {
+      logoHeight = 80;
+      titleFontSize = 40;
+      subtitleFontSize = 16;
+      subtitleFontWeight = FontWeight.normal;
+      alturaDoSizedBox = 40;
+    }
 
     return Container(
       decoration: const BoxDecoration(
@@ -26,7 +48,7 @@ class Raiz01topo extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            const SizedBox(height: 40),
+            SizedBox(height: alturaDoSizedBox),
             Image(
               height: logoHeight,
               width: MediaQuery.of(context).size.width,
@@ -45,7 +67,7 @@ class Raiz01topo extends StatelessWidget {
               style: TextStyle(
                 color: Colors.white,
                 fontFamily: 'Segoe Light',
-                fontWeight: FontWeight.bold, // Tornar o texto em negrito
+                fontWeight: subtitleFontWeight,
                 fontSize: subtitleFontSize,
               ),
             ),

@@ -12,9 +12,23 @@ class Raiz02Mbuscados extends StatelessWidget {
     double screenHeight = MediaQuery.of(context).size.height;
 
     // Defina os tamanhos dinamicamente com base na altura da tela
-    double headerFontSize = screenHeight < 1000 ? 16 : 19;
-    double itemFontSize = screenHeight < 1000 ? 14 : 16;
-    double imagemBotao = screenHeight < 1000 ? 280 : 320;
+    double headerFontSize;
+    double itemFontSize;
+    double imagemBotao;
+
+    if (screenHeight < 1000) {
+      headerFontSize = 14;
+      itemFontSize = 12;
+      imagemBotao = 250;
+    } else if (screenHeight < 1200) {
+      headerFontSize = 16;
+      itemFontSize = 14;
+      imagemBotao = 280;
+    } else {
+      headerFontSize = 19;
+      itemFontSize = 16;
+      imagemBotao = 320;
+    }
 
     return Container(
       width: double.infinity,
@@ -39,7 +53,8 @@ class Raiz02Mbuscados extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.13,
+                    height: MediaQuery.of(context).size.height *
+                        0.12, // alterei para 12, estava 13
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       children: [
