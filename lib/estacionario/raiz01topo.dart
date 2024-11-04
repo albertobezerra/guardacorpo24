@@ -14,24 +14,24 @@ class Raiz01topo extends StatelessWidget {
     FontWeight subtitleFontWeight;
     double alturaDoSizedBox;
 
-    if (screenHeight < 1000) {
+    if (screenHeight < 800) {
       logoHeight = 50;
       titleFontSize = 26;
       subtitleFontSize = 12;
       subtitleFontWeight = FontWeight.bold;
-      alturaDoSizedBox = 20;
-    } else if (screenHeight < 1200) {
+      alturaDoSizedBox = 25;
+    } else if (screenHeight < 1000) {
       logoHeight = 60;
       titleFontSize = 30;
       subtitleFontSize = 14;
       subtitleFontWeight = FontWeight.normal;
-      alturaDoSizedBox = 40;
+      alturaDoSizedBox = 50;
     } else {
       logoHeight = 80;
       titleFontSize = 40;
       subtitleFontSize = 16;
       subtitleFontWeight = FontWeight.normal;
-      alturaDoSizedBox = 40;
+      alturaDoSizedBox = 0;
     }
 
     return Container(

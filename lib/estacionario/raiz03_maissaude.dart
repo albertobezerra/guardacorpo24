@@ -33,13 +33,13 @@ class Raiz03Maissaude extends StatelessWidget {
     double itemFontSize;
     double tamanhoBotaoLista;
 
-    if (screenHeight < 1000) {
+    if (screenHeight < 800) {
       headerFontSize = 14;
       itemFontSize = 12;
       tamanhoBotaoLista = 60;
-    } else if (screenHeight < 1200) {
+    } else if (screenHeight < 1000) {
       headerFontSize = 16;
-      itemFontSize = 14;
+      itemFontSize = 16;
       tamanhoBotaoLista = 80;
     } else {
       headerFontSize = 19;

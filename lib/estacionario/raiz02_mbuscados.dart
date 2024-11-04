@@ -16,13 +16,13 @@ class Raiz02Mbuscados extends StatelessWidget {
     double itemFontSize;
     double imagemBotao;
 
-    if (screenHeight < 1000) {
+    if (screenHeight < 800) {
       headerFontSize = 14;
       itemFontSize = 12;
       imagemBotao = 250;
-    } else if (screenHeight < 1200) {
+    } else if (screenHeight < 1000) {
       headerFontSize = 16;
-      itemFontSize = 14;
+      itemFontSize = 16;
       imagemBotao = 280;
     } else {
       headerFontSize = 19;

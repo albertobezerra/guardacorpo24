@@ -7,9 +7,29 @@ class Raiz04Emergencia extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    double tamanhoTitulo;
+    double alturaSizedBox;
+    double marginAle;
+
+    if (screenHeight < 800) {
+      tamanhoTitulo = 14;
+      alturaSizedBox = 0;
+      marginAle = 0;
+    } else if (screenHeight < 1000) {
+      tamanhoTitulo = 16;
+      alturaSizedBox = 9;
+      marginAle = 9;
+    } else {
+      tamanhoTitulo = 14;
+      alturaSizedBox = 9;
+      marginAle = 9;
+    }
+
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 9),
+      margin: EdgeInsets.only(top: marginAle),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -17,14 +37,14 @@ class Raiz04Emergencia extends StatelessWidget {
           RichText(
             text: TextSpan(
               text: 'emergência'.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Segoe Bold',
-                color: Color(0xFF0C5422),
-                fontSize: 19,
+                color: const Color(0xFF0C5422),
+                fontSize: tamanhoTitulo,
               ),
             ),
           ),
-          const SizedBox(height: 9),
+          SizedBox(height: alturaSizedBox),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
