@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/maisbuscados/consultaCa/consulta_ca.dart';
 import 'package:guarda_corpo_2024/matriz/maisbuscados/dds/dds_raiz.dart';
-import 'package:guarda_corpo_2024/matriz/maisbuscados/nrs/raizdasnrs.dart';
 import 'package:guarda_corpo_2024/matriz/maisbuscados/treinamentos/treinamento_raiz.dart';
+
+import '../maisbuscados/nrs/raizdasnrs.dart';
 
 class Raiz02Mbuscados extends StatelessWidget {
   const Raiz02Mbuscados({super.key});
