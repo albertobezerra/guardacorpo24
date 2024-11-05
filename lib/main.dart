@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/estacionario/splash.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:guarda_corpo_2024/splash.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(const MyApp());
 }
 

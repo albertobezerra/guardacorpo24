@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/estacionario/raiz_mestra.dart';
+import 'package:guarda_corpo_2024/matriz/raiz_mestra.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -15,11 +15,23 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
-    double textoPrincipalResponsivo = screenHeight < 1000 ? 26 : 37;
-    FontWeight fonteNegrito =
-        screenHeight < 1000 ? FontWeight.bold : FontWeight.normal;
-    EdgeInsets paddingBotaoComecar =
-        screenHeight < 1000 ? EdgeInsets.zero : const EdgeInsets.all(20);
+    double textoPrincipalResponsivo;
+    FontWeight fonteNegrito;
+    EdgeInsets paddingBotaoComecar;
+
+    if (screenHeight < 800) {
+      textoPrincipalResponsivo = 20;
+      fonteNegrito = FontWeight.normal;
+      paddingBotaoComecar = EdgeInsets.zero;
+    } else if (screenHeight < 1000) {
+      textoPrincipalResponsivo = 30;
+      fonteNegrito = FontWeight.bold;
+      paddingBotaoComecar = const EdgeInsets.all(10);
+    } else {
+      textoPrincipalResponsivo = 37;
+      fonteNegrito = FontWeight.normal;
+      paddingBotaoComecar = const EdgeInsets.all(20);
+    }
 
     return Scaffold(
       body: Container(
