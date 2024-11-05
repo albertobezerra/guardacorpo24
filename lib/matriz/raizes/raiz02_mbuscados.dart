@@ -3,10 +3,22 @@ import 'package:guarda_corpo_2024/matriz/maisbuscados/consultaCa/consulta_ca.dar
 import 'package:guarda_corpo_2024/matriz/maisbuscados/dds/dds_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/maisbuscados/treinamentos/treinamento_raiz.dart';
 
+import '../../admob/interstitial_ad_manager.dart';
 import '../maisbuscados/nrs/raizdasnrs.dart';
 
-class Raiz02Mbuscados extends StatelessWidget {
+class Raiz02Mbuscados extends StatefulWidget {
   const Raiz02Mbuscados({super.key});
+
+  @override
+  State<Raiz02Mbuscados> createState() => _Raiz02MbuscadosState();
+}
+
+class _Raiz02MbuscadosState extends State<Raiz02Mbuscados> {
+  @override
+  void initState() {
+    super.initState();
+    InterstitialAdManager.loadInterstitialAd();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,10 +109,10 @@ class Raiz02Mbuscados extends StatelessWidget {
                         MaterialButton(
                           padding: const EdgeInsets.only(left: 0, right: 8),
                           onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const ConsultaCa()));
+                            InterstitialAdManager.showInterstitialAd(
+                              context,
+                              const ConsultaCa(),
+                            );
                           },
                           child: Container(
                             width: imagemBotao,
