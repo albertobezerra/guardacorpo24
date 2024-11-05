@@ -1,66 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/maisbuscados/nrs/nr1.dart';
+import '../../../admob/banner_ad_widget.dart';
+import '../../../admob/interstitial_ad_manager.dart';
 
-class NrsRaiz extends StatelessWidget {
+class NrsRaiz extends StatefulWidget {
   const NrsRaiz({super.key});
+
+  @override
+  State<NrsRaiz> createState() => _NrsRaizState();
+}
+
+class _NrsRaizState extends State<NrsRaiz> {
+  @override
+  void initState() {
+    super.initState();
+    InterstitialAdManager.loadInterstitialAd();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
+        child: AppBar(
+          toolbarHeight: 200,
+          title: Text(
+            'Normas Regulamentadoras'.toUpperCase(),
+            style: const TextStyle(
+              fontFamily: 'Segoe',
+              color: Colors.white,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          flexibleSpace: const Image(
+            image: AssetImage('assets/images/normas.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
       body: Column(
         children: [
           Flexible(
-            flex: 4,
-            child: Container(
-              decoration: const BoxDecoration(
-                borderRadius:
-                    BorderRadius.only(bottomRight: Radius.circular(70)),
-                image: DecorationImage(
-                  image: AssetImage('assets/images/normas.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.only(top: 50, left: 30, right: 30),
-                    width: MediaQuery.of(context).size.width,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: const Icon(
-                                Icons.arrow_back,
-                                size: 26,
-                                color: Colors.white,
-                              ),
-                            )
-                          ],
-                        ),
-                        const SizedBox(height: 120),
-                        Text(
-                          'normas regulamentadoras'.toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontFamily: 'Segoe Bold',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Flexible(
-            flex: 6,
+            flex: 12,
             child: MediaQuery.removePadding(
               context: context,
               removeTop: true,
@@ -75,15 +65,8 @@ class NrsRaiz extends StatelessWidget {
                       elevation: 5,
                       child: InkWell(
                         onTap: () async {
-                          // if (!interstitialAd.isAvailable)
-                          //   await interstitialAd.load();
-                          // if (interstitialAd.isAvailable) {
-                          //   await interstitialAd.show();
-                          // }
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const Nr1()));
+                          InterstitialAdManager.showInterstitialAd(
+                              context, const Nr1());
                         },
                         child: Container(
                           padding: const EdgeInsets.all(24),
@@ -112,7 +95,11 @@ class NrsRaiz extends StatelessWidget {
                 ),
               ),
             ),
-          )
+          ),
+          const Flexible(
+            flex: 1,
+            child: BannerAdWidget(),
+          ),
         ],
       ),
     );
