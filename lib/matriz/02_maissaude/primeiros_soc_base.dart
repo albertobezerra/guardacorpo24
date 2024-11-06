@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
 
-class TreinamentoBase extends StatefulWidget {
+import '../../admob/banner_ad_widget.dart';
+
+class PrimeirosSocBase extends StatefulWidget {
   final String title;
   final String content;
-  const TreinamentoBase(
-      {super.key,
-      required this.title,
-      required this.content}); // Atualize o construtor
+  const PrimeirosSocBase({
+    super.key,
+    required this.title,
+    required this.content,
+  });
 
   @override
-  TreinamentoBaseState createState() => TreinamentoBaseState();
+  State<PrimeirosSocBase> createState() => _PrimeirosSocBaseState();
 }
 
-class TreinamentoBaseState extends State<TreinamentoBase> {
+class _PrimeirosSocBaseState extends State<PrimeirosSocBase> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

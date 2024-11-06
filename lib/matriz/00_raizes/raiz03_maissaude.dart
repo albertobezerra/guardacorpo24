@@ -10,7 +10,7 @@ import '../02_maissaude/nbrs.dart';
 import '../02_maissaude/nho.dart';
 import '../02_maissaude/os.dart';
 import '../02_maissaude/ppp.dart';
-import '../02_maissaude/primeiros_soc_rz.dart';
+import '../02_maissaude/primeiros_soc_raiz.dart';
 import '../02_maissaude/riscoamb.dart';
 import '../02_maissaude/acidente.dart';
 import '../02_maissaude/cid.dart';
@@ -82,7 +82,6 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
             child: ListView(
               padding: const EdgeInsets.only(top: 9),
               children: [
-                // _listadebtnssecundarios(),
                 MaterialButton(
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
@@ -158,10 +157,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const PrimeirosSocRz()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const PrimeirosSocRz(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -193,10 +192,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Sinalizacao()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Sinalizacao(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -228,8 +227,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Datas()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Datas(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -261,10 +262,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Tecnico()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Tecnico(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -296,10 +297,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Historia()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Historia(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -331,8 +332,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Nbrs()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Nbrs(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -364,8 +367,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Nho()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Nho(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -397,8 +402,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Epi()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Epi(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -430,8 +437,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Os()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Os(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -463,8 +472,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Ppp()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Ppp(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -496,10 +507,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Incendio()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Incendio(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -531,10 +542,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Acidente()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Acidente(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -566,10 +577,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Riscoamb()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Riscoamb(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -601,10 +612,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Esocial()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Esocial(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -636,8 +647,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Clt()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Clt(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -669,8 +682,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Cid()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Cid(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -702,8 +717,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Aso()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Aso(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -735,8 +752,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Cnae()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Cnae(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -768,8 +787,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Cnpj()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Cnpj(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
