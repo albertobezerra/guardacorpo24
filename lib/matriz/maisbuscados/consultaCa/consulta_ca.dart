@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../../../admob/banner_ad_widget.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 class ConsultaCa extends StatefulWidget {
   const ConsultaCa({super.key});
@@ -10,6 +12,33 @@ class ConsultaCa extends StatefulWidget {
 }
 
 class _ConsultaCaState extends State<ConsultaCa> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    late final PlatformWebViewControllerCreationParams params;
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams(
+        allowsInlineMediaPlayback: true,
+        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+      );
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
+    }
+
+    _controller = WebViewController.fromPlatformCreationParams(params)
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse('https://meuca.com.br'));
+
+    if (_controller.platform is AndroidWebViewController) {
+      AndroidWebViewController.enableDebugging(true);
+      (_controller.platform as AndroidWebViewController)
+          .setMediaPlaybackRequiresUserGesture(false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +74,7 @@ class _ConsultaCaState extends State<ConsultaCa> {
         children: [
           Flexible(
             flex: 12,
-            child: Container(),
+            child: WebViewWidget(controller: _controller),
           ),
           const Flexible(
             flex: 1,
