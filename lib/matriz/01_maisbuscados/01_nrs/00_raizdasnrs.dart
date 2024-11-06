@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../admob/banner_ad_widget.dart';
 import '../../../admob/interstitial_ad_manager.dart';
-import 'nr_base.dart';
+import '01_nr_base.dart';
 
 class NrsRaiz extends StatefulWidget {
   const NrsRaiz({super.key});

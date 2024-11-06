@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../admob/banner_ad_widget.dart';
 import '../../../admob/interstitial_ad_manager.dart';
-import 'dds_base.dart';
+import '01_dds_base.dart';
 
 class DdsRaiz extends StatefulWidget {
   const DdsRaiz({super.key});

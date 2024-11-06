@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/02_consultaCa/consulta_ca.dart';
-import 'package:guarda_corpo_2024/matriz/01_maisbuscados/04_dds/dds_raiz.dart';
-import 'package:guarda_corpo_2024/matriz/01_maisbuscados/treinamentos/treinamento_raiz.dart';
+import 'package:guarda_corpo_2024/matriz/01_maisbuscados/04_dds/00_dds_raiz.dart';
+import 'package:guarda_corpo_2024/matriz/01_maisbuscados/03_treinamentos/00_treinamento_raiz.dart';
 
 import '../../admob/interstitial_ad_manager.dart';
-import '../01_maisbuscados/01_nrs/raizdasnrs.dart';
+import '../01_maisbuscados/01_nrs/00_raizdasnrs.dart';
 
 class Raiz02Mbuscados extends StatefulWidget {
   const Raiz02Mbuscados({super.key});
