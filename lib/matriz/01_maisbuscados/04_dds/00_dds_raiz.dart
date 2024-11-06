@@ -67,8 +67,7 @@ class _DdsRaizState extends State<DdsRaiz> {
       ),
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
+          Expanded(
             child: MediaQuery.removePadding(
               context: context,
               removeTop: true,
@@ -119,10 +118,7 @@ class _DdsRaizState extends State<DdsRaiz> {
               ),
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: BannerAdWidget(),
-          ),
+          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );

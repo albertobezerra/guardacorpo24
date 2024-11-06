@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:logger/logger.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
-import 'package:guarda_corpo_2024/admob/interstitial_ad_manager.dart';
 
 class NrBase extends StatefulWidget {
   final String title;
@@ -19,12 +18,6 @@ class NrBase extends StatefulWidget {
 class NrBaseState extends State<NrBase> {
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
   final Logger logger = Logger();
-
-  @override
-  void initState() {
-    super.initState();
-    InterstitialAdManager.loadInterstitialAd();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,17 +52,13 @@ class NrBaseState extends State<NrBase> {
       ),
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
+          Expanded(
             child: SfPdfViewer.asset(
               widget.pdfPath, // Use o caminho do PDF passado
               key: _pdfViewerKey,
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: BannerAdWidget(),
-          ),
+          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );

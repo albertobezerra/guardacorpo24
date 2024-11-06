@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
-import 'package:guarda_corpo_2024/admob/interstitial_ad_manager.dart';
 
 class DdsBase extends StatefulWidget {
   final String title;
@@ -17,12 +16,6 @@ class DdsBase extends StatefulWidget {
 
 class DdsBaseState extends State<DdsBase> {
   final Logger logger = Logger();
-
-  @override
-  void initState() {
-    super.initState();
-    InterstitialAdManager.loadInterstitialAd();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +50,7 @@ class DdsBaseState extends State<DdsBase> {
       ),
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
+          Expanded(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: SingleChildScrollView(
@@ -72,10 +64,7 @@ class DdsBaseState extends State<DdsBase> {
               ),
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: BannerAdWidget(),
-          ),
+          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );
