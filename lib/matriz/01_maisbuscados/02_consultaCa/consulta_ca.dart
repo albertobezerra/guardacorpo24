@@ -65,7 +65,7 @@ class _ConsultaCaState extends State<ConsultaCa> {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/normas.jpg'),
+            image: AssetImage('assets/images/epi.jpg'),
             fit: BoxFit.cover,
           ),
         ),
