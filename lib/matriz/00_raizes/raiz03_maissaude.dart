@@ -88,7 +88,9 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
                     InterstitialAdManager.showInterstitialAd(
-                        context, const MapaDaRisco());
+                      context,
+                      const MapaDaRisco(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
@@ -120,8 +122,10 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const Cipa()));
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Cipa(),
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
