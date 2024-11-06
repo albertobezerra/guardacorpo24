@@ -6,6 +6,15 @@ import 'package:guarda_corpo_2024/splash.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
+
+  // Define a cor da barra de status
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent, // Altere a cor aqui
+    systemNavigationBarIconBrightness: Brightness.light,
+    statusBarIconBrightness:
+        Brightness.light, // Altere o brilho dos ícones aqui
+  ));
+
   runApp(const MyApp());
 }
 
@@ -14,11 +23,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // Altere para a cor desejada
-      statusBarIconBrightness:
-          Brightness.light, // ou Brightness.dark para ícones escuros
-    ));
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Segoe'),
