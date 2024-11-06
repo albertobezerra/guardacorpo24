@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../admob/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
 import '../02_maissaude/clt.dart';
 import '../02_maissaude/cnae.dart';
@@ -21,8 +22,19 @@ import '../02_maissaude/incendio.dart';
 import '../02_maissaude/sinalizacao.dart';
 import '../02_maissaude/tecnico.dart';
 
-class Raiz03Maissaude extends StatelessWidget {
+class Raiz03Maissaude extends StatefulWidget {
   const Raiz03Maissaude({super.key});
+
+  @override
+  State<Raiz03Maissaude> createState() => _Raiz03MaissaudeState();
+}
+
+class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
+  @override
+  void initState() {
+    super.initState();
+    InterstitialAdManager.loadInterstitialAd();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,10 +87,8 @@ class Raiz03Maissaude extends StatelessWidget {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const MapaDaRisco()));
+                    InterstitialAdManager.showInterstitialAd(
+                        context, const MapaDaRisco());
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
