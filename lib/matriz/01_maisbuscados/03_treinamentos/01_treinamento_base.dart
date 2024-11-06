@@ -50,7 +50,7 @@ class TreinamentoBaseState extends State<TreinamentoBase> {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/treinamento.jpg'),
+            image: AssetImage('assets/images/treinamentos.jpg'),
             fit: BoxFit.cover,
           ),
         ),
