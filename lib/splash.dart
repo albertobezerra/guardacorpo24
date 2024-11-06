@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/raizes/raiz_mestra.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SplashScreen extends StatelessWidget {

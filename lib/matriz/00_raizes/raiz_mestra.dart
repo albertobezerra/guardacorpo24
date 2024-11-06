@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/raizes/raiz01topo.dart';
-import 'package:guarda_corpo_2024/matriz/raizes/raiz02_mbuscados.dart';
-import 'package:guarda_corpo_2024/matriz/raizes/raiz03_maissaude.dart';
-import 'package:guarda_corpo_2024/matriz/raizes/raiz04_emergencia.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz01topo.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz02_mbuscados.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz03_maissaude.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz04_emergencia.dart';
 
 class Raiz extends StatelessWidget {
   const Raiz({super.key});
