@@ -7,7 +7,7 @@ import '../02_maissaude/cnpj.dart';
 import '../02_maissaude/epi.dart';
 import '../02_maissaude/mapa_da_risco.dart';
 import '../02_maissaude/nbrs.dart';
-import '../02_maissaude/nho.dart';
+import '../02_maissaude/nho_raiz.dart';
 import '../02_maissaude/os.dart';
 import '../02_maissaude/ppp.dart';
 import '../02_maissaude/primeiros_soc_raiz.dart';
@@ -388,7 +388,7 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                       alignment: AlignmentDirectional.bottomStart,
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
-                        'nho'.toUpperCase(),
+                        'Normas de Higiene Ocupacional'.toUpperCase(),
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',

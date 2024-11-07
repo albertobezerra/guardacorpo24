@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
-class NrBase extends StatefulWidget {
+class NhoBase extends StatefulWidget {
   final String title;
   final String pdfPath;
-  const NrBase(
-      {super.key,
-      required this.title,
-      required this.pdfPath}); // Atualize o construtor
-
+  const NhoBase({
+    super.key,
+    required this.title,
+    required this.pdfPath,
+  });
   @override
-  NrBaseState createState() => NrBaseState();
+  State<NhoBase> createState() => _NhoBaseState();
 }
 
-class NrBaseState extends State<NrBase> {
+class _NhoBaseState extends State<NhoBase> {
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
