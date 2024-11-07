@@ -102,8 +102,11 @@ class MapaDaRisco extends StatelessWidget {
                             style: TextButton.styleFrom(
                                 backgroundColor: const Color(0xff0C5422),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.all(10)),
-                            child: const Text('Exemplo'),
+                                padding:
+                                    const EdgeInsets.only(left: 30, right: 30)),
+                            child: const Text(
+                              'Exemplo',
+                            ),
                           )),
                     )
                   ],
