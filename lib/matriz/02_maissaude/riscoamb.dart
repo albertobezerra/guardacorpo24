@@ -52,6 +52,7 @@ class Riscoamb extends StatelessWidget {
                         textAlign: TextAlign.justify,
                         text: const TextSpan(
                           style: TextStyle(
+                            fontFamily: 'Segoe',
                             fontSize: 14,
                             color: Colors.black,
                           ),

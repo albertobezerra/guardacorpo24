@@ -115,6 +115,7 @@ class ImportantDatesText extends StatelessWidget {
       textAlign: TextAlign.justify,
       text: TextSpan(
         style: const TextStyle(
+          fontFamily: 'Segoe',
           fontSize: 14,
           color: Colors.black,
         ),
@@ -123,7 +124,10 @@ class ImportantDatesText extends StatelessWidget {
                   children: [
                     TextSpan(
                       text: '${dateMap["date"]} - ',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontFamily: 'Segoe Bold',
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     TextSpan(text: '${dateMap["description"]}\n\n'),
                   ],
