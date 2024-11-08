@@ -47,9 +47,9 @@ class _ConsultaCaState extends State<ConsultaCa> {
             Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
         child: AppBar(
           toolbarHeight: 200,
-          title: const Text(
-            'Consulta de C.A',
-            style: TextStyle(
+          title: Text(
+            'Consulta de C.A'.toUpperCase(),
+            style: const TextStyle(
               fontFamily: 'Segoe',
               color: Colors.white,
               fontSize: 16,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../admob/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
-import '../02_maissaude/clt.dart';
+// import '../02_maissaude/clt.dart';
 import '../02_maissaude/cnae.dart';
 import '../02_maissaude/cnpj.dart';
 import '../02_maissaude/epi.dart';
@@ -643,41 +643,41 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                     ),
                   ),
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Clt(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/clt.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'C.L.T'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                // MaterialButton(
+                //   padding:
+                //       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                //   onPressed: () {
+                //     InterstitialAdManager.showInterstitialAd(
+                //       context,
+                //       const Clt(),
+                //     );
+                //   },
+                //   child: Container(
+                //     width: MediaQuery.of(context).size.width,
+                //     height: tamanhoBotaoLista,
+                //     decoration: const BoxDecoration(
+                //       borderRadius: BorderRadius.all(
+                //         Radius.circular(18),
+                //       ),
+                //       image: DecorationImage(
+                //         image: ExactAssetImage('assets/images/clt.jpg'),
+                //         fit: BoxFit.cover,
+                //       ),
+                //     ),
+                //     child: Container(
+                //       alignment: AlignmentDirectional.bottomStart,
+                //       margin: const EdgeInsets.only(left: 12, bottom: 8),
+                //       child: Text(
+                //         'C.L.T'.toUpperCase(),
+                //         style: TextStyle(
+                //           color: Colors.white,
+                //           fontFamily: 'Segoe Bold',
+                //           fontSize: itemFontSize,
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 MaterialButton(
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 12),
