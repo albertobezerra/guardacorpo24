@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:logger/logger.dart';
 
 class BannerAdWidget extends StatefulWidget {
   const BannerAdWidget({super.key});
@@ -11,7 +10,6 @@ class BannerAdWidget extends StatefulWidget {
 
 class BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
-  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -22,11 +20,9 @@ class BannerAdWidgetState extends State<BannerAdWidget> {
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
-          logger.i('Ad loaded.');
           setState(() {});
         },
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
-          logger.e('Ad failed to load: $error');
           ad.dispose();
         },
       ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
 
 class DdsBase extends StatefulWidget {
@@ -15,8 +14,6 @@ class DdsBase extends StatefulWidget {
 }
 
 class DdsBaseState extends State<DdsBase> {
-  final Logger logger = Logger();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

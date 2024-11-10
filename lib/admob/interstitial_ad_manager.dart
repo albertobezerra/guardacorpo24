@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:logger/logger.dart';
 
 class InterstitialAdManager {
   static InterstitialAd? _interstitialAd;
   static bool _isInterstitialAdReady = false;
-  static final Logger logger = Logger();
 
   static void loadInterstitialAd() {
     InterstitialAd.load(
@@ -13,13 +11,11 @@ class InterstitialAdManager {
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
-          logger.i('Interstitial Ad loaded.');
           _interstitialAd = ad;
           _isInterstitialAdReady = true;
           _interstitialAd?.setImmersiveMode(true);
         },
         onAdFailedToLoad: (LoadAdError error) {
-          logger.e('Interstitial Ad failed to load: $error');
           _isInterstitialAdReady = false;
         },
       ),
@@ -40,7 +36,6 @@ class InterstitialAdManager {
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
-          logger.e('Failed to show Interstitial Ad: $error');
           loadInterstitialAd();
           Navigator.push(
             context,
