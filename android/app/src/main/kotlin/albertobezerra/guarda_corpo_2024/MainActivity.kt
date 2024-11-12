@@ -1,4 +1,4 @@
-package albertobezerra.guarda_corpo_2024
+package equipebezerradasilva.guardacorpo
 
 import io.flutter.embedding.android.FlutterActivity
 

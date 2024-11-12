@@ -43,7 +43,7 @@ android {
         applicationId = "equipebezerradasilva.guardacorpo"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 32 // Defina aqui diretamente
+        versionCode = 33 // Defina aqui diretamente
         versionName = '4.0.0' // Defina aqui diretamente
     }
 
