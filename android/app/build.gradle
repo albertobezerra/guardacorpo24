@@ -1,6 +1,6 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
+    id "org.jetbrains.kotlin.android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -21,6 +21,27 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
+    namespace = "equipebezerradasilva.guardacorpo" // Altere para o namespace correto do seu app
+    compileSdkVersion 34
+    ndkVersion = flutter.ndkVersion // Certifique-se de ter definido isso no gradle.properties ou substitua diretamente.
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17" // Certifique-se de definir o mesmo target para Kotlin
+    }
+
+    defaultConfig {
+        applicationId "equipebezerradasilva.guardacorpo" // Ajuste para o ID correto do seu aplicativo
+        minSdkVersion 21
+        targetSdkVersion 34
+        versionCode 33
+        versionName "4.0.0"
+    }
+
     signingConfigs {
         release {
             keyAlias = keystoreProperties['keyAlias']
@@ -30,35 +51,30 @@ android {
         }
     }
 
-    namespace = "equipebezerradasilva.guardacorpo"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    defaultConfig {
-        applicationId = "equipebezerradasilva.guardacorpo"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = 33 // Defina aqui diretamente
-        versionName = '4.0.0' // Defina aqui diretamente
-    }
-
     buildTypes {
-        release {
-            signingConfig = signingConfigs.release
-            ndk {
-                debugSymbolLevel = 'FULL' // Adicionado para gerar símbolos de depuração
-            }
+        debug {
+            signingConfig signingConfigs.debug
         }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17) // Define Java 17 como padrão
     }
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
 println "Flutter Version Code: ${android.defaultConfig.versionCode}"

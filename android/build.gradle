@@ -5,8 +5,19 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0' // Verifique se esta é a versão mais recente
+        classpath 'com.android.tools.build:gradle:8.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.9.10'
+    id 'java'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
     }
 }
 
@@ -17,15 +28,10 @@ allprojects {
     }
 }
 
-
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 subprojects {
     project.evaluationDependsOn(":app")
-}
-
-tasks.register("clean", Delete) {
-    delete rootProject.buildDir
 }
