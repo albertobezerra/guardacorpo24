@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/splash.dart';
+import 'package:upgrader/upgrader.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
-
-  // Define a cor da barra de status
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent, // Altere a cor aqui
-    systemNavigationBarIconBrightness: Brightness.light,
-    statusBarIconBrightness: Brightness.light,
-  ));
+  await Upgrader.clearSavedSettings();
 
   runApp(const MyApp());
 }
@@ -25,7 +19,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Segoe'),
-      home: const SplashScreen(),
+      home: UpgradeAlert(
+        dialogStyle: UpgradeDialogStyle.material,
+        child: const SplashScreen(),
+      ),
     );
   }
 }
