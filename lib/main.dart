@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:guarda_corpo_2024/splash.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
 
 void main() async {
@@ -8,11 +10,21 @@ void main() async {
   MobileAds.instance.initialize();
   await Upgrader.clearSavedSettings();
 
-  runApp(const MyApp());
+  // Verificar se é a primeira vez que o app é aberto
+  final prefs = await SharedPreferences.getInstance();
+  final bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
+
+  runApp(MyApp(isFirstTime: isFirstTime));
+
+  if (isFirstTime) {
+    prefs.setBool('isFirstTime', false);
+  }
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isFirstTime;
+
+  const MyApp({super.key, required this.isFirstTime});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +33,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(fontFamily: 'Segoe'),
       home: UpgradeAlert(
         dialogStyle: UpgradeDialogStyle.material,
-        child: const SplashScreen(),
+        child: isFirstTime ? const SplashScreen() : const Raiz(),
       ),
     );
   }

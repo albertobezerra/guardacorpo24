@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
-  void requeridoPermissao() async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      await Permission.storage.request();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +77,6 @@ class SplashScreen extends StatelessWidget {
                   child: MaterialButton(
                     minWidth: double.infinity,
                     onPressed: () {
-                      //requeridoPermissao();
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) => const Raiz(),
                       ));
