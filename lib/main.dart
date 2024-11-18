@@ -47,6 +47,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Segoe'),
       home: UpgradeAlert(
+        upgrader: Upgrader(languageCode: 'pt'),
         dialogStyle: UpgradeDialogStyle.material,
         child: isFirstTime ? const SplashScreen() : const Raiz(),
       ),

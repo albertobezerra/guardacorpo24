@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../admob/banner_ad_widget.dart';
 
 class PrimeirosSocBase extends StatefulWidget {
@@ -53,11 +52,17 @@ class _PrimeirosSocBaseState extends State<PrimeirosSocBase> {
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: SingleChildScrollView(
-                child: Text(
-                  widget.content, // Use o conteúdo passado
-                  style: const TextStyle(
-                    fontFamily: 'Segoe',
-                    fontSize: 16,
+                child: RichText(
+                  textAlign: TextAlign.justify,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontFamily: 'Segoe',
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
+                    children: <TextSpan>[
+                      TextSpan(text: widget.content),
+                    ],
                   ),
                 ),
               ),

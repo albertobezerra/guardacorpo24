@@ -4,10 +4,11 @@ import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
 class DdsBase extends StatefulWidget {
   final String title;
   final String content;
-  const DdsBase(
-      {super.key,
-      required this.title,
-      required this.content}); // Atualize o construtor
+  const DdsBase({
+    super.key,
+    required this.title,
+    required this.content,
+  });
 
   @override
   DdsBaseState createState() => DdsBaseState();
@@ -51,11 +52,17 @@ class DdsBaseState extends State<DdsBase> {
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: SingleChildScrollView(
-                child: Text(
-                  widget.content, // Use o conteúdo passado
-                  style: const TextStyle(
-                    fontFamily: 'Segoe',
-                    fontSize: 16,
+                child: RichText(
+                  textAlign: TextAlign.justify,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontFamily: 'Segoe',
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
+                    children: <TextSpan>[
+                      TextSpan(text: widget.content),
+                    ],
                   ),
                 ),
               ),
