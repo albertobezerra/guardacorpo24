@@ -38,8 +38,8 @@ android {
         applicationId "equipebezerradasilva.guardacorpo" // Ajuste para o ID correto do seu aplicativo
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 36
-        versionName "4.2.0"
+        versionCode 38
+        versionName "4.3.4"
     }
 
     signingConfigs {

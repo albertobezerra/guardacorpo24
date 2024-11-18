@@ -57,13 +57,6 @@ class Os extends StatelessWidget {
                           ),
                           children: [
                             TextSpan(
-                              text: 'Ordem de Serviço\n\n',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            TextSpan(
                               text:
                                   'A Ordem de Serviço é um documento importante que, quando assinado pelo colaborador, confirma que ele tem ciência dos riscos associados à sua atividade, bem como das responsabilidades tanto do empregado quanto do empregador.\n\n',
                             ),

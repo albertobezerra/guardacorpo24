@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:guarda_corpo_2024/splash.dart';
@@ -13,6 +14,20 @@ void main() async {
   // Verificar se é a primeira vez que o app é aberto
   final prefs = await SharedPreferences.getInstance();
   final bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
+
+  // Configurando a barra de status
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor:
+        Colors.transparent, // Define a barra de status como transparente
+    statusBarIconBrightness:
+        Brightness.light, // Define os ícones da barra de status como brancos
+    statusBarBrightness:
+        Brightness.dark, // Define o brilho da barra de status para iOS
+    systemNavigationBarColor:
+        Colors.white, // Define a cor da barra de navegação
+    systemNavigationBarIconBrightness:
+        Brightness.dark, // Define os ícones da barra de navegação como escuros
+  ));
 
   runApp(MyApp(isFirstTime: isFirstTime));
 
