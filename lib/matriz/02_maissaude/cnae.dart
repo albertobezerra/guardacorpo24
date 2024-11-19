@@ -13,6 +13,7 @@ class Cnae extends StatefulWidget {
 
 class _CnaeState extends State<Cnae> {
   late final WebViewController _controller;
+  bool _isLoading = true; // Declaração de Variável de Estado
 
   @override
   void initState() {
@@ -30,6 +31,20 @@ class _CnaeState extends State<Cnae> {
 
     _controller = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            setState(() {
+              _isLoading = true;
+            });
+          },
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        ),
+      )
       ..loadRequest(
           Uri.parse('https://concla.ibge.gov.br/busca-online-cnae.html'));
 
@@ -75,7 +90,14 @@ class _CnaeState extends State<Cnae> {
         children: [
           Flexible(
             flex: 12,
-            child: WebViewWidget(controller: _controller),
+            child: Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Container(),
+              ],
+            ),
           ),
           const Flexible(
             flex: 1,

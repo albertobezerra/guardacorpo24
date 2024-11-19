@@ -39,7 +39,6 @@ dependencies:
   flutter_phone_direct_caller: ^2.0.0
   syncfusion_flutter_pdfviewer: ^27.1.57
   google_mobile_ads: ^5.2.0
-  # logger: ^2.4.0
   webview_flutter: ^4.9.0
   webview_flutter_android: any
   webview_flutter_wkwebview: any

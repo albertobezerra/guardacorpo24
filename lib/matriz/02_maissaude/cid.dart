@@ -13,6 +13,7 @@ class Cid extends StatefulWidget {
 
 class _CidState extends State<Cid> {
   late final WebViewController _controller;
+  bool _isLoading = true; // Declaração de Variável de Estado
 
   @override
   void initState() {
@@ -30,6 +31,20 @@ class _CidState extends State<Cid> {
 
     _controller = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            setState(() {
+              _isLoading = true;
+            });
+          },
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        ),
+      )
       ..loadRequest(Uri.parse('https://cid10.com.br'));
 
     if (_controller.platform is AndroidWebViewController) {
@@ -74,7 +89,14 @@ class _CidState extends State<Cid> {
         children: [
           Flexible(
             flex: 12,
-            child: WebViewWidget(controller: _controller),
+            child: Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Container(),
+              ],
+            ),
           ),
           const Flexible(
             flex: 1,

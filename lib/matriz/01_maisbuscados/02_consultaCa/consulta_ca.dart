@@ -13,6 +13,7 @@ class ConsultaCa extends StatefulWidget {
 
 class _ConsultaCaState extends State<ConsultaCa> {
   late final WebViewController _controller;
+  bool _isLoading = true; // Declaração de Variável de Estado
 
   @override
   void initState() {
@@ -30,6 +31,20 @@ class _ConsultaCaState extends State<ConsultaCa> {
 
     _controller = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            setState(() {
+              _isLoading = true;
+            });
+          },
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        ),
+      )
       ..loadRequest(Uri.parse('https://meuca.com.br'));
 
     if (_controller.platform is AndroidWebViewController) {
@@ -74,7 +89,14 @@ class _ConsultaCaState extends State<ConsultaCa> {
         children: [
           Flexible(
             flex: 12,
-            child: WebViewWidget(controller: _controller),
+            child: Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Container(),
+              ],
+            ),
           ),
           const Flexible(
             flex: 1,

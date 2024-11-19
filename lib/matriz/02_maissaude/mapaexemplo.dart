@@ -1,10 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-
 import '../../admob/banner_ad_widget.dart';
 
-class Mapaexemplo extends StatelessWidget {
+class Mapaexemplo extends StatefulWidget {
   const Mapaexemplo({super.key});
+
+  @override
+  MapaexemploState createState() =>
+      MapaexemploState(); // Torne a classe pública
+}
+
+class MapaexemploState extends State<Mapaexemplo> {
+  final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPDF();
+  }
+
+  Future<void> _loadPDF() async {
+    await Future.delayed(const Duration(seconds: 2));
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +61,12 @@ class Mapaexemplo extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: SfPdfViewer.asset(
-              'assets/mapaderisco.pdf',
-              key: GlobalKey<SfPdfViewerState>(),
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SfPdfViewer.asset(
+                    'assets/mapaderisco.pdf',
+                    key: _pdfViewerKey,
+                  ),
           ),
           const BannerAdWidget(),
         ],

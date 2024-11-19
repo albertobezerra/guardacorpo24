@@ -13,6 +13,7 @@ class Cnpj extends StatefulWidget {
 
 class _CnpjState extends State<Cnpj> {
   late final WebViewController _controller;
+  bool _isLoading = true; // Declaração de Variável de Estado
 
   @override
   void initState() {
@@ -30,6 +31,20 @@ class _CnpjState extends State<Cnpj> {
 
     _controller = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            setState(() {
+              _isLoading = true;
+            });
+          },
+          onPageFinished: (String url) {
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        ),
+      )
       ..loadRequest(
           Uri.parse('https://www.contabilizei.com.br/consulta-cnpj-cartao/'));
 
@@ -75,7 +90,14 @@ class _CnpjState extends State<Cnpj> {
         children: [
           Flexible(
             flex: 12,
-            child: WebViewWidget(controller: _controller),
+            child: Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Container(),
+              ],
+            ),
           ),
           const Flexible(
             flex: 1,

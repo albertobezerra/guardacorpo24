@@ -10,12 +10,28 @@ class NhoBase extends StatefulWidget {
     required this.title,
     required this.pdfPath,
   });
+
   @override
   State<NhoBase> createState() => _NhoBaseState();
 }
 
 class _NhoBaseState extends State<NhoBase> {
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+  bool _isLoading = true; // Declaração de Variável de Estado
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPDF(); // Método chamado na inicialização
+  }
+
+  Future<void> _loadPDF() async {
+    // Simulate a delay for loading
+    await Future.delayed(const Duration(seconds: 2));
+    setState(() {
+      _isLoading = false; // Atualiza o estado após o carregamento
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +67,14 @@ class _NhoBaseState extends State<NhoBase> {
       body: Column(
         children: [
           Expanded(
-            child: SfPdfViewer.asset(
-              widget.pdfPath, // Use o caminho do PDF passado
-              key: _pdfViewerKey,
-            ),
+            child: _isLoading
+                ? const Center(
+                    child:
+                        CircularProgressIndicator()) // Indicador de Carregamento
+                : SfPdfViewer.asset(
+                    widget.pdfPath,
+                    key: _pdfViewerKey,
+                  ),
           ),
           const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
