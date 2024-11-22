@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/aet.dart';
 import '../../admob/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
 // import '../02_maissaude/clt.dart';
@@ -809,6 +810,41 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Consulta de CNPJ'.toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Segoe Bold',
+                          fontSize: itemFontSize,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                MaterialButton(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                  onPressed: () {
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const Aet(),
+                    );
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: tamanhoBotaoLista,
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(18),
+                      ),
+                      image: DecorationImage(
+                        image: ExactAssetImage('assets/images/cid.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Container(
+                      alignment: AlignmentDirectional.bottomStart,
+                      margin: const EdgeInsets.only(left: 12, bottom: 8),
+                      child: Text(
+                        'Análise Ergonômica do Trabalho'.toUpperCase(),
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
