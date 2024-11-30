@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class InterstitialAdManager {
@@ -24,6 +25,9 @@ class InterstitialAdManager {
 
   static void showInterstitialAd(BuildContext context, Widget nextPage) {
     if (_isInterstitialAdReady) {
+      // Pause any ongoing audio before showing the ad
+      SystemSound.play(SystemSoundType.click);
+
       _interstitialAd?.show();
       _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
@@ -33,6 +37,9 @@ class InterstitialAdManager {
             context,
             MaterialPageRoute(builder: (context) => nextPage),
           );
+
+          // Resume audio after the ad is dismissed
+          SystemSound.play(SystemSoundType.click);
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
@@ -41,6 +48,9 @@ class InterstitialAdManager {
             context,
             MaterialPageRoute(builder: (context) => nextPage),
           );
+
+          // Resume audio after the ad fails to show
+          SystemSound.play(SystemSoundType.click);
         },
       );
     } else {

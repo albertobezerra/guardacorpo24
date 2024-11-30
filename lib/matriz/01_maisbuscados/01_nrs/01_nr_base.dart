@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
 
+import '../../../components/barradecarregamento.dart';
+
 class NrBase extends StatefulWidget {
   final String title;
   final String pdfPath;
@@ -9,7 +11,7 @@ class NrBase extends StatefulWidget {
     super.key,
     required this.title,
     required this.pdfPath,
-  }); // Atualize o construtor
+  });
 
   @override
   NrBaseState createState() => NrBaseState();
@@ -26,7 +28,7 @@ class NrBaseState extends State<NrBase> {
   }
 
   Future<void> _loadPDF() async {
-    // Simulate a delay for loading
+    // Simula um atraso para carregar
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _isLoading = false; // Atualiza o estado após o carregamento
@@ -44,7 +46,7 @@ class NrBaseState extends State<NrBase> {
           title: Text(
             widget.title.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),
@@ -69,14 +71,14 @@ class NrBaseState extends State<NrBase> {
           Expanded(
             child: _isLoading
                 ? const Center(
-                    child:
-                        CircularProgressIndicator()) // Indicador de Carregamento
+                    child: CustomLoadingIndicator(),
+                  )
                 : SfPdfViewer.asset(
                     widget.pdfPath,
                     key: _pdfViewerKey,
                   ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const BannerAdWidget(),
         ],
       ),
     );

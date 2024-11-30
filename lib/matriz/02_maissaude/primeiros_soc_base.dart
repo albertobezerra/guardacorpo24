@@ -26,7 +26,7 @@ class _PrimeirosSocBaseState extends State<PrimeirosSocBase> {
           title: Text(
             widget.title.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),

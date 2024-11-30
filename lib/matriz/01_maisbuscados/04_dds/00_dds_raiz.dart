@@ -46,7 +46,7 @@ class _DdsRaizState extends State<DdsRaiz> {
     {
       "title": "Ordem de Serviço - O.S",
       "content":
-          "A ordem de serviço é um documento exigido pela NR 1. Na ordem de serviço deve ser identificado o colaborador, o local de trabalho do mesmo e sua funcão.\n\nA partir de sua função que é determinado os riscos. Na ordem de serviço deve está de forma explicita os riscos da função do colaborador e o colaborador deve ter ciência desses riscos.\n\nA ordem de serviço deve ser elaborada para todos os colaborados, lembrando que os riscos são diferenciados a depender da função, exposição e grau de intensidade.\n\nA ordem de serviço dever alocada junto a ficha de cada colaborador da empresa.'"
+          "A ordem de serviço é um documento exigido pela NR 1. Na ordem de serviço deve ser identificado o colaborador, o local de trabalho do mesmo e sua funcão.\n\nA partir de sua função que é determinado os riscos. Na ordem de serviço deve está de forma explicita os riscos da função do colaborador e o colaborador deve ter ciência desses riscos.\n\nA ordem de serviço deve ser elaborada para todos os colaborados, lembrando que os riscos são diferenciados a depender da função, exposição e grau de intensidade.\n\nA ordem de serviço dever alocada junto a ficha de cada colaborador da empresa."
     },
     {
       "title": "Embargo e Interdição",

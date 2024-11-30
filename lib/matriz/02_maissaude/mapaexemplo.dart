@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/barradecarregamento.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../admob/banner_ad_widget.dart';
 
@@ -62,7 +63,7 @@ class MapaexemploState extends State<Mapaexemplo> {
         children: [
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CustomLoadingIndicator())
                 : SfPdfViewer.asset(
                     'assets/mapaderisco.pdf',
                     key: _pdfViewerKey,

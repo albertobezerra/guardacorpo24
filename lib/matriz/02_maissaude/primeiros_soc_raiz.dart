@@ -35,11 +35,6 @@ class _PrimeirosSocRzState extends State<PrimeirosSocRz> {
           "A amputação é a separação de uma parte do corpo, causada geralmente por objetos cortantes, acidentes de trânsito, violência, entre outros.\n\nBuscar atendimento rápido é crucial para evitar infecções e aumentar as chances de reimplante. Se precisar limpar o local, use um pano limpo. Comprima o local com força para conter o sangue e guarde a parte amputada em um saco plástico com gelo, sem contato direto com o gelo. O tempo decorrido até o socorro é decisivo para o sucesso do reimplante."
     },
     {
-      "title": "Corte e Escoriações",
-      "content":
-          "Cortes são comuns e podem ocorrer em diversas situações. Para cortes superficiais, lave a ferida com água e sabão, aplique antisséptico, e cubra com gaze.\n\nPara cortes profundos, pressione com gaze ou pano limpo, lave cuidadosamente e, se necessário, eleve o membro para reduzir o fluxo de sangue. Em cortes graves, é indicado buscar atendimento médico imediatamente."
-    },
-    {
       "title": "Engasgamentos",
       "content":
           "Engasgos ocorrem quando há obstrução da traqueia por objetos estranhos, vômito ou sangue, podendo levar à asfixia.\n\nEm adultos e crianças maiores de um ano, a Manobra de Heimlich é indicada para desobstrução. Para bebês, recomenda-se alternar compressões nas costas e peito. Se a pessoa está inconsciente, contate o serviço de emergência imediatamente."

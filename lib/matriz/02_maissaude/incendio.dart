@@ -13,7 +13,7 @@ class Incendio extends StatelessWidget {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Incêndio e Prevenção'.toUpperCase(),
+            'Incêndio'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,

@@ -26,7 +26,7 @@ class TreinamentoBaseState extends State<TreinamentoBase> {
           title: Text(
             widget.title.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),
@@ -68,7 +68,7 @@ class TreinamentoBaseState extends State<TreinamentoBase> {
               ),
             ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const BannerAdWidget(),
         ],
       ),
     );

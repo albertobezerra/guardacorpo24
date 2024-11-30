@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/components/barradecarregamento.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class NhoBase extends StatefulWidget {
@@ -70,13 +71,13 @@ class _NhoBaseState extends State<NhoBase> {
             child: _isLoading
                 ? const Center(
                     child:
-                        CircularProgressIndicator()) // Indicador de Carregamento
+                        CustomLoadingIndicator()) // Indicador de Carregamento
                 : SfPdfViewer.asset(
                     widget.pdfPath,
                     key: _pdfViewerKey,
                   ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const BannerAdWidget(),
         ],
       ),
     );

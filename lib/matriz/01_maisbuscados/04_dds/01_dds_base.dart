@@ -26,7 +26,7 @@ class DdsBaseState extends State<DdsBase> {
           title: Text(
             widget.title.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/components/barradecarregamento.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -66,7 +67,7 @@ class _CnpjState extends State<Cnpj> {
           title: Text(
             'Consulta de CNPJ'.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),
@@ -94,7 +95,7 @@ class _CnpjState extends State<Cnpj> {
               children: [
                 WebViewWidget(controller: _controller),
                 _isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CustomLoadingIndicator())
                     : Container(),
               ],
             ),

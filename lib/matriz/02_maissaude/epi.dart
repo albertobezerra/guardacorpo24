@@ -13,7 +13,7 @@ class Epi extends StatelessWidget {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'E.P.I.'.toUpperCase(),
+            'Tipos de E.P.I.'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,
