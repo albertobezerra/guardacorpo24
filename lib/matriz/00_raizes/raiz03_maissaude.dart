@@ -564,7 +564,7 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                       alignment: AlignmentDirectional.bottomStart,
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
-                        'Acidentes de Trabalho'.toUpperCase(),
+                        'Acidente de Trabalho'.toUpperCase(),
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
