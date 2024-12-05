@@ -45,7 +45,7 @@ class _NhoBaseState extends State<NhoBase> {
           title: Text(
             widget.title.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),

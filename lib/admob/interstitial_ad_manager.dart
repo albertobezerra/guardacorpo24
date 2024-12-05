@@ -24,40 +24,28 @@ class InterstitialAdManager {
   }
 
   static void showInterstitialAd(BuildContext context, Widget nextPage) {
-    if (_isInterstitialAdReady) {
-      // Pause any ongoing audio before showing the ad
-      SystemSound.play(SystemSoundType.click);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => nextPage),
+    );
 
-      _interstitialAd?.show();
-      _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-          loadInterstitialAd();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => nextPage),
-          );
-
-          // Resume audio after the ad is dismissed
-          SystemSound.play(SystemSoundType.click);
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-          loadInterstitialAd();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => nextPage),
-          );
-
-          // Resume audio after the ad fails to show
-          SystemSound.play(SystemSoundType.click);
-        },
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => nextPage),
-      );
-    }
+    Future.delayed(const Duration(seconds: 5), () {
+      if (_isInterstitialAdReady) {
+        SystemSound.play(SystemSoundType.click);
+        _interstitialAd?.show();
+        _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+            loadInterstitialAd();
+            SystemSound.play(SystemSoundType.click);
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            loadInterstitialAd();
+            SystemSound.play(SystemSoundType.click);
+          },
+        );
+      }
+    });
   }
 }
