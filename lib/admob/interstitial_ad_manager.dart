@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class InterstitialAdManager {
@@ -24,28 +23,31 @@ class InterstitialAdManager {
   }
 
   static void showInterstitialAd(BuildContext context, Widget nextPage) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => nextPage),
-    );
-
-    Future.delayed(const Duration(seconds: 5), () {
-      if (_isInterstitialAdReady) {
-        SystemSound.play(SystemSoundType.click);
-        _interstitialAd?.show();
-        _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
-          onAdDismissedFullScreenContent: (ad) {
-            ad.dispose();
-            loadInterstitialAd();
-            SystemSound.play(SystemSoundType.click);
-          },
-          onAdFailedToShowFullScreenContent: (ad, error) {
-            ad.dispose();
-            loadInterstitialAd();
-            SystemSound.play(SystemSoundType.click);
-          },
-        );
-      }
-    });
+    if (_isInterstitialAdReady) {
+      _interstitialAd?.show();
+      _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          loadInterstitialAd();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => nextPage),
+          );
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          loadInterstitialAd();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => nextPage),
+          );
+        },
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => nextPage),
+      );
+    }
   }
 }
