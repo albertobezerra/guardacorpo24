@@ -39,7 +39,7 @@ class MapaexemploState extends State<Mapaexemplo> {
           title: Text(
             'Exemplo do mapa de risco'.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),
