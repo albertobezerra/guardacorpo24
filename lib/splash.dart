@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/login/login_page.dart';
+import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -78,7 +78,8 @@ class SplashScreen extends StatelessWidget {
                     minWidth: double.infinity,
                     onPressed: () {
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
+                        builder: (context) =>
+                            const AuthPage(), // Direcione para AuthPage
                       ));
                     },
                     child: Padding(
