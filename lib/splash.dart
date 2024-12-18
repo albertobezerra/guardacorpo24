@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
+import 'package:guarda_corpo_2024/components/login/login_page.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -78,7 +78,7 @@ class SplashScreen extends StatelessWidget {
                     minWidth: double.infinity,
                     onPressed: () {
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const Raiz(),
+                        builder: (context) => const LoginPage(),
                       ));
                     },
                     child: Padding(

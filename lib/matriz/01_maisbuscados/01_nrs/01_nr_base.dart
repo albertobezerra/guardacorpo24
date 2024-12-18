@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
 
-import '../../../components/barradecarregamento.dart';
+import '../../../components/carregamento/barradecarregamento.dart';
 
 class NrBase extends StatefulWidget {
   final String title;
