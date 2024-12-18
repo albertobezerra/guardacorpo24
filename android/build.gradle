@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.9.10'
+    ext.kotlin_version = '1.9.10' // Use a versão mais recente
     repositories {
         google()
         mavenCentral()
@@ -35,4 +35,14 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+// Força a resolução de dependências para usar a mesma versão do Kotlin
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'org.jetbrains.kotlin' &&
+            details.requested.name.contains('kotlin-stdlib')) {
+            details.useVersion kotlin_version
+        }
+    }
 }
