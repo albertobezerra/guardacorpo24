@@ -41,7 +41,7 @@ class CustomLoadingIndicatorState extends State<CustomLoadingIndicator>
           );
         },
         child: Image.asset(
-          'assets/images/logoLoad.png', // Substitua pelo caminho do logo da sua marca
+          'assets/images/logoLoad.png',
           width: 100.0,
           height: 100.0,
         ),

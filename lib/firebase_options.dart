@@ -59,4 +59,5 @@ class DefaultFirebaseOptions {
     projectId: 'guardacorpo-57a78',
     storageBucket: 'guardacorpo-57a78.firebasestorage.app',
   );
+
 }
