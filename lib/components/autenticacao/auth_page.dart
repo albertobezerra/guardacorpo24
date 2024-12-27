@@ -22,6 +22,8 @@ class AuthPageState extends State<AuthPage> {
   void initState() {
     super.initState();
     _checkLoggedInStatus(); // Verificar o status de login ao inicializar
+    FirebaseAuth.instance
+        .setLanguageCode('pt-BR'); // Definir o idioma para português
   }
 
   Future<void> _checkLoggedInStatus() async {
@@ -72,10 +74,30 @@ class AuthPageState extends State<AuthPage> {
           SnackBar(content: Text('Registro bem-sucedido! UID: $uid')),
         );
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Email não cadastrado.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Senha incorreta.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'Email já está em uso.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Email inválido.';
+          break;
+        case 'weak-password':
+          errorMessage = 'A senha é muito fraca.';
+          break;
+        default:
+          errorMessage = 'Ocorreu um erro. Tente novamente.';
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
+          SnackBar(content: Text(errorMessage)),
         );
       }
     }

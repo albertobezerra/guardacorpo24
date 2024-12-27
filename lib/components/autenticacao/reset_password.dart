@@ -21,10 +21,21 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
               content: Text('Email de redefinição de senha enviado!')),
         );
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Email não cadastrado.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Email inválido.';
+          break;
+        default:
+          errorMessage = 'Ocorreu um erro. Tente novamente.';
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
+          SnackBar(content: Text(errorMessage)),
         );
       }
     }
