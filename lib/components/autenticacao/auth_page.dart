@@ -41,11 +41,6 @@ class AuthPageState extends State<AuthPage> {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       if (_isLogin) {
-        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        final String uid = userCredential.user!.uid;
         await prefs.setBool('isLoggedIn', true);
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -53,7 +48,10 @@ class AuthPageState extends State<AuthPage> {
           MaterialPageRoute(builder: (context) => const Raiz()),
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login bem-sucedido! UID: $uid')),
+          const SnackBar(
+              content: Text(
+            'Login bem-sucedido!',
+          )),
         );
       } else {
         UserCredential userCredential =
@@ -61,7 +59,6 @@ class AuthPageState extends State<AuthPage> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        final String uid = userCredential.user!.uid;
         await userCredential.user!
             .updateDisplayName(_nameController.text.trim());
         await prefs.setBool('isLoggedIn', true);
@@ -71,7 +68,10 @@ class AuthPageState extends State<AuthPage> {
           MaterialPageRoute(builder: (context) => const Raiz()),
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registro bem-sucedido! UID: $uid')),
+          const SnackBar(
+              content: Text(
+            'Registro bem-sucedido!',
+          )),
         );
       }
     } on FirebaseAuthException catch (e) {
