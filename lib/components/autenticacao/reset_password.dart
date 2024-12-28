@@ -13,6 +13,13 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
 
   Future<void> _resetPassword() async {
+    if (_emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira um email.')),
+      );
+      return;
+    }
+
     try {
       await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
       if (mounted) {

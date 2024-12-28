@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:guarda_corpo_2024/components/autenticacao/auth_service.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
-import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -12,7 +11,6 @@ class AuthPage extends StatefulWidget {
 }
 
 class AuthPageState extends State<AuthPage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -21,92 +19,8 @@ class AuthPageState extends State<AuthPage> {
   @override
   void initState() {
     super.initState();
-    _checkLoggedInStatus(); // Verificar o status de login ao inicializar
-    FirebaseAuth.instance
-        .setLanguageCode('pt-BR'); // Definir o idioma para português
-  }
-
-  Future<void> _checkLoggedInStatus() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    if (isLoggedIn && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Raiz()),
-      );
-    }
-  }
-
-  Future<void> _authenticate() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
-      );
-      return;
-    }
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      if (_isLogin) {
-        await prefs.setBool('isLoggedIn', true);
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Raiz()),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-            'Login bem-sucedido!',
-          )),
-        );
-      } else {
-        UserCredential userCredential =
-            await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        await userCredential.user!
-            .updateDisplayName(_nameController.text.trim());
-        await prefs.setBool('isLoggedIn', true);
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Raiz()),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-            'Registro bem-sucedido!',
-          )),
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage;
-      switch (e.code) {
-        case 'user-not-found':
-          errorMessage = 'Email não cadastrado.';
-          break;
-        case 'wrong-password':
-          errorMessage = 'Senha incorreta.';
-          break;
-        case 'email-already-in-use':
-          errorMessage = 'Email já está em uso.';
-          break;
-        case 'invalid-email':
-          errorMessage = 'Email inválido.';
-          break;
-        case 'weak-password':
-          errorMessage = 'A senha é muito fraca.';
-          break;
-        default:
-          errorMessage = 'Ocorreu um erro. Tente novamente.';
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
-      }
-    }
+    checkLoggedInStatus(context);
+    FirebaseAuth.instance.setLanguageCode('pt-BR');
   }
 
   @override
@@ -131,7 +45,7 @@ class AuthPageState extends State<AuthPage> {
         screenHeight < 800 ? FontWeight.normal : FontWeight.bold;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Evitar redimensionamento automático
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Container(
@@ -246,7 +160,13 @@ class AuthPageState extends State<AuthPage> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: _authenticate,
+                      onPressed: () => authenticate(
+                        context,
+                        _isLogin,
+                        _emailController,
+                        _passwordController,
+                        _nameController,
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0C5422),
                         padding: paddingBotao,
