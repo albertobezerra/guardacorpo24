@@ -28,16 +28,6 @@ class AuthPageState extends State<AuthPage> {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
 
-    EdgeInsets paddingBotao;
-
-    if (screenHeight < 800) {
-      paddingBotao = EdgeInsets.zero;
-    } else if (screenHeight < 1000) {
-      paddingBotao = const EdgeInsets.all(10);
-    } else {
-      paddingBotao = const EdgeInsets.all(20);
-    }
-
     double logoHeight = screenHeight * 0.14;
     double titleFontSize = screenHeight * 0.04;
     double subtitleFontSize = screenHeight * 0.02;
@@ -112,74 +102,71 @@ class AuthPageState extends State<AuthPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20.0,
-                          vertical: 10,
+                          vertical: 10.0,
                         ),
-                        child: TextField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedTextField(
+                            controller: _nameController,
                             labelText: 'Nome',
-                            filled: true,
-                            fillColor: Colors.white.withOpacity(0.8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
                           ),
                         ),
                       ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20.0,
+                        vertical: 10.0,
                       ),
-                      child: TextField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedTextField(
+                          controller: _emailController,
                           labelText: 'Email',
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.8),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
                         ),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 10),
-                      child: TextField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(
+                        horizontal: 20.0,
+                        vertical: 10.0,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedTextField(
+                          controller: _passwordController,
                           labelText: 'Password',
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.8),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          obscureText: true,
                         ),
-                        obscureText: true,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => authenticate(
-                        context,
-                        _isLogin,
-                        _emailController,
-                        _passwordController,
-                        _nameController,
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0C5422),
-                        padding: paddingBotao,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        _isLogin ? 'Entrar' : 'Registrar',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => authenticate(
+                            context,
+                            _isLogin,
+                            _emailController,
+                            _passwordController,
+                            _nameController,
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white),
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            _isLogin ? 'Entrar' : 'Registrar',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -225,6 +212,48 @@ class AuthPageState extends State<AuthPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class OutlinedTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String labelText;
+  final bool obscureText;
+
+  const OutlinedTextField({
+    super.key,
+    required this.controller,
+    required this.labelText,
+    this.obscureText = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      cursorColor: Colors.white,
+      decoration: InputDecoration(
+        labelText: labelText,
+        labelStyle: const TextStyle(color: Colors.white),
+        hintStyle: const TextStyle(color: Colors.white),
+        filled: false,
+        fillColor: Colors.transparent,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.white),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.white),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.white),
+        ),
+      ),
+      style: const TextStyle(color: Colors.white),
     );
   }
 }
