@@ -109,6 +109,7 @@ class AuthPageState extends State<AuthPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20.0,
+                            vertical: 10.0,
                           ),
                           child: SizedBox(
                             width: double.infinity,
