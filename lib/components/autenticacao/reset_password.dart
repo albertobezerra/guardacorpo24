@@ -89,6 +89,9 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                       width: screenWidth,
                       image: const AssetImage('assets/images/logo.png'),
                     ),
+                    const SizedBox(
+                      height: 25,
+                    ),
                     Text(
                       'Redefinir Senha',
                       style: TextStyle(
@@ -126,13 +129,16 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                         ),
                       ),
                       child: const Text(
-                        'Enviar Email de Redefinição',
+                        'Enviar email de redefinição',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
+                    ),
+                    const SizedBox(
+                      height: 10,
                     ),
                     TextButton(
                       onPressed: () {

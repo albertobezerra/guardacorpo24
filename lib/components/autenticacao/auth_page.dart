@@ -38,6 +38,12 @@ class AuthPageState extends State<AuthPage> {
   }
 
   Future<void> _authenticate() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+      );
+      return;
+    }
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       if (_isLogin) {
@@ -187,7 +193,7 @@ class AuthPageState extends State<AuthPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 40),
                     if (!_isLogin)
                       Padding(
                         padding: const EdgeInsets.symmetric(
@@ -249,13 +255,16 @@ class AuthPageState extends State<AuthPage> {
                         ),
                       ),
                       child: Text(
-                        _isLogin ? 'Login' : 'Registrar',
+                        _isLogin ? 'Entrar' : 'Registrar',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
+                    ),
+                    const SizedBox(
+                      height: 10,
                     ),
                     TextButton(
                       onPressed: () {
