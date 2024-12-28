@@ -28,6 +28,25 @@ class AuthPageState extends State<AuthPage> {
     FocusScope.of(context).unfocus();
   }
 
+  void _handleSubmit() {
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        (!_isLogin && _nameController.text.isEmpty)) {
+      _closeKeyboard();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+      );
+    } else {
+      authenticate(
+        context,
+        _isLogin,
+        _emailController,
+        _passwordController,
+        _nameController,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -116,7 +135,7 @@ class AuthPageState extends State<AuthPage> {
                             child: OutlinedTextField(
                               controller: _nameController,
                               labelText: 'Nome',
-                              onSubmitted: (value) => _closeKeyboard(),
+                              onSubmitted: (value) => _handleSubmit(),
                             ),
                           ),
                         ),
@@ -130,7 +149,7 @@ class AuthPageState extends State<AuthPage> {
                           child: OutlinedTextField(
                             controller: _emailController,
                             labelText: 'Email',
-                            onSubmitted: (value) => _closeKeyboard(),
+                            onSubmitted: (value) => _handleSubmit(),
                           ),
                         ),
                       ),
@@ -145,7 +164,7 @@ class AuthPageState extends State<AuthPage> {
                             controller: _passwordController,
                             labelText: 'Password',
                             obscureText: true,
-                            onSubmitted: (value) => _closeKeyboard(),
+                            onSubmitted: (value) => _handleSubmit(),
                           ),
                         ),
                       ),
@@ -155,16 +174,7 @@ class AuthPageState extends State<AuthPage> {
                         child: SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
-                            onPressed: () {
-                              _closeKeyboard();
-                              authenticate(
-                                context,
-                                _isLogin,
-                                _emailController,
-                                _passwordController,
-                                _nameController,
-                              );
-                            },
+                            onPressed: _handleSubmit,
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Colors.white),
                               padding: const EdgeInsets.symmetric(vertical: 15),
