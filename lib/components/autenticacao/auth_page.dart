@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/auth_service.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/outlined_text_field.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -20,7 +21,7 @@ class AuthPageState extends State<AuthPage> {
   @override
   void initState() {
     super.initState();
-    checkLoggedInStatus(context);
+    checkLoggedInStatus();
     FirebaseAuth.instance.setLanguageCode('pt-BR');
   }
 
@@ -28,23 +29,97 @@ class AuthPageState extends State<AuthPage> {
     FocusScope.of(context).unfocus();
   }
 
-  void _handleSubmit() {
+  void checkLoggedInStatus() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    if (isLoggedIn && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Raiz()),
+      );
+    }
+  }
+
+  Future<void> _authenticate() async {
     if (_emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         (!_isLogin && _nameController.text.isEmpty)) {
-      _closeKeyboard();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
-      );
-    } else {
-      authenticate(
-        context,
-        _isLogin,
-        _emailController,
-        _passwordController,
-        _nameController,
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+        );
+      }
+      return;
     }
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (_isLogin) {
+        await prefs.setBool('isLoggedIn', true);
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Raiz()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login bem-sucedido!')),
+          );
+        }
+      } else {
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        await userCredential.user!
+            .updateDisplayName(_nameController.text.trim());
+        await prefs.setBool('isLoggedIn', true);
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Raiz()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Registro bem-sucedido! ')),
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'Email não cadastrado.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'Senha incorreta.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'Email já está em uso.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Email inválido.';
+          break;
+        case 'weak-password':
+          errorMessage = 'A senha é muito fraca.';
+          break;
+        default:
+          errorMessage = 'Ocorreu um erro. Tente novamente.';
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    }
+  }
+
+  void _handleSubmit() {
+    _closeKeyboard();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _authenticate();
+      }
+    });
   }
 
   @override
@@ -128,7 +203,6 @@ class AuthPageState extends State<AuthPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20.0,
-                            vertical: 10.0,
                           ),
                           child: SizedBox(
                             width: double.infinity,

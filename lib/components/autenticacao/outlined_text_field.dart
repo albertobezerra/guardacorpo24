@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class OutlinedTextField extends StatelessWidget {
+class OutlinedTextField extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final bool obscureText;
@@ -15,13 +15,26 @@ class OutlinedTextField extends StatelessWidget {
   });
 
   @override
+  OutlinedTextFieldState createState() => OutlinedTextFieldState();
+}
+
+class OutlinedTextFieldState extends State<OutlinedTextField> {
+  bool _obscurePassword = true;
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller,
-      obscureText: obscureText,
+      controller: widget.controller,
+      obscureText: widget.obscureText ? _obscurePassword : false,
       cursorColor: Colors.white,
       decoration: InputDecoration(
-        labelText: labelText,
+        labelText: widget.labelText,
         labelStyle: const TextStyle(color: Colors.white),
         hintStyle: const TextStyle(color: Colors.white),
         filled: false,
@@ -38,9 +51,18 @@ class OutlinedTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: Colors.white),
         ),
+        suffixIcon: widget.obscureText
+            ? IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white,
+                ),
+                onPressed: _togglePasswordVisibility,
+              )
+            : null,
       ),
       style: const TextStyle(color: Colors.white),
-      onSubmitted: onSubmitted,
+      onSubmitted: widget.onSubmitted,
     );
   }
 }
