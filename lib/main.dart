@@ -7,6 +7,7 @@ import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
+import 'package:in_app_update/in_app_update.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +75,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _checkForUpdate(); // Verifica por atualizações ao iniciar
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
@@ -86,6 +88,19 @@ class SplashScreenState extends State<SplashScreen> {
         );
       }
     });
+  }
+
+  void _checkForUpdate() async {
+    try {
+      AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        InAppUpdate.startFlexibleUpdate().then((_) {
+          InAppUpdate.completeFlexibleUpdate();
+        });
+      }
+    } catch (e) {
+      // Tratamento de erro
+    }
   }
 
   @override
