@@ -3,8 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
+import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
-import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -47,9 +47,52 @@ class MyApp extends StatelessWidget {
       home: UpgradeAlert(
         upgrader: Upgrader(languageCode: 'pt'),
         dialogStyle: UpgradeDialogStyle.material,
-        child: isFirstTime
-            ? const SplashScreen()
-            : (isLoggedIn ? const Raiz() : const AuthPage()),
+        child: SplashScreen(
+          isFirstTime: isFirstTime,
+          isLoggedIn: isLoggedIn,
+        ),
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  final bool isFirstTime;
+  final bool isLoggedIn;
+
+  const SplashScreen({
+    super.key,
+    required this.isFirstTime,
+    required this.isLoggedIn,
+  });
+
+  @override
+  SplashScreenState createState() => SplashScreenState();
+}
+
+class SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => widget.isFirstTime
+                ? const OnboardingPage()
+                : (widget.isLoggedIn ? const Raiz() : const AuthPage()),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Image.asset('assets/images/logo.png', height: 200.0),
       ),
     );
   }
