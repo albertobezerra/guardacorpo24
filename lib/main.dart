@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
-import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
-import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart'; // Importação da página de onboarding
 import 'package:upgrader/upgrader.dart';
-import 'package:in_app_update/in_app_update.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +14,6 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
-  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -27,7 +23,7 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
-  runApp(MyApp(isFirstTime: isFirstTime, isLoggedIn: isLoggedIn));
+  runApp(MyApp(isFirstTime: isFirstTime));
 
   if (isFirstTime) {
     prefs.setBool('isFirstTime', false);
@@ -36,9 +32,8 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final bool isFirstTime;
-  final bool isLoggedIn;
 
-  const MyApp({super.key, required this.isFirstTime, required this.isLoggedIn});
+  const MyApp({super.key, required this.isFirstTime});
 
   @override
   Widget build(BuildContext context) {
@@ -48,66 +43,8 @@ class MyApp extends StatelessWidget {
       home: UpgradeAlert(
         upgrader: Upgrader(languageCode: 'pt'),
         dialogStyle: UpgradeDialogStyle.material,
-        child: SplashScreen(
-          isFirstTime: isFirstTime,
-          isLoggedIn: isLoggedIn,
-        ),
-      ),
-    );
-  }
-}
-
-class SplashScreen extends StatefulWidget {
-  final bool isFirstTime;
-  final bool isLoggedIn;
-
-  const SplashScreen({
-    super.key,
-    required this.isFirstTime,
-    required this.isLoggedIn,
-  });
-
-  @override
-  SplashScreenState createState() => SplashScreenState();
-}
-
-class SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _checkForUpdate(); // Verifica por atualizações ao iniciar
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => widget.isFirstTime
-                ? const OnboardingPage()
-                : (widget.isLoggedIn ? const Raiz() : const AuthPage()),
-          ),
-        );
-      }
-    });
-  }
-
-  void _checkForUpdate() async {
-    try {
-      AppUpdateInfo info = await InAppUpdate.checkForUpdate();
-      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-        InAppUpdate.startFlexibleUpdate().then((_) {
-          InAppUpdate.completeFlexibleUpdate();
-        });
-      }
-    } catch (e) {
-      // Tratamento de erro
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Image.asset('assets/images/logo.png', height: 200.0),
+        child:
+            const OnboardingPage(), // Inicia diretamente na tela de onboarding
       ),
     );
   }

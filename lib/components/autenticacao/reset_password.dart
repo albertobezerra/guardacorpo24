@@ -91,9 +91,9 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(.9),
-                      Colors.black.withOpacity(.8),
-                      Colors.black.withOpacity(.2),
+                      Colors.black.withValues(alpha: .9),
+                      Colors.black.withValues(alpha: .8),
+                      Colors.black.withValues(alpha: .2),
                     ],
                   ),
                 ),
