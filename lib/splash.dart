@@ -1,29 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
+import 'dart:async';
+import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart'; // Importação da tela de autenticação
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Navega para a próxima tela após 3 segundos
+    Timer(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AuthPage(),
+        ),
+      );
+    });
+
     double screenHeight = MediaQuery.of(context).size.height;
 
     double textoPrincipalResponsivo;
     FontWeight fonteNegrito;
-    EdgeInsets paddingBotaoComecar;
 
     if (screenHeight < 800) {
       textoPrincipalResponsivo = 20;
       fonteNegrito = FontWeight.normal;
-      paddingBotaoComecar = EdgeInsets.zero;
     } else if (screenHeight < 1000) {
       textoPrincipalResponsivo = 30;
       fonteNegrito = FontWeight.bold;
-      paddingBotaoComecar = const EdgeInsets.all(10);
     } else {
       textoPrincipalResponsivo = 37;
       fonteNegrito = FontWeight.normal;
-      paddingBotaoComecar = const EdgeInsets.all(20);
     }
 
     return Scaffold(
@@ -69,30 +76,8 @@ class SplashScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
-                Container(
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: MaterialButton(
-                    minWidth: double.infinity,
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            const AuthPage(), // Direcione para AuthPage
-                      ));
-                    },
-                    child: Padding(
-                      padding: paddingBotaoComecar,
-                      child: Text(
-                        "Começar".toUpperCase(),
-                        style: const TextStyle(
-                          color: Color(0xFF0C5422),
-                          fontFamily: 'Segoe Black',
-                        ),
-                      ),
-                    ),
-                  ),
+                const SizedBox(
+                  height: 30,
                 )
               ],
             ),

@@ -20,57 +20,87 @@ class OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IntroductionScreen(
-      globalBackgroundColor:
-          const Color(0xFF4CAF50), // Fundo verde para todas as páginas
+      globalBackgroundColor: const Color.fromARGB(
+          255, 255, 255, 255), // Fundo branco para todas as páginas
       pages: [
         PageViewModel(
-          title: "Bem-vinde ao Guarda Corpo!",
-          body: "Seu aplicativo para saúde e segurança no trabalho.",
-          image: _buildImage('assets/images/logo.png'),
-          decoration: _getPageDecoration(),
-        ),
-        PageViewModel(
-          title: "Monitoramento em Tempo Real",
-          body:
-              "Receba atualizações e alertas em tempo real sobre saúde e segurança no trabalho.",
-          image: _buildImage('assets/images/monitoramento.png'),
-          decoration: _getPageDecoration(),
-        ),
-        PageViewModel(
-          title: "Relatórios Detalhados",
-          body:
-              "Acesse relatórios detalhados e históricos para monitorar o progresso.",
-          image: _buildImage('assets/images/relatorios.png'),
-          decoration: _getPageDecoration(),
-        ),
-        PageViewModel(
-          title: "Precisamos de algumas permissões...",
-          body:
-              "Para oferecer a melhor experiência, permita o acesso às notificações.",
-          image: _buildImage('assets/images/permissoes.png'),
-          decoration: _getPageDecoration(),
-          footer: OutlinedButton(
-            style: outlinedButtonStyle(), // Aplica o estilo outlined do botão
-            onPressed: () {
-              // Lógica para pedir permissões
-            },
-            child: const Text("Conceder Permissões"),
+          titleWidget: Container(), // Remover o título padrão
+          bodyWidget: Container(), // Remover o corpo padrão
+          image: Image.asset(
+            'assets/images/onb1.png', // Imagem de fundo
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          decoration: const PageDecoration(
+            fullScreen: true, // Garante que a página ocupe toda a tela
+            bodyFlex: 0, // Não usar flex para o corpo
+            imageFlex: 1, // Usar flex para a imagem
+            pageColor: Colors.transparent, // Cor de fundo transparente
           ),
         ),
         PageViewModel(
-          title: "Pronte para começar?",
-          body: "Vamos lá!",
-          image: _buildImage('assets/images/comecar.png'),
-          decoration: _getPageDecoration(),
-          footer: OutlinedButton(
-            style: outlinedButtonStyle(), // Aplica o estilo outlined do botão
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const AuthPage()),
-              );
-            },
-            child: const Text("Iniciar"),
+          titleWidget: Container(), // Remover o título padrão
+          bodyWidget: Container(), // Remover o corpo padrão
+          image: Image.asset(
+            'assets/images/onb2.png', // Imagem de fundo
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          decoration: const PageDecoration(
+            fullScreen: true, // Garante que a página ocupe toda a tela
+            bodyFlex: 0, // Não usar flex para o corpo
+            imageFlex: 1, // Usar flex para a imagem
+            pageColor: Colors.transparent, // Cor de fundo transparente
+          ),
+        ),
+        PageViewModel(
+          titleWidget: Container(), // Remover o título padrão
+          bodyWidget: Container(), // Remover o corpo padrão
+          image: Image.asset(
+            'assets/images/onb3.png', // Imagem de fundo
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          decoration: const PageDecoration(
+            fullScreen: true, // Garante que a página ocupe toda a tela
+            bodyFlex: 0, // Não usar flex para o corpo
+            imageFlex: 1, // Usar flex para a imagem
+            pageColor: Colors.transparent, // Cor de fundo transparente
+          ),
+        ),
+        PageViewModel(
+          titleWidget: Container(), // Remover o título padrão
+          bodyWidget: Container(), // Remover o corpo padrão
+          image: Image.asset(
+            'assets/images/onb4.png', // Imagem de fundo
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          decoration: const PageDecoration(
+            fullScreen: true, // Garante que a página ocupe toda a tela
+            bodyFlex: 0, // Não usar flex para o corpo
+            imageFlex: 1, // Usar flex para a imagem
+            pageColor: Colors.transparent, // Cor de fundo transparente
+          ),
+        ),
+        PageViewModel(
+          titleWidget: Container(), // Remover o título padrão
+          bodyWidget: Container(), // Remover o corpo padrão
+          image: Image.asset(
+            'assets/images/onb5.png', // Imagem de fundo
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          decoration: const PageDecoration(
+            fullScreen: true, // Garante que a página ocupe toda a tela
+            bodyFlex: 0, // Não usar flex para o corpo
+            imageFlex: 1, // Usar flex para a imagem
+            pageColor: Colors.transparent, // Cor de fundo transparente
           ),
         ),
       ],
@@ -87,32 +117,23 @@ class OnboardingPage extends StatelessWidget {
         );
       },
       showSkipButton: true,
-      skip: const Text("Pular"),
-      next: const Icon(Icons.arrow_forward),
-      done: const Text("Feito", style: TextStyle(fontWeight: FontWeight.w600)),
-    );
-  }
-
-  Widget _buildImage(String assetName) {
-    return Center(
-        child: Image.asset(assetName, width: 350.0)); // Centraliza a imagem
-  }
-
-  PageDecoration _getPageDecoration() {
-    return const PageDecoration(
-      titleTextStyle: TextStyle(
-        fontSize: 24.0,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
+      skip: const Text("Pular",
+          style: TextStyle(color: Colors.black)), // Pular em branco
+      next: const Icon(Icons.arrow_forward,
+          color: Colors.black), // Setas em branco
+      done: const Text("Feito",
+          style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black)), // Feito em branco
+      dotsDecorator: const DotsDecorator(
+        color: Colors.black54, // Cor dos pontos
+        activeColor: Colors.black, // Cor dos pontos ativos
+        size: Size(6, 6), // Tamanho ajustado dos pontos
+        activeSize: Size(10, 10), // Tamanho ajustado dos pontos ativos
+        activeShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+        ),
       ),
-      bodyTextStyle: TextStyle(
-        fontSize: 16.0,
-        color: Colors.white,
-      ),
-      imageAlignment: Alignment.center, // Alinha a imagem no centro
-      imagePadding: EdgeInsets.all(24.0),
-      contentMargin: EdgeInsets.all(16.0),
-      pageColor: Color(0xFF4CAF50), // Fundo verde
     );
   }
 }

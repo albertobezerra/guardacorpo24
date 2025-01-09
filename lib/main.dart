@@ -3,8 +3,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart'; // Importação da página de onboarding
+import 'package:guarda_corpo_2024/splash.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:in_app_update/in_app_update.dart'; // Importação do In-App Update
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,22 +32,35 @@ void main() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final bool isFirstTime;
 
   const MyApp({super.key, required this.isFirstTime});
+
+  @override
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    checkForUpdate();
+  }
+
+  Future<void> checkForUpdate() async {
+    final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+    if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+      InAppUpdate.performImmediateUpdate();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Segoe'),
-      home: UpgradeAlert(
-        upgrader: Upgrader(languageCode: 'pt'),
-        dialogStyle: UpgradeDialogStyle.material,
-        child:
-            const OnboardingPage(), // Inicia diretamente na tela de onboarding
-      ),
+      home: widget.isFirstTime ? const OnboardingPage() : const SplashScreen(),
     );
   }
 }
