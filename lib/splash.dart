@@ -1,22 +1,39 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart'; // Importação da tela de autenticação
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Navega para a próxima tela após 3 segundos
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AuthPage(),
-        ),
-      );
-    });
+  SplashScreenState createState() => SplashScreenState();
+}
 
+class SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _startSplashScreenTimer();
+  }
+
+  Future<void> _startSplashScreenTimer() async {
+    await Future.delayed(const Duration(seconds: 3));
+    await _setSplashShown();
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const AuthPage()),
+    );
+  }
+
+  Future<void> _setSplashShown() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasShownSplash', true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
     double textoPrincipalResponsivo;
@@ -36,17 +53,22 @@ class SplashScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage('assets/images/index.jpg'),
-          fit: BoxFit.cover,
-        )),
+          image: DecorationImage(
+            image: AssetImage('assets/images/index.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Container(
           decoration: BoxDecoration(
-              gradient: LinearGradient(begin: Alignment.bottomCenter, colors: [
-            Colors.black.withValues(alpha: .9),
-            Colors.black.withValues(alpha: .8),
-            Colors.black.withValues(alpha: .2),
-          ])),
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: .9),
+                Colors.black.withValues(alpha: .8),
+                Colors.black.withValues(alpha: .2),
+              ],
+            ),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -58,9 +80,10 @@ class SplashScreen extends StatelessWidget {
                     'Saúde e Segurança\ndo Trabalho na\npalma da mão.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.white,
-                        fontSize: textoPrincipalResponsivo,
-                        fontFamily: 'Segoe Black'),
+                      color: Colors.white,
+                      fontSize: textoPrincipalResponsivo,
+                      fontFamily: 'Segoe Black',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -76,9 +99,7 @@ class SplashScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 30,
-                )
+                const SizedBox(height: 30),
               ],
             ),
           ),
