@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/outlined_text_field.dart';
-import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
@@ -35,7 +35,7 @@ class AuthPageState extends State<AuthPage> {
     if (isLoggedIn && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Raiz()),
+        MaterialPageRoute(builder: (context) => const NavBarPage()),
       );
     }
   }
@@ -59,7 +59,7 @@ class AuthPageState extends State<AuthPage> {
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Raiz()),
+            MaterialPageRoute(builder: (context) => const NavBarPage()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login bem-sucedido!')),
@@ -77,7 +77,7 @@ class AuthPageState extends State<AuthPage> {
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Raiz()),
+            MaterialPageRoute(builder: (context) => const NavBarPage()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registro bem-sucedido! ')),

@@ -5,7 +5,6 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/splash.dart';
-import 'package:upgrader/upgrader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
 
@@ -13,7 +12,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   MobileAds.instance.initialize();
-  await Upgrader.clearSavedSettings();
 
   final prefs = await SharedPreferences.getInstance();
   final bool hasCompletedOnboarding =
