@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/splash.dart';
+import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,10 +14,11 @@ class OnboardingPageState extends State<OnboardingPage> {
   Future<void> completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasCompletedOnboarding', true);
+    await prefs.setBool('hasShownSplash', true);
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SplashScreen()),
+        MaterialPageRoute(builder: (context) => const AuthPage()),
       );
     }
   }

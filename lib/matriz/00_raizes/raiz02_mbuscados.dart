@@ -45,7 +45,7 @@ class _Raiz02MbuscadosState extends State<Raiz02Mbuscados> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 9),
+      margin: const EdgeInsets.only(top: 15),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Center(
         child: Column(
@@ -72,7 +72,7 @@ class _Raiz02MbuscadosState extends State<Raiz02Mbuscados> {
                       scrollDirection: Axis.horizontal,
                       children: [
                         MaterialButton(
-                          padding: const EdgeInsets.only(left: 0, right: 8),
+                          padding: const EdgeInsets.only(left: 0, right: 12),
                           onPressed: () async {
                             Navigator.push(
                                 context,

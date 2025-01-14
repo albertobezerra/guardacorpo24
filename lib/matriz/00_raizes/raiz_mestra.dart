@@ -23,7 +23,7 @@ class Raiz extends StatelessWidget {
                   child: Raiz02Mbuscados(),
                 ),
                 Flexible(
-                  flex: 7,
+                  flex: 9,
                   child: Raiz03Maissaude(),
                 ),
               ],
