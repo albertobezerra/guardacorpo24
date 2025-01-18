@@ -66,7 +66,7 @@ class _EsocialState extends State<Esocial> {
           title: Text(
             'e-Social'.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),

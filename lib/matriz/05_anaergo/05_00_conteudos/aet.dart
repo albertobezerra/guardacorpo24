@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../admob/banner_ad_widget.dart';
+import '../../../admob/banner_ad_widget.dart';
 
 class Aet extends StatelessWidget {
   const Aet({super.key});
