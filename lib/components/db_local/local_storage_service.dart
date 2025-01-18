@@ -26,8 +26,10 @@ class LocalStorageService {
 
     final reportData = {
       'description': report['description'],
+      'location': report['location'],
       'imagePaths': imagePaths,
       'date': report['date'],
+      'timestamp': report['timestamp'],
     };
 
     List<Map<String, dynamic>> reports = [];
@@ -43,6 +45,35 @@ class LocalStorageService {
 
     await File(filePath)
         .writeAsString(jsonEncode(reports), mode: FileMode.write, flush: true);
+  }
+
+  Future<void> updateReport(
+      int index, Map<String, dynamic> updatedReport) async {
+    final filePath = await getFilePath();
+    if (await File(filePath).exists()) {
+      final content = await File(filePath).readAsString();
+      if (content.isNotEmpty) {
+        List<Map<String, dynamic>> reports =
+            List<Map<String, dynamic>>.from(jsonDecode(content));
+        reports[index] = updatedReport;
+        await File(filePath).writeAsString(jsonEncode(reports),
+            mode: FileMode.write, flush: true);
+      }
+    }
+  }
+
+  Future<void> deleteReport(int index) async {
+    final filePath = await getFilePath();
+    if (await File(filePath).exists()) {
+      final content = await File(filePath).readAsString();
+      if (content.isNotEmpty) {
+        List<Map<String, dynamic>> reports =
+            List<Map<String, dynamic>>.from(jsonDecode(content));
+        reports.removeAt(index);
+        await File(filePath).writeAsString(jsonEncode(reports),
+            mode: FileMode.write, flush: true);
+      }
+    }
   }
 
   Future<List<Map<String, dynamic>>> getReports() async {

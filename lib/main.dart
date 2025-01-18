@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_01_relatorios/incident_report.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_01_relatorios/view_reports.dart';
 
@@ -19,6 +20,16 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      supportedLocales: const [
+        Locale('en', 'US'), // Inglês
+        Locale('pt', 'BR'), // Português do Brasil
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations
+            .delegate, // Adicione isso para suporte ao Cupertino
+      ],
       home: const MainScreen(), // Define a tela inicial como o MainScreen
     );
   }
