@@ -1,25 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
+import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
+import 'package:guarda_corpo_2024/splash.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_01_relatorios/incident_report.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_01_relatorios/view_reports.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  MobileAds.instance.initialize();
+
+  final prefs = await SharedPreferences.getInstance();
+  final bool hasCompletedOnboarding =
+      prefs.getBool('hasCompletedOnboarding') ?? false;
+  final bool hasShownSplash = prefs.getBool('hasShownSplash') ?? false;
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.white,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
+
+  runApp(MyApp(
+      hasCompletedOnboarding: hasCompletedOnboarding,
+      hasShownSplash: hasShownSplash));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  final bool hasCompletedOnboarding;
+  final bool hasShownSplash;
+
+  const MyApp(
+      {super.key,
+      required this.hasCompletedOnboarding,
+      required this.hasShownSplash});
+
+  @override
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    checkForUpdate();
+  }
+
+  Future<void> checkForUpdate() async {
+    final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+    if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+      InAppUpdate.performImmediateUpdate();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Relatórios de Incidentes',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(fontFamily: 'Segoe'),
       supportedLocales: const [
         Locale('en', 'US'), // Inglês
         Locale('pt', 'BR'), // Português do Brasil
@@ -27,50 +71,11 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations
-            .delegate, // Adicione isso para suporte ao Cupertino
+        GlobalCupertinoLocalizations.delegate, // Suporte ao Cupertino
       ],
-      home: const MainScreen(), // Define a tela inicial como o MainScreen
-    );
-  }
-}
-
-class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tela Principal'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const IncidentReport()),
-                );
-              },
-              child: const Text('Registrar Incidente'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ViewReports()),
-                );
-              },
-              child: const Text('Ver Relatórios'),
-            ),
-          ],
-        ),
-      ),
+      home: widget.hasCompletedOnboarding
+          ? (widget.hasShownSplash ? const AuthPage() : const SplashScreen())
+          : const OnboardingPage(),
     );
   }
 }
