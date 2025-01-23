@@ -17,7 +17,9 @@ class OnboardingPageState extends State<OnboardingPage> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SplashScreen()),
+        MaterialPageRoute(
+            builder: (context) =>
+                const SplashScreen()), // gesto de voltar navegando entre as telas
       );
     }
   }
