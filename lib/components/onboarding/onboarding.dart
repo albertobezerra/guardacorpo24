@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
+import 'package:guarda_corpo_2024/splash.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,7 +18,7 @@ class OnboardingPageState extends State<OnboardingPage> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const AuthPage()),
+        MaterialPageRoute(builder: (context) => const SplashScreen()),
       );
     }
   }
