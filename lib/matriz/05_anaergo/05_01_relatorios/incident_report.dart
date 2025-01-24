@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/db_local/banco_local.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'dart:io';
-import '../../../components/db_local/banco_local.dart';
 
 class IncidentReport extends StatefulWidget {
   const IncidentReport({super.key});
@@ -12,13 +13,15 @@ class IncidentReport extends StatefulWidget {
 
 class IncidentReportState extends State<IncidentReport> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
   final LocalStorageService _localStorageService = LocalStorageService();
   final List<File> _images = [];
+  DateTime? _selectedDate;
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await ImagePicker().pickImage(source: source);
 
-    if (!mounted) return; // Verificação do `BuildContext`
+    if (!mounted) return;
     setState(() {
       if (pickedFile != null) {
         _images.add(File(pickedFile.path));
@@ -26,21 +29,43 @@ class IncidentReportState extends State<IncidentReport> {
     });
   }
 
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      locale: const Locale('pt'), // Define o idioma para português
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
   Future<void> _submitReport() async {
-    if (_images.isNotEmpty && _controller.text.isNotEmpty) {
+    if (_images.isNotEmpty &&
+        _controller.text.isNotEmpty &&
+        _selectedDate != null &&
+        _locationController.text.isNotEmpty) {
       final report = {
         'description': _controller.text,
-        'date': DateTime.now().toIso8601String(),
+        'location': _locationController.text,
+        'date': DateFormat('dd/MM/yyyy').format(_selectedDate!),
+        'timestamp': DateTime.now().toIso8601String(),
       };
       await _localStorageService.saveReport(report, _images);
 
-      if (!mounted) return; // Verificação do `BuildContext`
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Relatório enviado')),
       );
       _controller.clear();
+      _locationController.clear();
       setState(() {
         _images.clear();
+        _selectedDate = null;
       });
     }
   }
@@ -51,9 +76,8 @@ class IncidentReportState extends State<IncidentReport> {
       appBar: AppBar(
         title: const Text("Relatório de Incidente"),
       ),
-      resizeToAvoidBottomInset: true, // Esta linha vai ajudar o teclado a subir
+      resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
-        // Adiciona rolagem para prevenir overflow
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,6 +85,18 @@ class IncidentReportState extends State<IncidentReport> {
             TextField(
               controller: _controller,
               decoration: const InputDecoration(labelText: 'Descrição'),
+              maxLines: null, // Permite múltiplas linhas
+            ),
+            TextField(
+              controller: _locationController,
+              decoration: const InputDecoration(labelText: 'Localização'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _pickDate,
+              child: Text(_selectedDate == null
+                  ? 'Selecionar Data'
+                  : DateFormat('dd/MM/yyyy').format(_selectedDate!)),
             ),
             const SizedBox(height: 20),
             _images.isEmpty
@@ -69,7 +105,24 @@ class IncidentReportState extends State<IncidentReport> {
                     children: _images
                         .map((image) => Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Image.file(image),
+                              child: Stack(
+                                children: [
+                                  Image.file(image),
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () {
+                                        setState(() {
+                                          _images.remove(image);
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ))
                         .toList(),
                   ),
@@ -84,7 +137,7 @@ class IncidentReportState extends State<IncidentReport> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitReport,
-              child: const Text("Enviar Relatório"),
+              child: const Text("Salvar Relatório"),
             ),
           ],
         ),
