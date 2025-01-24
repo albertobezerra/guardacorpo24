@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../admob/banner_ad_widget.dart';
 
-class Aet extends StatelessWidget {
-  const Aet({super.key});
+class AetConteudo extends StatelessWidget {
+  const AetConteudo({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class Aet extends StatelessWidget {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Análise Ergonômica do Trabalho'.toUpperCase(),
+            'Sobre a Análise Ergonômica do Trabalho'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,

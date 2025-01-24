@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/db_local/banco_local.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_01_relatorios/report_detail_screen.dart';
+import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_detail_screen.dart';
 import 'dart:io';
 import 'edit_report_screen.dart';
 
