@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/02_maissaude/aet.dart';
+import 'package:guarda_corpo_2024/matriz/05_anaergo/05_00_conteudo/aet.dart';
 import '../../admob/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
 // import '../02_maissaude/clt.dart';
