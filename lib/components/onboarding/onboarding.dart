@@ -14,6 +14,8 @@ class OnboardingPageState extends State<OnboardingPage> {
   Future<void> completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasCompletedOnboarding', true);
+    await prefs.setBool('hasShownSplash', true);
+
     if (mounted) {
       Navigator.pushReplacement(
         context,
