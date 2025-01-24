@@ -105,107 +105,156 @@ class _AETModuleState extends State<AETModule> {
                     ),
                   ),
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                _buildPremiumButton(
+                  context,
+                  label: 'Relatórios',
                   onPressed: () {
-                    // Navegar para a seção de relatórios
                     InterstitialAdManager.showInterstitialAd(
                       context,
                       const ViewReports(),
                     );
                   },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cid.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Relatórios'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                  fontSize: itemFontSize,
+                  height: tamanhoBotaoLista,
+                  image: 'assets/images/cid.jpg',
+                  crownIcon: 'assets/images/crown.png',
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    // Navegar para a seção de checklists
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cid.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Checklists'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildDisabledPremiumButton(
+                  context,
+                  label: 'Checklists (Em breve)',
+                  fontSize: itemFontSize,
+                  height: tamanhoBotaoLista,
+                  image: 'assets/images/cid.jpg',
+                  crownIcon: 'assets/images/crown.png',
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    // Navegar para a seção de questionários
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cid.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Questionários'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildDisabledPremiumButton(
+                  context,
+                  label: 'Questionários (Em breve)',
+                  fontSize: itemFontSize,
+                  height: tamanhoBotaoLista,
+                  image: 'assets/images/cid.jpg',
+                  crownIcon: 'assets/images/crown.png',
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumButton(BuildContext context,
+      {required String label,
+      required VoidCallback onPressed,
+      required double fontSize,
+      required double height,
+      required String image,
+      required String crownIcon}) {
+    return MaterialButton(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+      onPressed: onPressed,
+      child: Stack(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: height,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(
+                Radius.circular(18),
+              ),
+              image: DecorationImage(
+                image: ExactAssetImage(image),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              alignment: AlignmentDirectional.bottomStart,
+              margin: const EdgeInsets.only(left: 12, bottom: 8),
+              child: Text(
+                label.toUpperCase(),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Segoe Bold',
+                  fontSize: fontSize,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                crownIcon,
+                width: 24,
+                height: 24,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDisabledPremiumButton(BuildContext context,
+      {required String label,
+      required double fontSize,
+      required double height,
+      required String image,
+      required String crownIcon}) {
+    return MaterialButton(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+      onPressed: null, // Botão desabilitado
+      child: Stack(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: height,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(
+                Radius.circular(18),
+              ),
+              image: DecorationImage(
+                image: ExactAssetImage(image),
+                fit: BoxFit.cover,
+                colorFilter: const ColorFilter.mode(
+                  Colors.grey,
+                  BlendMode.saturation,
+                ),
+              ),
+            ),
+            child: Container(
+              alignment: AlignmentDirectional.bottomStart,
+              margin: const EdgeInsets.only(left: 12, bottom: 8),
+              child: Text(
+                label.toUpperCase(),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontFamily: 'Segoe Bold',
+                  fontSize: fontSize,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset(
+                crownIcon,
+                width: 24,
+                height: 24,
+              ),
             ),
           ),
         ],
