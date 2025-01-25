@@ -4,13 +4,13 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 
 class EditReportScreen extends StatefulWidget {
-  final int index;
+  final int? index;
   final Map<String, dynamic> initialData;
   final Function(Map<String, dynamic>) onSave;
 
   const EditReportScreen({
     super.key,
-    required this.index,
+    this.index,
     required this.initialData,
     required this.onSave,
   });
@@ -29,12 +29,14 @@ class EditReportScreenState extends State<EditReportScreen> {
   void initState() {
     super.initState();
     _descriptionController =
-        TextEditingController(text: widget.initialData['description']);
+        TextEditingController(text: widget.initialData['description'] ?? '');
     _locationController =
-        TextEditingController(text: widget.initialData['location']);
-    _selectedDate = DateTime.parse(widget.initialData['date']);
-    _images = List<String>.from(widget.initialData['imagePaths'])
-        .map((path) => File(path))
+        TextEditingController(text: widget.initialData['location'] ?? '');
+    _selectedDate = widget.initialData['date'] != null
+        ? DateTime.parse(widget.initialData['date'])
+        : null;
+    _images = (widget.initialData['imagePaths'] as List<dynamic>? ?? [])
+        .map((path) => File(path as String))
         .toList();
   }
 
@@ -76,7 +78,9 @@ class EditReportScreenState extends State<EditReportScreen> {
               final updatedReport = {
                 'description': _descriptionController.text,
                 'location': _locationController.text,
-                'date': DateFormat('dd/MM/yyyy').format(_selectedDate!),
+                'date': _selectedDate != null
+                    ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
+                    : null,
                 'timestamp': widget.initialData['timestamp'],
                 'imagePaths': _images.map((file) => file.path).toList(),
               };

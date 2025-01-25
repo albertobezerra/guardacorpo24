@@ -14,26 +14,24 @@ class _AETModuleState extends State<AETModule> {
   @override
   void initState() {
     super.initState();
-    // Iniciar qualquer configuração ou carregamento necessário
   }
 
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
-    // Defina os tamanhos dinamicamente com base na altura da tela
     double itemFontSize;
     double tamanhoBotaoLista;
 
     if (screenHeight < 800) {
       itemFontSize = 12;
-      tamanhoBotaoLista = screenHeight * 0.10; // Ajuste proporcional
+      tamanhoBotaoLista = screenHeight * 0.10;
     } else if (screenHeight < 1000) {
       itemFontSize = 16;
-      tamanhoBotaoLista = screenHeight * 0.10; // Ajuste proporcional
+      tamanhoBotaoLista = screenHeight * 0.10;
     } else {
       itemFontSize = 16;
-      tamanhoBotaoLista = screenHeight * 0.12; // Ajuste proporcional
+      tamanhoBotaoLista = screenHeight * 0.12;
     }
 
     return Scaffold(

@@ -4,10 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
+import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_provider.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,21 +63,26 @@ class MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(fontFamily: 'Segoe'),
-      supportedLocales: const [
-        Locale('en', 'US'), // Inglês
-        Locale('pt', 'BR'), // Português do Brasil
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ReportProvider()..loadReports()),
       ],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate, // Suporte ao Cupertino
-      ],
-      home: widget.hasCompletedOnboarding
-          ? (widget.hasShownSplash ? const AuthPage() : const SplashScreen())
-          : const OnboardingPage(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'Segoe'),
+        supportedLocales: const [
+          Locale('en', 'US'), // Inglês
+          Locale('pt', 'BR'), // Português do Brasil
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate, // Suporte ao Cupertino
+        ],
+        home: widget.hasCompletedOnboarding
+            ? (widget.hasShownSplash ? const AuthPage() : const SplashScreen())
+            : const OnboardingPage(),
+      ),
     );
   }
 }

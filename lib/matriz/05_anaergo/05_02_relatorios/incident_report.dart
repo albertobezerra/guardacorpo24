@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/db_local/banco_local.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import 'package:provider/provider.dart';
+import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_provider.dart';
 
 class IncidentReport extends StatefulWidget {
   const IncidentReport({super.key});
@@ -14,7 +15,6 @@ class IncidentReport extends StatefulWidget {
 class IncidentReportState extends State<IncidentReport> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  final LocalStorageService _localStorageService = LocalStorageService();
   final List<File> _images = [];
   DateTime? _selectedDate;
 
@@ -55,19 +55,69 @@ class IncidentReportState extends State<IncidentReport> {
         'date': DateFormat('dd/MM/yyyy').format(_selectedDate!),
         'timestamp': DateTime.now().toIso8601String(),
       };
-      await _localStorageService.saveReport(report, _images);
+
+      final reportProvider =
+          Provider.of<ReportProvider>(context, listen: false);
+      await reportProvider.saveReport(report, _images);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Relatório enviado')),
       );
-      _controller.clear();
-      _locationController.clear();
-      setState(() {
-        _images.clear();
-        _selectedDate = null;
-      });
+
+      if (!mounted) return;
+      _showConfirmationDialog();
     }
+  }
+
+  void _showConfirmationDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Relatório Salvo'),
+          content: const Text(
+              'Deseja criar um novo relatório ou voltar para a lista de relatórios?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o diálogo
+                _clearForm(); // Limpa o formulário
+                _focusOnDescription(); // Foca no campo de descrição
+              },
+              child: const Text('Criar Novo'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o diálogo
+                Navigator.of(context).pop(); // Volta para a tela de relatórios
+              },
+              child: const Text('Ver Relatórios'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _clearForm() {
+    _controller.clear();
+    _locationController.clear();
+    setState(() {
+      _images.clear();
+      _selectedDate = null;
+    });
+  }
+
+  void _focusOnDescription() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        FocusScope.of(context).requestFocus(FocusNode());
+        FocusScope.of(context).requestFocus(
+            FocusNode()); // Atualiza o foco para o campo de descrição
+      }
+    });
   }
 
   @override
