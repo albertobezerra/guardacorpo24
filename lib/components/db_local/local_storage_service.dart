@@ -50,7 +50,7 @@ class LocalStorageService {
       _logger.i('Arquivo JSON não encontrado. Criando novo arquivo.');
     }
 
-    reports.insert(0, reportData);
+    reports.add(reportData);
 
     final jsonString = jsonEncode(reports);
     await File(filePath)
@@ -83,9 +83,16 @@ class LocalStorageService {
         List<Map<String, dynamic>> reports =
             List<Map<String, dynamic>>.from(jsonDecode(content));
         reports.removeAt(index);
-        await File(filePath).writeAsString(jsonEncode(reports),
-            mode: FileMode.write, flush: true);
-        _logger.i('Relatório deletado com sucesso no índice: $index');
+        if (reports.isEmpty) {
+          _logger.i('Nenhum relatório restante. Excluindo arquivo JSON.');
+          await File(filePath).delete();
+        } else {
+          final jsonString = jsonEncode(reports);
+          await File(filePath)
+              .writeAsString(jsonString, mode: FileMode.write, flush: true);
+          _logger.i(
+              'Relatório deletado com sucesso no índice: $index. Novo conteúdo do arquivo JSON: $jsonString');
+        }
       }
     }
   }
@@ -97,7 +104,7 @@ class LocalStorageService {
       _logger.i('Arquivo JSON encontrado. Lendo conteúdo...');
       final content = await File(filePath).readAsString();
       _logger.i('Conteúdo do arquivo JSON: $content');
-      if (content.isNotEmpty) {
+      if (content.isNotEmpty && content != '[]') {
         final reports = List<Map<String, dynamic>>.from(jsonDecode(content));
         _logger.i('Relatórios carregados com sucesso: $reports');
         return reports;
