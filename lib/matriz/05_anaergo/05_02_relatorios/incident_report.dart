@@ -36,7 +36,7 @@ class IncidentReportState extends State<IncidentReport> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-      locale: const Locale('pt'), // Define o idioma para português
+      locale: const Locale('pt', 'BR'), // Define o idioma para português
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -115,8 +115,7 @@ class IncidentReportState extends State<IncidentReport> {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         FocusScope.of(context).requestFocus(FocusNode());
-        FocusScope.of(context).requestFocus(
-            FocusNode()); // Atualiza o foco para o campo de descrição
+        FocusScope.of(context).requestFocus(FocusNode());
       }
     });
   }
@@ -166,12 +165,14 @@ class IncidentReportState extends State<IncidentReport> {
                     controller: _descriptionController,
                     labelText: 'Descrição',
                     obscureText: false,
+                    textCapitalization: TextCapitalization.sentences,
                   ),
                   const SizedBox(height: 16.0),
                   OutlinedTextField2(
                     controller: _locationController,
                     labelText: 'Localização',
                     obscureText: false,
+                    textCapitalization: TextCapitalization.sentences,
                   ),
                   const SizedBox(height: 16.0),
                   ElevatedButton(

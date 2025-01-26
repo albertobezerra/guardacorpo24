@@ -134,7 +134,7 @@ class ViewReports extends StatelessWidget {
                                         ? Image.file(File(imagePaths[0]))
                                         : null,
                                     trailing: PopupMenuButton<String>(
-                                      onSelected: (String result) {
+                                      onSelected: (String result) async {
                                         if (result == 'edit') {
                                           Navigator.push(
                                             context,
@@ -150,7 +150,44 @@ class ViewReports extends StatelessWidget {
                                             ),
                                           );
                                         } else if (result == 'delete') {
-                                          reportProvider.deleteReport(index);
+                                          final bool shouldDelete =
+                                              await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                            'Excluir Relatório'),
+                                                        content: const Text(
+                                                            'Você tem certeza que deseja excluir este relatório?'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(false);
+                                                            },
+                                                            child: const Text(
+                                                                'Cancelar'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(true);
+                                                            },
+                                                            child: const Text(
+                                                                'Excluir'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ) ??
+                                                  false;
+
+                                          if (shouldDelete) {
+                                            reportProvider.deleteReport(index);
+                                          }
                                         }
                                       },
                                       itemBuilder: (BuildContext context) =>

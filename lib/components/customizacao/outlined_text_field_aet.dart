@@ -5,6 +5,7 @@ class OutlinedTextField2 extends StatefulWidget {
   final String labelText;
   final bool obscureText;
   final Function(String)? onSubmitted;
+  final TextCapitalization textCapitalization;
 
   const OutlinedTextField2({
     super.key,
@@ -12,6 +13,7 @@ class OutlinedTextField2 extends StatefulWidget {
     required this.labelText,
     this.obscureText = false,
     this.onSubmitted,
+    required this.textCapitalization,
   });
 
   @override
@@ -32,7 +34,8 @@ class OutlinedTextField2State extends State<OutlinedTextField2> {
     return TextField(
       controller: widget.controller,
       obscureText: widget.obscureText ? _obscurePassword : false,
-      cursorColor: Colors.white,
+      cursorColor: const Color.fromARGB(255, 0, 104, 55),
+      textCapitalization: widget.textCapitalization,
       decoration: InputDecoration(
         labelText: widget.labelText,
         labelStyle: const TextStyle(color: Color.fromARGB(255, 0, 104, 55)),
