@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
-import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field.dart';
+import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_login.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

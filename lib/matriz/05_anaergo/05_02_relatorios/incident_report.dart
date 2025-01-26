@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field2.dart';
+import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_aet.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -255,7 +255,16 @@ class IncidentReportState extends State<IncidentReport> {
                     ),
                     child: Text("Selecionar da Galeria".toUpperCase()),
                   ),
-                  const SizedBox(height: 16.0),
+                  const SizedBox(height: 30.0),
+                  Center(
+                    child: Text(
+                      'Atenção: Todos os campos são obrigatórios'.toUpperCase(),
+                      style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -265,7 +274,6 @@ class IncidentReportState extends State<IncidentReport> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.save),
                 label: Text('Salvar Relatório'.toUpperCase()),
                 onPressed: _submitReport,
                 style: ElevatedButton.styleFrom(
