@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field2.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -13,7 +14,7 @@ class IncidentReport extends StatefulWidget {
 }
 
 class IncidentReportState extends State<IncidentReport> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final List<File> _images = [];
   DateTime? _selectedDate;
@@ -46,11 +47,11 @@ class IncidentReportState extends State<IncidentReport> {
 
   Future<void> _submitReport() async {
     if (_images.isNotEmpty &&
-        _controller.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty &&
         _selectedDate != null &&
         _locationController.text.isNotEmpty) {
       final report = {
-        'description': _controller.text,
+        'description': _descriptionController.text,
         'location': _locationController.text,
         'date': DateFormat('dd/MM/yyyy').format(_selectedDate!),
         'timestamp': DateTime.now().toIso8601String(),
@@ -102,7 +103,7 @@ class IncidentReportState extends State<IncidentReport> {
   }
 
   void _clearForm() {
-    _controller.clear();
+    _descriptionController.clear();
     _locationController.clear();
     setState(() {
       _images.clear();
@@ -122,75 +123,165 @@ class IncidentReportState extends State<IncidentReport> {
 
   @override
   Widget build(BuildContext context) {
+    const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Relatório de Incidente"),
+      appBar: PreferredSize(
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
+        child: AppBar(
+          toolbarHeight: 200,
+          title: Text(
+            'Novo Relatório de Incidente'.toUpperCase(),
+            style: const TextStyle(
+              fontFamily: 'Segoe Bold',
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          flexibleSpace: const Image(
+            image: AssetImage('assets/images/cid.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
       ),
       resizeToAvoidBottomInset: true,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _controller,
-              decoration: const InputDecoration(labelText: 'Descrição'),
-              maxLines: null, // Permite múltiplas linhas
-            ),
-            TextField(
-              controller: _locationController,
-              decoration: const InputDecoration(labelText: 'Localização'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _pickDate,
-              child: Text(_selectedDate == null
-                  ? 'Selecionar Data'
-                  : DateFormat('dd/MM/yyyy').format(_selectedDate!)),
-            ),
-            const SizedBox(height: 20),
-            _images.isEmpty
-                ? const Text("Nenhuma imagem selecionada")
-                : Column(
-                    children: _images
-                        .map((image) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Stack(
-                                children: [
-                                  Image.file(image),
-                                  Positioned(
-                                    top: 0,
-                                    right: 0,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.red),
-                                      onPressed: () {
-                                        setState(() {
-                                          _images.remove(image);
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ))
-                        .toList(),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlinedTextField2(
+                    controller: _descriptionController,
+                    labelText: 'Descrição',
+                    obscureText: false,
                   ),
-            ElevatedButton(
-              onPressed: () => _pickImage(ImageSource.camera),
-              child: const Text("Capturar Imagem"),
+                  const SizedBox(height: 16.0),
+                  OutlinedTextField2(
+                    controller: _locationController,
+                    labelText: 'Localização',
+                    obscureText: false,
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: _pickDate,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: buttonColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12.0, horizontal: 24.0),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Segoe Bold',
+                      ),
+                    ),
+                    child: Text(_selectedDate == null
+                        ? 'Selecionar Data'.toUpperCase()
+                        : DateFormat('dd/MM/yyyy')
+                            .format(_selectedDate!)
+                            .toUpperCase()),
+                  ),
+                  const SizedBox(height: 16.0),
+                  _images.isEmpty
+                      ? Center(
+                          child: Text(
+                          "Nenhuma imagem selecionada".toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 16,
+                          ),
+                        ))
+                      : Column(
+                          children: _images
+                              .map((image) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 8.0),
+                                    child: Stack(
+                                      children: [
+                                        Image.file(image),
+                                        Positioned(
+                                          top: 0,
+                                          right: 0,
+                                          child: IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () {
+                                              setState(() {
+                                                _images.remove(image);
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                  ElevatedButton(
+                    onPressed: () => _pickImage(ImageSource.camera),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: buttonColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12.0, horizontal: 24.0),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Segoe Bold',
+                      ),
+                    ),
+                    child: Text("Capturar Imagem".toUpperCase()),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _pickImage(ImageSource.gallery),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: buttonColor,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12.0, horizontal: 24.0),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Segoe Bold',
+                      ),
+                    ),
+                    child: Text("Selecionar da Galeria".toUpperCase()),
+                  ),
+                  const SizedBox(height: 16.0),
+                ],
+              ),
             ),
-            ElevatedButton(
-              onPressed: () => _pickImage(ImageSource.gallery),
-              child: const Text("Selecionar da Galeria"),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.save),
+                label: Text('Salvar Relatório'.toUpperCase()),
+                onPressed: _submitReport,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: buttonColor,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 24.0),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Segoe Bold',
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submitReport,
-              child: const Text("Salvar Relatório"),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

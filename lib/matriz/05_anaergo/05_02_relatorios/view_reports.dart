@@ -42,6 +42,7 @@ class ViewReports extends StatelessWidget {
         ),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: SingleChildScrollView(
@@ -49,7 +50,8 @@ class ViewReports extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    margin: const EdgeInsets.all(30),
+                    margin: const EdgeInsets.only(
+                        left: 30.0, top: 30.0, right: 30.0),
                     child: RichText(
                       textAlign: TextAlign.justify,
                       text: const TextSpan(
@@ -81,108 +83,141 @@ class ViewReports extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.add),
-                      label: const Text('Adicionar Relatório'),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const IncidentReport(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12.0, horizontal: 24.0),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'Segoe Bold',
-                        ),
-                      ),
-                    ),
-                  ),
                   Consumer<ReportProvider>(
                     builder: (context, reportProvider, child) {
                       if (reportProvider.reports.isEmpty) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final reports = reportProvider.reports;
-
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: reports.length,
-                        itemBuilder: (context, index) {
-                          final report = reports[index];
-                          final imagePaths =
-                              List<String>.from(report['imagePaths']);
-
-                          return ListTile(
-                            title: Text(
-                                report['description'] ?? 'Nenhuma descrição'),
-                            subtitle: Text(
-                                '${report['date']} - ${report['location']}'),
-                            leading: imagePaths.isNotEmpty
-                                ? Image.file(File(imagePaths[0]))
-                                : null,
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (String result) {
-                                if (result == 'edit') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditReportScreen(
-                                        index: index,
-                                        initialData: report,
-                                        onSave: (updatedReport) =>
-                                            reportProvider.updateReport(
-                                                index, updatedReport),
-                                      ),
-                                    ),
-                                  );
-                                } else if (result == 'delete') {
-                                  reportProvider.deleteReport(index);
-                                }
-                              },
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry<String>>[
-                                const PopupMenuItem<String>(
-                                  value: 'edit',
-                                  child: Text('Editar'),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: Text('Excluir'),
-                                ),
-                              ],
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'Nenhum relatório encontrado.\nVamos criar seu primeiro relatório?',
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.black54),
+                              textAlign: TextAlign.center,
                             ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ReportDetailScreen(
-                                      report: report,
-                                      index:
-                                          index), // Passe o índice do relatório
+                          ),
+                        );
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Text(
+                                  'SEUS RELATÓRIOS',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              );
-                            },
-                          );
-                        },
-                      );
+                              ),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: reportProvider.reports.length,
+                                itemBuilder: (context, index) {
+                                  final report = reportProvider.reports[index];
+                                  final imagePaths =
+                                      List<String>.from(report['imagePaths']);
+
+                                  return ListTile(
+                                    title: Text(
+                                      report['description'] ??
+                                          'Nenhuma descrição',
+                                    ),
+                                    subtitle: Text(
+                                        '${report['date']} - ${report['location']}'),
+                                    leading: imagePaths.isNotEmpty
+                                        ? Image.file(File(imagePaths[0]))
+                                        : null,
+                                    trailing: PopupMenuButton<String>(
+                                      onSelected: (String result) {
+                                        if (result == 'edit') {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditReportScreen(
+                                                index: index,
+                                                initialData: report,
+                                                onSave: (updatedReport) =>
+                                                    reportProvider.updateReport(
+                                                        index, updatedReport),
+                                              ),
+                                            ),
+                                          );
+                                        } else if (result == 'delete') {
+                                          reportProvider.deleteReport(index);
+                                        }
+                                      },
+                                      itemBuilder: (BuildContext context) =>
+                                          <PopupMenuEntry<String>>[
+                                        const PopupMenuItem<String>(
+                                          value: 'edit',
+                                          child: Text('Editar'),
+                                        ),
+                                        const PopupMenuItem<String>(
+                                          value: 'delete',
+                                          child: Text('Excluir'),
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ReportDetailScreen(
+                                            report: report,
+                                            index: index,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                     },
                   ),
                 ],
               ),
             ),
           ),
-          const BannerAdWidget(), // Adicione o banner de anúncio aqui
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                label: Text('Novo Relatório'.toUpperCase()),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const IncidentReport(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 24.0),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Segoe Bold',
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const BannerAdWidget(),
         ],
       ),
     );
