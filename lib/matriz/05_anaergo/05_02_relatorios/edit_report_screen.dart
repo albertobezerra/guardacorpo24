@@ -304,7 +304,6 @@ class EditReportScreenState extends State<EditReportScreen> {
               child: ElevatedButton.icon(
                 label: Text('Salvar alterações'.toUpperCase()),
                 onPressed: _submitReport,
-                icon: const Icon(Icons.save),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: buttonColor,

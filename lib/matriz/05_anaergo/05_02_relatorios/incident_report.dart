@@ -213,14 +213,22 @@ class IncidentReportState extends State<IncidentReport> {
                                         Positioned(
                                           top: 0,
                                           right: 0,
-                                          child: IconButton(
-                                            icon: const Icon(Icons.delete,
-                                                color: Colors.red),
-                                            onPressed: () {
-                                              setState(() {
-                                                _images.remove(image);
-                                              });
-                                            },
+                                          child: Container(
+                                            margin: const EdgeInsets.all(6),
+                                            decoration: const BoxDecoration(
+                                              color: Color.fromARGB(
+                                                  255, 0, 104, 55),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.delete,
+                                                  color: Colors.white),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _images.remove(image);
+                                                });
+                                              },
+                                            ),
                                           ),
                                         ),
                                       ],
