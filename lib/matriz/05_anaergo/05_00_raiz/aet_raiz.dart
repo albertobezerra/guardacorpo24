@@ -57,7 +57,7 @@ class _AETModuleState extends State<AETModule> {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/cid.jpg'),
+            image: AssetImage('assets/images/aet.jpg'),
             fit: BoxFit.cover,
           ),
         ),
@@ -85,7 +85,7 @@ class _AETModuleState extends State<AETModule> {
                         Radius.circular(18),
                       ),
                       image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cid.jpg'),
+                        image: ExactAssetImage('assets/images/aet2.jpg'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -114,7 +114,7 @@ class _AETModuleState extends State<AETModule> {
                   },
                   fontSize: itemFontSize,
                   height: tamanhoBotaoLista,
-                  image: 'assets/images/cid.jpg',
+                  image: 'assets/images/relatorios.jpg',
                   crownIcon: 'assets/images/crown.png',
                 ),
                 _buildDisabledPremiumButton(
@@ -122,7 +122,7 @@ class _AETModuleState extends State<AETModule> {
                   label: 'Checklists (Em breve)',
                   fontSize: itemFontSize,
                   height: tamanhoBotaoLista,
-                  image: 'assets/images/cid.jpg',
+                  image: 'assets/images/checklist.jpg',
                   crownIcon: 'assets/images/crown.png',
                 ),
                 _buildDisabledPremiumButton(
@@ -130,7 +130,7 @@ class _AETModuleState extends State<AETModule> {
                   label: 'Questionários (Em breve)',
                   fontSize: itemFontSize,
                   height: tamanhoBotaoLista,
-                  image: 'assets/images/cid.jpg',
+                  image: 'assets/images/questionarios.jpg',
                   crownIcon: 'assets/images/crown.png',
                 ),
               ],
