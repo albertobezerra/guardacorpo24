@@ -5,6 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_provider.dart';
+import 'package:guarda_corpo_2024/matriz/05_anaergo/05_03_checks/inspector_provider.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -66,6 +67,8 @@ class MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ReportProvider()..loadReports()),
+        ChangeNotifierProvider(
+            create: (_) => InspectionProvider()..loadInspections()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
