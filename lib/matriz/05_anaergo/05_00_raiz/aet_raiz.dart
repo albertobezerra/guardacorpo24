@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/admob/interstitial_ad_manager.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_01_conteudo/aet_conteudo.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/view_reports.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_03_checks/view_checks.dart';
 
 class AETModule extends StatefulWidget {
   const AETModule({super.key});
@@ -118,28 +117,14 @@ class _AETModuleState extends State<AETModule> {
                   image: 'assets/images/relatorios.jpg',
                   crownIcon: 'assets/images/crown.png',
                 ),
-                _buildPremiumButton(
-                  context,
-                  label: 'Checklists (Em breve)',
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const ViewInspections(),
-                    );
-                  },
-                  fontSize: itemFontSize,
-                  height: tamanhoBotaoLista,
-                  image: 'assets/images/checklist.jpg',
-                  crownIcon: 'assets/images/crown.png',
-                ),
-                _buildDisabledPremiumButton(
-                  context,
-                  label: 'Questionários (Em breve)',
-                  fontSize: itemFontSize,
-                  height: tamanhoBotaoLista,
-                  image: 'assets/images/questionarios.jpg',
-                  crownIcon: 'assets/images/crown.png',
-                ),
+                // _buildDisabledPremiumButton(
+                //   context,
+                //   label: 'Questionários (Em breve)',
+                //   fontSize: itemFontSize,
+                //   height: tamanhoBotaoLista,
+                //   image: 'assets/images/questionarios.jpg',
+                //   crownIcon: 'assets/images/crown.png',
+                // ),
               ],
             ),
           ),
@@ -206,6 +191,7 @@ class _AETModuleState extends State<AETModule> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildDisabledPremiumButton(BuildContext context,
       {required String label,
       required double fontSize,
