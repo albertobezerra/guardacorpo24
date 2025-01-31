@@ -58,7 +58,7 @@ class EditReportScreenState extends State<EditReportScreen> {
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-      locale: const Locale('pt', 'BR'), // Define o idioma para português
+      locale: const Locale('pt', 'BR'),
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -147,8 +147,7 @@ class EditReportScreenState extends State<EditReportScreen> {
         );
 
         if (!mounted) return;
-        Navigator.of(context).pop(
-            updatedReport); // Volta para a tela anterior com o relatório atualizado
+        Navigator.of(context).pop(updatedReport);
       }
     }
   }
@@ -217,11 +216,13 @@ class EditReportScreenState extends State<EditReportScreen> {
                         fontFamily: 'Segoe Bold',
                       ),
                     ),
-                    child: Text(_selectedDate == null
-                        ? 'Selecionar Data'.toUpperCase()
-                        : DateFormat('dd/MM/yyyy')
-                            .format(_selectedDate!)
-                            .toUpperCase()),
+                    child: Text(
+                      _selectedDate == null
+                          ? 'Selecionar Data'.toUpperCase()
+                          : DateFormat('dd/MM/yyyy')
+                              .format(_selectedDate!)
+                              .toUpperCase(),
+                    ),
                   ),
                   const SizedBox(height: 16.0),
                   _images.isEmpty
@@ -314,6 +315,7 @@ class EditReportScreenState extends State<EditReportScreen> {
                     fontFamily: 'Segoe Bold',
                   ),
                 ),
+                icon: const Icon(Icons.save),
               ),
             ),
           ),

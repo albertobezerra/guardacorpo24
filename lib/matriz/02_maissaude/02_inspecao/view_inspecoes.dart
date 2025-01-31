@@ -7,8 +7,25 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'inspecao_provider.dart';
 
-class ViewInspecoes extends StatelessWidget {
+class ViewInspecoes extends StatefulWidget {
   const ViewInspecoes({super.key});
+
+  @override
+  ViewInspecoesState createState() => ViewInspecoesState();
+}
+
+class ViewInspecoesState extends State<ViewInspecoes> {
+  @override
+  void initState() {
+    super.initState();
+    _loadInspecoes();
+  }
+
+  Future<void> _loadInspecoes() async {
+    final inspecaoProvider =
+        Provider.of<InspecaoProvider>(context, listen: false);
+    await inspecaoProvider.loadInspecoes();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +116,7 @@ class ViewInspecoes extends StatelessWidget {
                         );
                       } else {
                         return Padding(
-                          padding: const EdgeInsets.only(left: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -124,94 +141,121 @@ class ViewInspecoes extends StatelessWidget {
                                   final imagePaths =
                                       List<String>.from(inspecao.anexos);
 
-                                  return ListTile(
-                                    title: Text(
-                                      inspecao.tipoInspecao,
-                                    ),
-                                    subtitle: Text(
-                                        '${DateFormat('dd/MM/yyyy').format(inspecao.data)} - ${inspecao.local}'),
-                                    leading: imagePaths.isNotEmpty
-                                        ? Image.file(File(imagePaths[0]))
-                                        : null,
-                                    trailing: PopupMenuButton<String>(
-                                      onSelected: (String result) async {
-                                        if (result == 'edit') {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditInspecaoScreen(
-                                                index: index,
-                                                initialData: inspecao,
+                                  return Card(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8.0),
+                                    elevation: 3,
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.all(8.0),
+                                      title: Text(
+                                        inspecao.tipoInspecao,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '${DateFormat('dd/MM/yyyy').format(inspecao.data)} - ${inspecao.local}',
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black54),
+                                          ),
+                                          if (imagePaths.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 8.0),
+                                              child: Image.file(
+                                                File(imagePaths[0]),
+                                                height: 100,
+                                                fit: BoxFit.cover,
                                               ),
                                             ),
-                                          );
-                                        } else if (result == 'delete') {
-                                          final bool shouldDelete =
-                                              await showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        title: const Text(
-                                                            'Excluir Inspeção'),
-                                                        content: const Text(
-                                                            'Você tem certeza que deseja excluir esta inspeção?'),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(false);
-                                                            },
-                                                            child: const Text(
-                                                                'Cancelar'),
-                                                          ),
-                                                          TextButton(
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(true);
-                                                            },
-                                                            child: const Text(
-                                                                'Excluir'),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  ) ??
-                                                  false;
+                                        ],
+                                      ),
+                                      trailing: PopupMenuButton<String>(
+                                        onSelected: (String result) async {
+                                          if (result == 'edit') {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditInspecaoScreen(
+                                                  index: index,
+                                                  initialData: inspecao,
+                                                ),
+                                              ),
+                                            );
+                                          } else if (result == 'delete') {
+                                            final bool shouldDelete =
+                                                await showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return AlertDialog(
+                                                          title: const Text(
+                                                              'Excluir Inspeção'),
+                                                          content: const Text(
+                                                              'Você tem certeza que deseja excluir esta inspeção?'),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(false);
+                                                              },
+                                                              child: const Text(
+                                                                  'Cancelar'),
+                                                            ),
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(true);
+                                                              },
+                                                              child: const Text(
+                                                                  'Excluir'),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    ) ??
+                                                    false;
 
-                                          if (shouldDelete) {
-                                            inspecaoProvider
-                                                .deleteInspecao(index);
+                                            if (shouldDelete) {
+                                              inspecaoProvider
+                                                  .deleteInspecao(index);
+                                            }
                                           }
-                                        }
-                                      },
-                                      itemBuilder: (BuildContext context) =>
-                                          <PopupMenuEntry<String>>[
-                                        const PopupMenuItem<String>(
-                                          value: 'edit',
-                                          child: Text('Editar'),
-                                        ),
-                                        const PopupMenuItem<String>(
-                                          value: 'delete',
-                                          child: Text('Excluir'),
-                                        ),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              InspecaoDetailScreen(
-                                            inspecao: inspecao,
-                                            index: index,
+                                        },
+                                        itemBuilder: (BuildContext context) =>
+                                            <PopupMenuEntry<String>>[
+                                          const PopupMenuItem<String>(
+                                            value: 'edit',
+                                            child: Text('Editar'),
                                           ),
-                                        ),
-                                      );
-                                    },
+                                          const PopupMenuItem<String>(
+                                            value: 'delete',
+                                            child: Text('Excluir'),
+                                          ),
+                                        ],
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                InspecaoDetailScreen(
+                                              inspecao: inspecao,
+                                              index: index,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   );
                                 },
                               ),
