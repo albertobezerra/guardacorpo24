@@ -1,0 +1,259 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/cria_inspecao.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/editar_inspecao.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_detalhes.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'inspecao_provider.dart';
+
+class ViewInspecoes extends StatelessWidget {
+  const ViewInspecoes({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
+        child: AppBar(
+          toolbarHeight: 200,
+          title: Text(
+            'Inspeções'.toUpperCase(),
+            style: const TextStyle(
+              fontFamily: 'Segoe Bold',
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          flexibleSpace: const Image(
+            image: AssetImage('assets/images/inspecao.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(
+                        left: 30.0, top: 30.0, right: 30.0),
+                    child: RichText(
+                      textAlign: TextAlign.justify,
+                      text: const TextSpan(
+                        style: TextStyle(
+                          fontFamily: 'Segoe',
+                          fontSize: 14,
+                          color: Colors.black,
+                        ),
+                        children: [
+                          TextSpan(
+                            text:
+                                'Esta seção permite que você visualize e gerencie suas inspeções. As inspeções ajudam a identificar e avaliar problemas, promovendo a saúde e a segurança no local de trabalho.\n\n',
+                          ),
+                          TextSpan(
+                            text: 'Funções das Inspeções:\n\n',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          TextSpan(
+                            text:
+                                '• Visualizar Inspeções: Veja a descrição, data e local das inspeções realizadas.\n'
+                                '• Editar Inspeções: Atualize as informações das inspeções existentes.\n'
+                                '• Excluir Inspeções: Remova inspeções desatualizadas ou incorretas.\n\n',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Consumer<InspecaoProvider>(
+                    builder: (context, inspecaoProvider, child) {
+                      if (inspecaoProvider.inspecoes.isEmpty) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'Nenhuma inspeção encontrada.\nVamos criar sua primeira inspeção?',
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.black54),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                child: Text(
+                                  'SUAS INSPEÇÕES',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: inspecaoProvider.inspecoes.length,
+                                itemBuilder: (context, index) {
+                                  final inspecao =
+                                      inspecaoProvider.inspecoes[index];
+                                  final imagePaths =
+                                      List<String>.from(inspecao.anexos);
+
+                                  return ListTile(
+                                    title: Text(
+                                      inspecao.tipoInspecao,
+                                    ),
+                                    subtitle: Text(
+                                        '${DateFormat('dd/MM/yyyy').format(inspecao.data)} - ${inspecao.local}'),
+                                    leading: imagePaths.isNotEmpty
+                                        ? Image.file(File(imagePaths[0]))
+                                        : null,
+                                    trailing: PopupMenuButton<String>(
+                                      onSelected: (String result) async {
+                                        if (result == 'edit') {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditInspecaoScreen(
+                                                index: index,
+                                                initialData: inspecao,
+                                              ),
+                                            ),
+                                          );
+                                        } else if (result == 'delete') {
+                                          final bool shouldDelete =
+                                              await showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                            'Excluir Inspeção'),
+                                                        content: const Text(
+                                                            'Você tem certeza que deseja excluir esta inspeção?'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(false);
+                                                            },
+                                                            child: const Text(
+                                                                'Cancelar'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(true);
+                                                            },
+                                                            child: const Text(
+                                                                'Excluir'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ) ??
+                                                  false;
+
+                                          if (shouldDelete) {
+                                            inspecaoProvider
+                                                .deleteInspecao(index);
+                                          }
+                                        }
+                                      },
+                                      itemBuilder: (BuildContext context) =>
+                                          <PopupMenuEntry<String>>[
+                                        const PopupMenuItem<String>(
+                                          value: 'edit',
+                                          child: Text('Editar'),
+                                        ),
+                                        const PopupMenuItem<String>(
+                                          value: 'delete',
+                                          child: Text('Excluir'),
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              InspecaoDetailScreen(
+                                            inspecao: inspecao,
+                                            index: index,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                label: Text('Nova Inspeção'.toUpperCase()),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateInspecao(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 24.0),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Segoe Bold',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

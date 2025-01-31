@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_00_raiz/aet_raiz.dart';
 import '../../admob/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
@@ -460,6 +461,41 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
                         'Incêndio'.toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Segoe Bold',
+                          fontSize: itemFontSize,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                MaterialButton(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                  onPressed: () {
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      const ViewInspecoes(),
+                    );
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: tamanhoBotaoLista,
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(18),
+                      ),
+                      image: DecorationImage(
+                        image: ExactAssetImage('assets/images/inspecao.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Container(
+                      alignment: AlignmentDirectional.bottomStart,
+                      margin: const EdgeInsets.only(left: 12, bottom: 8),
+                      child: Text(
+                        'Insperção'.toUpperCase(),
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
