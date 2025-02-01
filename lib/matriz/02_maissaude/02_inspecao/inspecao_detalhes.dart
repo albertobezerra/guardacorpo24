@@ -16,24 +16,29 @@ class InspecaoDetailScreen extends StatefulWidget {
 }
 
 class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
-  late Inspecao inspecao;
+  late Inspecao _inspecao;
 
   @override
   void initState() {
     super.initState();
-    inspecao = widget.inspecao;
+    _inspecao = widget.inspecao;
   }
 
-  void _updateInspecao(Inspecao updatedInspecao) {
-    setState(() {
-      inspecao = updatedInspecao;
-    });
+  void _visualizarImagem(BuildContext context, String? imagemPath) {
+    if (imagemPath == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Image.file(File(imagemPath)),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final imagePaths = List<String>.from(inspecao.anexos);
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize:
@@ -76,13 +81,15 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                     MaterialPageRoute(
                       builder: (context) => EditInspecaoScreen(
                         index: widget.index,
-                        initialData: inspecao,
+                        initialData: _inspecao,
                       ),
                     ),
                   );
 
                   if (updatedInspecao != null) {
-                    _updateInspecao(updatedInspecao);
+                    setState(() {
+                      _inspecao = updatedInspecao;
+                    });
                   }
                 },
               ),
@@ -104,28 +111,21 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text(inspecao.tipoInspecao),
+                  Text(_inspecao.tipoInspecao),
                   const SizedBox(height: 16),
                   const Text(
                     'Local:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text(inspecao.local),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Descrição:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(inspecao.descricao),
+                  Text(_inspecao.local),
                   const SizedBox(height: 16),
                   const Text(
                     'Data:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text(DateFormat('dd/MM/yyyy').format(inspecao.data)),
+                  Text(DateFormat('dd/MM/yyyy').format(_inspecao.data)),
                   const SizedBox(height: 16),
                   const Text(
                     'Pontos de Verificação:',
@@ -135,66 +135,50 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: inspecao.pontos.length,
+                    itemCount: _inspecao.pontos.length,
                     itemBuilder: (ctx, index) {
-                      final ponto = inspecao.pontos[index];
+                      final ponto = _inspecao.pontos[index];
+                      final List<String> imagensPonto = ponto['imagens'] != null
+                          ? List<String>.from(ponto['imagens'])
+                          : [];
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
                         child: ListTile(
                           title: Text(ponto['descricao']),
-                          subtitle: Text(ponto['conforme']
-                              ? 'Conforme'
-                              : 'Inconforme: ${ponto['inconformidade']}'),
-                          leading: ponto['imagem'] != null
-                              ? GestureDetector(
-                                  onTap: () =>
-                                      _visualizarImagem(ponto['imagem']),
-                                  child: Image.file(
-                                    File(ponto['imagem']),
-                                    width: 50,
-                                    height: 50,
-                                  ),
-                                )
-                              : null,
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ponto['conforme']
+                                  ? 'Conforme'
+                                  : 'Inconforme: ${ponto['inconformidade']}'),
+                              Wrap(
+                                spacing: 8.0,
+                                runSpacing: 8.0,
+                                children: imagensPonto.map((imagemPath) {
+                                  return GestureDetector(
+                                    onTap: () =>
+                                        _visualizarImagem(context, imagemPath),
+                                    child: Image.file(
+                                      File(imagemPath),
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Imagens:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  imagePaths.isEmpty
-                      ? const Text("Nenhuma imagem selecionada")
-                      : Column(
-                          children: imagePaths.map((path) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Image.file(File(path)),
-                            );
-                          }).toList(),
-                        ),
                 ],
               ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  void _visualizarImagem(String? imagemPath) {
-    if (imagemPath == null) return;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          child: Image.file(File(imagemPath)),
-        );
-      },
     );
   }
 }

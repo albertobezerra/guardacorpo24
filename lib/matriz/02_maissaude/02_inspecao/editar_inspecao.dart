@@ -21,11 +21,10 @@ class EditInspecaoScreen extends StatefulWidget {
 class EditInspecaoScreenState extends State<EditInspecaoScreen> {
   late TextEditingController _tipoController;
   late TextEditingController _localController;
-  late TextEditingController _descricaoController;
   late TextEditingController _pontoDescricaoController;
   DateTime? _selectedDate;
   List<Map<String, dynamic>> _pontos = [];
-  File? _imagemPonto;
+  final List<File> _imagensPonto = [];
   bool _conformePonto = true;
   String? _inconformidadePonto;
 
@@ -35,8 +34,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
     _tipoController =
         TextEditingController(text: widget.initialData.tipoInspecao);
     _localController = TextEditingController(text: widget.initialData.local);
-    _descricaoController =
-        TextEditingController(text: widget.initialData.descricao);
     _pontoDescricaoController = TextEditingController();
     _selectedDate = widget.initialData.data;
     _pontos = List<Map<String, dynamic>>.from(widget.initialData.pontos);
@@ -58,16 +55,36 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
   }
 
   Future<void> _pickImage() async {
-    try {
-      final pickedFile =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        setState(() {
-          _imagemPonto = File(pickedFile.path);
-        });
+    final ImageSource? source = await showDialog<ImageSource>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Escolha uma opção'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.camera),
+              child: const Text('Câmera'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.gallery),
+              child: const Text('Galeria'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (source != null) {
+      try {
+        final pickedFile = await ImagePicker().pickImage(source: source);
+        if (pickedFile != null) {
+          setState(() {
+            _imagensPonto.add(File(pickedFile.path));
+          });
+        }
+      } catch (e) {
+        _showSnackBar('Erro ao selecionar imagem: $e');
       }
-    } catch (e) {
-      _showSnackBar('Erro ao selecionar imagem: $e');
     }
   }
 
@@ -86,15 +103,87 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
     setState(() {
       _pontos.add({
         'descricao': _pontoDescricaoController.text,
-        'imagem': _imagemPonto?.path,
+        'imagens': _imagensPonto.map((file) => file.path).toList(),
         'conforme': _conformePonto,
         'inconformidade': _inconformidadePonto,
       });
       _pontoDescricaoController.clear();
-      _imagemPonto = null;
+      _imagensPonto.clear();
       _conformePonto = true;
       _inconformidadePonto = null;
     });
+  }
+
+  Future<void> _submitInspecao() async {
+    if (_tipoController.text.isEmpty ||
+        _localController.text.isEmpty ||
+        _selectedDate == null) {
+      _showSnackBar('Todos os campos são obrigatórios.');
+      return;
+    }
+
+    // Verificar se todos os pontos de verificação têm descrição
+    for (var ponto in _pontos) {
+      if (ponto['descricao'].isEmpty) {
+        _showSnackBar(
+            'Todos os pontos de verificação devem ter uma descrição.');
+        return;
+      }
+    }
+
+    final inspecaoProvider =
+        Provider.of<InspecaoProvider>(context, listen: false);
+    final updatedInspecao = Inspecao(
+      id: widget.initialData.id,
+      tipoInspecao: _tipoController.text,
+      local: _localController.text,
+      data: _selectedDate!,
+      pontos: _pontos,
+      anexos: [], // Limpar anexos não utilizados
+    );
+
+    await inspecaoProvider.updateInspecao(widget.index, updatedInspecao);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Inspeção atualizada')),
+    );
+
+    Navigator.of(context).pop(updatedInspecao);
+  }
+
+  void _confirmDeleteImage(File image) async {
+    final bool shouldDelete = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Excluir Imagem'),
+              content: const Text(
+                  'Você tem certeza que deseja excluir esta imagem?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Excluir'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (shouldDelete) {
+      setState(() {
+        _imagensPonto.remove(image);
+      });
+    }
   }
 
   void _visualizarImagem(String? imagemPath) {
@@ -108,44 +197,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
         );
       },
     );
-  }
-
-  Future<void> _submitInspecao() async {
-    if (_tipoController.text.isEmpty ||
-        _localController.text.isEmpty ||
-        _descricaoController.text.isEmpty ||
-        _selectedDate == null) {
-      _showSnackBar('Todos os campos são obrigatórios.');
-      return;
-    }
-
-    if (_pontos.isEmpty) {
-      _showSnackBar('Adicione pelo menos um ponto de verificação.');
-      return;
-    }
-
-    final inspecaoProvider =
-        Provider.of<InspecaoProvider>(context, listen: false);
-    final updatedInspecao = Inspecao(
-      id: widget.initialData.id,
-      tipoInspecao: _tipoController.text,
-      local: _localController.text,
-      descricao: _descricaoController.text,
-      data: _selectedDate!,
-      pontos: _pontos,
-      anexos: _imagemPonto != null
-          ? [_imagemPonto!.path]
-          : widget.initialData.anexos,
-    );
-
-    await inspecaoProvider.updateInspecao(widget.index, updatedInspecao);
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Inspeção atualizada')),
-    );
-
-    Navigator.of(context).pop(updatedInspecao);
   }
 
   @override
@@ -202,14 +253,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 16.0),
-                  OutlinedTextField3(
-                    controller: _descricaoController,
-                    labelText: 'Descrição',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: (value) {},
-                  ),
-                  const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: _pickDate,
                     style: ElevatedButton.styleFrom(
@@ -243,18 +286,47 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.image),
+                        icon: const Icon(Icons.add_a_photo),
                         onPressed: _pickImage,
                       ),
-                      if (_imagemPonto != null)
-                        GestureDetector(
-                          onTap: () => _visualizarImagem(_imagemPonto?.path),
-                          child: Image.file(
-                            _imagemPonto!,
-                            width: 50,
-                            height: 50,
-                          ),
-                        ),
+                    ],
+                  ),
+                  if (_imagensPonto.isNotEmpty)
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: _imagensPonto.map((imagem) {
+                        return Stack(
+                          children: [
+                            GestureDetector(
+                              onTap: () => _visualizarImagem(imagem.path),
+                              child: Image.file(
+                                imagem,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _confirmDeleteImage(imagem),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      const Text(
+                        'Conforme:',
+                        style: TextStyle(fontSize: 16),
+                      ),
                       Checkbox(
                         value: _conformePonto,
                         onChanged: (value) {
@@ -263,21 +335,20 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                           });
                         },
                       ),
-                      if (!_conformePonto)
-                        Expanded(
-                          child: OutlinedTextField3(
-                            controller: TextEditingController(
-                                text: _inconformidadePonto),
-                            labelText: 'Inconformidade',
-                            obscureText: false,
-                            textCapitalization: TextCapitalization.sentences,
-                            onChanged: (value) {
-                              _inconformidadePonto = value;
-                            },
-                          ),
-                        ),
                     ],
                   ),
+                  if (!_conformePonto)
+                    OutlinedTextField3(
+                      controller:
+                          TextEditingController(text: _inconformidadePonto),
+                      labelText: 'Inconformidade',
+                      obscureText: false,
+                      textCapitalization: TextCapitalization.sentences,
+                      onChanged: (value) {
+                        _inconformidadePonto = value;
+                      },
+                    ),
+                  const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: _adicionarPonto,
                     style: ElevatedButton.styleFrom(
@@ -301,24 +372,36 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                     itemCount: _pontos.length,
                     itemBuilder: (ctx, index) {
                       final ponto = _pontos[index];
+                      final List<String> imagensPonto = ponto['imagens'] != null
+                          ? List<String>.from(ponto['imagens'])
+                          : [];
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
                         child: ListTile(
                           title: Text(ponto['descricao']),
-                          subtitle: Text(ponto['conforme']
-                              ? 'Conforme'
-                              : 'Inconforme: ${ponto['inconformidade']}'),
-                          leading: ponto['imagem'] != null
-                              ? GestureDetector(
-                                  onTap: () =>
-                                      _visualizarImagem(ponto['imagem']),
-                                  child: Image.file(
-                                    File(ponto['imagem']),
-                                    width: 50,
-                                    height: 50,
-                                  ),
-                                )
-                              : null,
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ponto['conforme']
+                                  ? 'Conforme'
+                                  : 'Inconforme: ${ponto['inconformidade']}'),
+                              Wrap(
+                                spacing: 8.0,
+                                runSpacing: 8.0,
+                                children: imagensPonto.map((imagemPath) {
+                                  return GestureDetector(
+                                    onTap: () => _visualizarImagem(imagemPath),
+                                    child: Image.file(
+                                      File(imagemPath),
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {

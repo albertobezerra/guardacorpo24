@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_inspecoes.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import 'inspecao_provider.dart';
 import 'dados_inspecao.dart';
+import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_inspecoes.dart';
 
 class CreateInspecao extends StatefulWidget {
   const CreateInspecao({super.key});
@@ -17,13 +17,12 @@ class CreateInspecao extends StatefulWidget {
 class CreateInspecaoState extends State<CreateInspecao> {
   final TextEditingController _tipoController = TextEditingController();
   final TextEditingController _localController = TextEditingController();
-  final TextEditingController _descricaoController = TextEditingController();
   final TextEditingController _pontoDescricaoController =
       TextEditingController();
   DateTime? _selectedDate;
   final List<Map<String, dynamic>> _pontos = [];
+  final List<File> _imagensPonto = [];
   bool _isLoading = false;
-  File? _imagemPonto;
   bool _conformePonto = true;
   String? _inconformidadePonto;
 
@@ -43,16 +42,36 @@ class CreateInspecaoState extends State<CreateInspecao> {
   }
 
   Future<void> _pickImage() async {
-    try {
-      final pickedFile =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        setState(() {
-          _imagemPonto = File(pickedFile.path);
-        });
+    final ImageSource? source = await showDialog<ImageSource>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Escolha uma opção'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.camera),
+              child: const Text('Câmera'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.gallery),
+              child: const Text('Galeria'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (source != null) {
+      try {
+        final pickedFile = await ImagePicker().pickImage(source: source);
+        if (pickedFile != null) {
+          setState(() {
+            _imagensPonto.add(File(pickedFile.path));
+          });
+        }
+      } catch (e) {
+        _showSnackBar('Erro ao selecionar imagem: $e');
       }
-    } catch (e) {
-      _showSnackBar('Erro ao selecionar imagem: $e');
     }
   }
 
@@ -65,12 +84,11 @@ class CreateInspecaoState extends State<CreateInspecao> {
   void _clearForm() {
     _tipoController.clear();
     _localController.clear();
-    _descricaoController.clear();
     _pontoDescricaoController.clear();
     setState(() {
       _selectedDate = null;
       _pontos.clear();
-      _imagemPonto = null;
+      _imagensPonto.clear();
       _conformePonto = true;
       _inconformidadePonto = null;
     });
@@ -85,12 +103,12 @@ class CreateInspecaoState extends State<CreateInspecao> {
     setState(() {
       _pontos.add({
         'descricao': _pontoDescricaoController.text,
-        'imagem': _imagemPonto?.path,
+        'imagens': _imagensPonto.map((file) => file.path).toList(),
         'conforme': _conformePonto,
         'inconformidade': _inconformidadePonto,
       });
       _pontoDescricaoController.clear();
-      _imagemPonto = null;
+      _imagensPonto.clear();
       _conformePonto = true;
       _inconformidadePonto = null;
     });
@@ -99,7 +117,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
   Future<void> _submitInspecao() async {
     if (_tipoController.text.isEmpty ||
         _localController.text.isEmpty ||
-        _descricaoController.text.isEmpty ||
         _selectedDate == null) {
       _showSnackBar('Todos os campos são obrigatórios.');
       return;
@@ -118,9 +135,9 @@ class CreateInspecaoState extends State<CreateInspecao> {
       id: DateTime.now().toString(),
       tipoInspecao: _tipoController.text,
       local: _localController.text,
-      descricao: _descricaoController.text,
       data: _selectedDate!,
       pontos: _pontos,
+      anexos: [], // Limpar anexos não utilizados
     );
 
     final inspecaoProvider =
@@ -149,6 +166,40 @@ class CreateInspecaoState extends State<CreateInspecao> {
         );
       },
     );
+  }
+
+  void _confirmDeleteImage(File image) async {
+    final bool shouldDelete = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Excluir Imagem'),
+              content: const Text(
+                  'Você tem certeza que deseja excluir esta imagem?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Excluir'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (shouldDelete) {
+      setState(() {
+        _imagensPonto.remove(image);
+      });
+    }
   }
 
   @override
@@ -205,14 +256,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 16.0),
-                  OutlinedTextField3(
-                    controller: _descricaoController,
-                    labelText: 'Descrição',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: (value) {},
-                  ),
-                  const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: _pickDate,
                     style: ElevatedButton.styleFrom(
@@ -244,18 +287,47 @@ class CreateInspecaoState extends State<CreateInspecao> {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.image),
+                        icon: const Icon(Icons.add_a_photo),
                         onPressed: _pickImage,
                       ),
-                      if (_imagemPonto != null)
-                        GestureDetector(
-                          onTap: () => _visualizarImagem(_imagemPonto?.path),
-                          child: Image.file(
-                            _imagemPonto!,
-                            width: 50,
-                            height: 50,
-                          ),
-                        ),
+                    ],
+                  ),
+                  if (_imagensPonto.isNotEmpty)
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: _imagensPonto.map((imagem) {
+                        return Stack(
+                          children: [
+                            GestureDetector(
+                              onTap: () => _visualizarImagem(imagem.path),
+                              child: Image.file(
+                                imagem,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _confirmDeleteImage(imagem),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      const Text(
+                        'Conforme:',
+                        style: TextStyle(fontSize: 16),
+                      ),
                       Checkbox(
                         value: _conformePonto,
                         onChanged: (value) {
@@ -264,21 +336,20 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           });
                         },
                       ),
-                      if (!_conformePonto)
-                        Expanded(
-                          child: OutlinedTextField3(
-                            controller: TextEditingController(
-                                text: _inconformidadePonto),
-                            labelText: 'Inconformidade',
-                            obscureText: false,
-                            textCapitalization: TextCapitalization.sentences,
-                            onChanged: (value) {
-                              _inconformidadePonto = value;
-                            },
-                          ),
-                        ),
                     ],
                   ),
+                  if (!_conformePonto)
+                    OutlinedTextField3(
+                      controller:
+                          TextEditingController(text: _inconformidadePonto),
+                      labelText: 'Inconformidade',
+                      obscureText: false,
+                      textCapitalization: TextCapitalization.sentences,
+                      onChanged: (value) {
+                        _inconformidadePonto = value;
+                      },
+                    ),
+                  const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: _adicionarPonto,
                     style: ElevatedButton.styleFrom(
@@ -302,24 +373,36 @@ class CreateInspecaoState extends State<CreateInspecao> {
                     itemCount: _pontos.length,
                     itemBuilder: (ctx, index) {
                       final ponto = _pontos[index];
+                      final List<String> imagensPonto = ponto['imagens'] != null
+                          ? List<String>.from(ponto['imagens'])
+                          : [];
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
                         child: ListTile(
                           title: Text(ponto['descricao']),
-                          subtitle: Text(ponto['conforme']
-                              ? 'Conforme'
-                              : 'Inconforme: ${ponto['inconformidade']}'),
-                          leading: ponto['imagem'] != null
-                              ? GestureDetector(
-                                  onTap: () =>
-                                      _visualizarImagem(ponto['imagem']),
-                                  child: Image.file(
-                                    File(ponto['imagem']),
-                                    width: 50,
-                                    height: 50,
-                                  ),
-                                )
-                              : null,
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ponto['conforme']
+                                  ? 'Conforme'
+                                  : 'Inconforme: ${ponto['inconformidade']}'),
+                              Wrap(
+                                spacing: 8.0,
+                                runSpacing: 8.0,
+                                children: imagensPonto.map((imagemPath) {
+                                  return GestureDetector(
+                                    onTap: () => _visualizarImagem(imagemPath),
+                                    child: Image.file(
+                                      File(imagemPath),
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {
@@ -340,7 +423,8 @@ class CreateInspecaoState extends State<CreateInspecao> {
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
+                label: Text('Finalizar Inspeção'.toUpperCase()),
                 onPressed: _isLoading ? null : _submitInspecao,
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
@@ -350,9 +434,9 @@ class CreateInspecaoState extends State<CreateInspecao> {
                   textStyle:
                       const TextStyle(fontSize: 16, fontFamily: 'Segoe Bold'),
                 ),
-                child: _isLoading
+                icon: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : Text('Finalizar Inspeção'.toUpperCase()),
+                    : const Icon(Icons.check),
               ),
             ),
           ),
