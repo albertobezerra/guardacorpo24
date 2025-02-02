@@ -25,11 +25,12 @@ class CreateInspecaoState extends State<CreateInspecao> {
   bool _isLoading = false;
   bool _conformePonto = true;
   String? _inconformidadePonto;
+  int? _editingIndex;
 
   Future<void> _pickDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
       locale: const Locale('pt', 'BR'),
@@ -39,6 +40,12 @@ class CreateInspecaoState extends State<CreateInspecao> {
         _selectedDate = picked;
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = DateTime.now(); // Pré-preencher com a data atual
   }
 
   Future<void> _pickImage() async {
@@ -91,6 +98,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
       _imagensPonto.clear();
       _conformePonto = true;
       _inconformidadePonto = null;
+      _editingIndex = null;
     });
   }
 
@@ -100,13 +108,20 @@ class CreateInspecaoState extends State<CreateInspecao> {
       return;
     }
 
+    final novoPonto = {
+      'descricao': _pontoDescricaoController.text,
+      'imagens': _imagensPonto.map((file) => file.path).toList(),
+      'conforme': _conformePonto,
+      'inconformidade': _inconformidadePonto,
+    };
+
     setState(() {
-      _pontos.add({
-        'descricao': _pontoDescricaoController.text,
-        'imagens': _imagensPonto.map((file) => file.path).toList(),
-        'conforme': _conformePonto,
-        'inconformidade': _inconformidadePonto,
-      });
+      if (_editingIndex == null) {
+        _pontos.add(novoPonto);
+      } else {
+        _pontos[_editingIndex!] = novoPonto;
+        _editingIndex = null;
+      }
       _pontoDescricaoController.clear();
       _imagensPonto.clear();
       _conformePonto = true;
@@ -157,36 +172,29 @@ class CreateInspecaoState extends State<CreateInspecao> {
 
   void _visualizarImagem(String? imagemPath) {
     if (imagemPath == null) return;
-
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(
-          child: Image.file(File(imagemPath)),
-        );
+        return Dialog(child: Image.file(File(imagemPath)));
       },
     );
   }
 
-  void _confirmDeleteImage(File image) async {
-    final bool shouldDelete = await showDialog(
+  Future<void> _confirmDeleteImage(File image) async {
+    final shouldDelete = await showDialog<bool>(
           context: context,
-          builder: (BuildContext context) {
+          builder: (context) {
             return AlertDialog(
               title: const Text('Excluir Imagem'),
               content: const Text(
                   'Você tem certeza que deseja excluir esta imagem?'),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
+                  onPressed: () => Navigator.of(context).pop(false),
                   child: const Text('Cancelar'),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
+                  onPressed: () => Navigator.of(context).pop(true),
                   child: const Text('Excluir'),
                 ),
               ],
@@ -202,9 +210,54 @@ class CreateInspecaoState extends State<CreateInspecao> {
     }
   }
 
+  Future<void> _confirmDeletePonto(int index) async {
+    final shouldDelete = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Excluir Ponto de Verificação'),
+              content: const Text(
+                  'Você tem certeza que deseja excluir este ponto de verificação?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Excluir'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (shouldDelete) {
+      setState(() {
+        _pontos.removeAt(index);
+      });
+    }
+  }
+
+  void _editarPonto(int index) {
+    final ponto = _pontos[index];
+    setState(() {
+      _pontoDescricaoController.text = ponto['descricao'];
+      _imagensPonto.clear();
+      for (var path in ponto['imagens']) {
+        _imagensPonto.add(File(path));
+      }
+      _conformePonto = ponto['conforme'];
+      _inconformidadePonto = ponto['inconformidade'];
+      _editingIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize:
@@ -240,50 +293,77 @@ class CreateInspecaoState extends State<CreateInspecao> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  OutlinedTextField3(
-                    controller: _tipoController,
-                    labelText: 'Tipo de Inspeção',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: (value) {},
+                  // Tipo de Inspeção e Local na mesma linha
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedTextField3(
+                          controller: _tipoController,
+                          labelText: 'Tipo de Inspeção',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.sentences,
+                          onChanged: (value) {},
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        child: OutlinedTextField3(
+                          controller: _localController,
+                          labelText: 'Local',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.sentences,
+                          onChanged: (value) {},
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16.0),
-                  OutlinedTextField3(
-                    controller: _localController,
-                    labelText: 'Local',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: (value) {},
+
+                  // Data ocupando 50% da largura
+                  // Data ocupando 50% da largura e pré-preenchida com a data atual
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: ElevatedButton(
+                          onPressed: _pickDate,
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: buttonColor,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12.0, horizontal: 8.0),
+                            textStyle: const TextStyle(
+                                fontSize: 14, fontFamily: 'Segoe Bold'),
+                          ),
+                          child: Text(
+                            _selectedDate == null
+                                ? DateFormat('dd/MM/yyyy')
+                                    .format(DateTime.now())
+                                    .toUpperCase()
+                                : DateFormat('dd/MM/yyyy')
+                                    .format(_selectedDate!)
+                                    .toUpperCase(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16.0),
-                  ElevatedButton(
-                    onPressed: _pickDate,
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: buttonColor,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12.0, horizontal: 24.0),
-                      textStyle: const TextStyle(
-                          fontSize: 16, fontFamily: 'Segoe Bold'),
-                    ),
-                    child: Text(_selectedDate == null
-                        ? 'Selecionar Data'.toUpperCase()
-                        : DateFormat('dd/MM/yyyy')
-                            .format(_selectedDate!)
-                            .toUpperCase()),
-                  ),
-                  const SizedBox(height: 16.0),
-                  const Text(
-                    'Adicionar Ponto de Verificação:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
+
+                  // Descrição do Ponto
                   OutlinedTextField3(
                     controller: _pontoDescricaoController,
                     labelText: 'Descrição do Ponto',
                     obscureText: false,
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: (value) {},
+                    maxLines: 3,
                   ),
+                  const SizedBox(height: 16.0),
+
+                  // Adicionar Imagens
                   Row(
                     children: [
                       IconButton(
@@ -292,6 +372,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       ),
                     ],
                   ),
+
                   if (_imagensPonto.isNotEmpty)
                     Wrap(
                       spacing: 8.0,
@@ -321,7 +402,10 @@ class CreateInspecaoState extends State<CreateInspecao> {
                         );
                       }).toList(),
                     ),
+
                   const SizedBox(height: 16.0),
+
+                  // Conforme/Inconforme
                   Row(
                     children: [
                       const Text(
@@ -338,6 +422,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       ),
                     ],
                   ),
+
                   if (!_conformePonto)
                     OutlinedTextField3(
                       controller:
@@ -348,8 +433,12 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       onChanged: (value) {
                         _inconformidadePonto = value;
                       },
+                      maxLines: 1,
                     ),
+
                   const SizedBox(height: 16.0),
+
+                  // Botão para adicionar/atualizar ponto
                   ElevatedButton(
                     onPressed: _adicionarPonto,
                     style: ElevatedButton.styleFrom(
@@ -360,9 +449,16 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       textStyle: const TextStyle(
                           fontSize: 16, fontFamily: 'Segoe Bold'),
                     ),
-                    child: Text('Adicionar Ponto'.toUpperCase()),
+                    child: Text(
+                      _editingIndex == null
+                          ? 'Adicionar Ponto'.toUpperCase()
+                          : 'Atualizar Ponto'.toUpperCase(),
+                    ),
                   ),
+
                   const SizedBox(height: 16.0),
+
+                  // Lista de Pontos Adicionados
                   const Text(
                     'Pontos Adicionados:',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -376,6 +472,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       final List<String> imagensPonto = ponto['imagens'] != null
                           ? List<String>.from(ponto['imagens'])
                           : [];
+
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
                         child: ListTile(
@@ -383,33 +480,44 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(ponto['conforme']
-                                  ? 'Conforme'
-                                  : 'Inconforme: ${ponto['inconformidade']}'),
-                              Wrap(
-                                spacing: 8.0,
-                                runSpacing: 8.0,
-                                children: imagensPonto.map((imagemPath) {
-                                  return GestureDetector(
-                                    onTap: () => _visualizarImagem(imagemPath),
-                                    child: Image.file(
-                                      File(imagemPath),
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  );
-                                }).toList(),
+                              Text(
+                                ponto['conforme']
+                                    ? 'Conforme'
+                                    : 'Inconforme: ${ponto['inconformidade']}',
                               ),
+                              if (imagensPonto.isNotEmpty)
+                                Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 8.0,
+                                  children: imagensPonto.map((imagemPath) {
+                                    return GestureDetector(
+                                      onTap: () =>
+                                          _visualizarImagem(imagemPath),
+                                      child: Image.file(
+                                        File(imagemPath),
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                             ],
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setState(() {
-                                _pontos.removeAt(index);
-                              });
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () => _editarPonto(index),
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _confirmDeletePonto(index),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -419,6 +527,8 @@ class CreateInspecaoState extends State<CreateInspecao> {
               ),
             ),
           ),
+
+          // Botão Finalizar Inspeção
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(

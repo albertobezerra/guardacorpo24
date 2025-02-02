@@ -8,8 +8,11 @@ class InspecaoDetailScreen extends StatefulWidget {
   final Inspecao inspecao;
   final int index;
 
-  const InspecaoDetailScreen(
-      {super.key, required this.inspecao, required this.index});
+  const InspecaoDetailScreen({
+    super.key,
+    required this.inspecao,
+    required this.index,
+  });
 
   @override
   InspecaoDetailScreenState createState() => InspecaoDetailScreenState();
@@ -26,7 +29,6 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
 
   void _visualizarImagem(BuildContext context, String? imagemPath) {
     if (imagemPath == null) return;
-
     showDialog(
       context: context,
       builder: (context) {
@@ -54,10 +56,7 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
             ),
           ),
           leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -85,7 +84,6 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                       ),
                     ),
                   );
-
                   if (updatedInspecao != null) {
                     setState(() {
                       _inspecao = updatedInspecao;
@@ -106,27 +104,74 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Tipo de Inspeção:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  // Tipo de Inspeção e Local na mesma linha
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Tipo de Inspeção:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(_inspecao.tipoInspecao),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Local:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(_inspecao.local),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(_inspecao.tipoInspecao),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Local:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+                  // Data ocupando 50% da largura
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Data:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              DateFormat('dd/MM/yyyy').format(_inspecao.data),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(_inspecao.local),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Data:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(DateFormat('dd/MM/yyyy').format(_inspecao.data)),
-                  const SizedBox(height: 16),
+
+                  const Divider(height: 32, thickness: 1, color: Colors.grey),
+
+                  // Pontos de Verificação
                   const Text(
                     'Pontos de Verificação:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -141,6 +186,7 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                       final List<String> imagensPonto = ponto['imagens'] != null
                           ? List<String>.from(ponto['imagens'])
                           : [];
+
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
                         child: ListTile(
@@ -148,25 +194,28 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(ponto['conforme']
-                                  ? 'Conforme'
-                                  : 'Inconforme: ${ponto['inconformidade']}'),
-                              Wrap(
-                                spacing: 8.0,
-                                runSpacing: 8.0,
-                                children: imagensPonto.map((imagemPath) {
-                                  return GestureDetector(
-                                    onTap: () =>
-                                        _visualizarImagem(context, imagemPath),
-                                    child: Image.file(
-                                      File(imagemPath),
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  );
-                                }).toList(),
+                              Text(
+                                ponto['conforme']
+                                    ? 'Conforme'
+                                    : 'Inconforme: ${ponto['inconformidade']}',
                               ),
+                              if (imagensPonto.isNotEmpty)
+                                Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 8.0,
+                                  children: imagensPonto.map((imagemPath) {
+                                    return GestureDetector(
+                                      onTap: () => _visualizarImagem(
+                                          context, imagemPath),
+                                      child: Image.file(
+                                        File(imagemPath),
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                             ],
                           ),
                         ),

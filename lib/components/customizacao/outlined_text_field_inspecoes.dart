@@ -4,18 +4,20 @@ class OutlinedTextField3 extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final bool obscureText;
-  final Function(String)? onChanged; // Novo parâmetro onChanged
+  final Function(String)? onChanged; // Parâmetro onChanged
   final Function(String)? onSubmitted;
   final TextCapitalization textCapitalization;
+  final int? maxLines; // Novo parâmetro maxLines
 
   const OutlinedTextField3({
     super.key,
     required this.controller,
     required this.labelText,
     this.obscureText = false,
-    this.onChanged, // Novo parâmetro onChanged
+    this.onChanged, // Parâmetro onChanged
     this.onSubmitted,
     required this.textCapitalization,
+    this.maxLines = 1, // Valor padrão para maxLines é 1 (campo de linha única)
   });
 
   @override
@@ -69,6 +71,7 @@ class OutlinedTextField3State extends State<OutlinedTextField3> {
       style: const TextStyle(color: Color.fromARGB(255, 0, 104, 55)),
       onChanged: widget.onChanged, // Adiciona o onChanged
       onSubmitted: widget.onSubmitted,
+      maxLines: widget.maxLines, // Aplica o parâmetro maxLines
     );
   }
 }
