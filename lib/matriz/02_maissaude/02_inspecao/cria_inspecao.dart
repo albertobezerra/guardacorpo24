@@ -117,57 +117,20 @@ class CreateInspecaoState extends State<CreateInspecao> {
 
     setState(() {
       if (_editingIndex == null) {
+        // Adicionar novo ponto
         _pontos.add(novoPonto);
       } else {
+        // Atualizar ponto existente
         _pontos[_editingIndex!] = novoPonto;
-        _editingIndex = null;
+        _editingIndex = null; // Limpar índice de edição
       }
+
+      // Limpar campos após adicionar/atualizar
       _pontoDescricaoController.clear();
       _imagensPonto.clear();
       _conformePonto = true;
       _inconformidadePonto = null;
     });
-  }
-
-  Future<void> _submitInspecao() async {
-    if (_tipoController.text.isEmpty ||
-        _localController.text.isEmpty ||
-        _selectedDate == null) {
-      _showSnackBar('Todos os campos são obrigatórios.');
-      return;
-    }
-
-    if (_pontos.isEmpty) {
-      _showSnackBar('Adicione pelo menos um ponto de verificação.');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    final inspecao = Inspecao(
-      id: DateTime.now().toString(),
-      tipoInspecao: _tipoController.text,
-      local: _localController.text,
-      data: _selectedDate!,
-      pontos: _pontos,
-      anexos: [], // Limpar anexos não utilizados
-    );
-
-    final inspecaoProvider =
-        Provider.of<InspecaoProvider>(context, listen: false);
-    await inspecaoProvider.saveInspecao(inspecao);
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    _clearForm();
-    _showSnackBar('Inspeção salva com sucesso!');
-    Navigator.of(context).pop();
   }
 
   void _visualizarImagem(String? imagemPath) {
@@ -252,6 +215,54 @@ class CreateInspecaoState extends State<CreateInspecao> {
       _inconformidadePonto = ponto['inconformidade'];
       _editingIndex = index;
     });
+  }
+
+  Future<void> _submitInspecao() async {
+    if (_tipoController.text.isEmpty ||
+        _localController.text.isEmpty ||
+        _selectedDate == null) {
+      _showSnackBar('Todos os campos são obrigatórios.');
+      return;
+    }
+
+    // Verificar se há um ponto de verificação em andamento
+    if (_pontoDescricaoController.text.isNotEmpty || _imagensPonto.isNotEmpty) {
+      _showSnackBar(
+          'Há um ponto de verificação em andamento. Por favor, finalize-o antes de salvar.');
+      return;
+    }
+
+    if (_pontos.isEmpty) {
+      _showSnackBar('Adicione pelo menos um ponto de verificação.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true; // Ativar estado de carregamento
+    });
+
+    final inspecao = Inspecao(
+      id: DateTime.now().toString(),
+      tipoInspecao: _tipoController.text,
+      local: _localController.text,
+      data: _selectedDate!,
+      pontos: _pontos,
+      anexos: [], // Limpar anexos não utilizados
+    );
+
+    final inspecaoProvider =
+        Provider.of<InspecaoProvider>(context, listen: false);
+    await inspecaoProvider.saveInspecao(inspecao);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false; // Desativar estado de carregamento
+    });
+
+    _clearForm();
+    _showSnackBar('Inspeção salva com sucesso!');
+    Navigator.of(context).pop();
   }
 
   @override

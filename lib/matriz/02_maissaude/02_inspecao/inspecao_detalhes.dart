@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'editar_inspecao.dart';
 import 'dados_inspecao.dart';
 
@@ -32,9 +34,7 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(
-          child: Image.file(File(imagemPath)),
-        );
+        return Dialog(child: Image.file(File(imagemPath)));
       },
     );
   }
@@ -84,7 +84,7 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                       ),
                     ),
                   );
-                  if (updatedInspecao != null) {
+                  if (updatedInspecao != null && mounted) {
                     setState(() {
                       _inspecao = updatedInspecao;
                     });
@@ -168,7 +168,6 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                       ),
                     ],
                   ),
-
                   const Divider(height: 32, thickness: 1, color: Colors.grey),
 
                   // Pontos de Verificação
@@ -224,6 +223,78 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+
+          // Botão Excluir Inspeção
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton.icon(
+              label: Text('Excluir Inspeção'.toUpperCase()),
+              onPressed: () async {
+                if (!mounted) return;
+
+                final shouldDelete = await showDialog<bool>(
+                      context: context,
+                      builder: (dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Excluir Inspeção'),
+                          content: const Text(
+                              'Você tem certeza que deseja excluir esta inspeção? Esta ação não pode ser desfeita.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(false),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(true),
+                              child: const Text('Excluir',
+                                  style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        );
+                      },
+                    ) ??
+                    false;
+
+                if (!shouldDelete || !context.mounted) return;
+
+                final inspecaoProvider =
+                    Provider.of<InspecaoProvider>(context, listen: false);
+                await inspecaoProvider.deleteInspecao(widget.index);
+
+                if (!context.mounted) return;
+
+                // Usar `ScaffoldMessenger` dentro de um `Future.microtask`
+                Future.microtask(() {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Inspeção excluída com sucesso')),
+                    );
+                  }
+                });
+
+                if (!mounted) return;
+
+                // Fechar a tela
+                Future.microtask(() {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.red,
+                padding: const EdgeInsets.symmetric(
+                    vertical: 12.0, horizontal: 24.0),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontFamily: 'Segoe Bold'),
+              ),
+              icon: const Icon(Icons.delete),
             ),
           ),
         ],

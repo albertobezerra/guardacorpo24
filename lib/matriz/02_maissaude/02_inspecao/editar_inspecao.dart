@@ -124,11 +124,15 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
 
     setState(() {
       if (_editingIndex == null) {
+        // Adicionar novo ponto
         _pontos.add(novoPonto);
       } else {
+        // Atualizar ponto existente
         _pontos[_editingIndex!] = novoPonto;
-        _editingIndex = null;
+        _editingIndex = null; // Limpar índice de edição
       }
+
+      // Limpar campos após adicionar/atualizar
       _pontoDescricaoController.clear();
       _imagensPonto.clear();
       _conformePonto = true;
@@ -141,6 +145,13 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
         _localController.text.isEmpty ||
         _selectedDate == null) {
       _showSnackBar('Todos os campos são obrigatórios.');
+      return;
+    }
+
+    // Verificar se há um ponto de verificação em andamento
+    if (_pontoDescricaoController.text.isNotEmpty || _imagensPonto.isNotEmpty) {
+      _showSnackBar(
+          'Há um ponto de verificação em andamento. Por favor, finalize-o antes de salvar.');
       return;
     }
 
