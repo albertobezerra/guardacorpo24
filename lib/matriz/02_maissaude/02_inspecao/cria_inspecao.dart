@@ -200,7 +200,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
     }
   }
 
-  Future<void> _confirmDeletePonto(int index) async {
+  Future<bool> _confirmDeletePonto(int index) async {
     final shouldDelete = await showDialog<bool>(
           context: context,
           builder: (context) {
@@ -223,11 +223,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
         ) ??
         false;
 
-    if (shouldDelete) {
-      setState(() {
-        _pontos.removeAt(index);
-      });
-    }
+    return shouldDelete;
   }
 
   void _editarPonto(int index) {
@@ -572,133 +568,116 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           ? List<String>.from(ponto['imagens'])
                           : [];
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment
-                              .start, // Alinha os elementos no topo
-                          children: [
-                            // Card com Detalhes do Ponto (75%)
-                            Expanded(
-                              flex: 3,
-                              child: Card(
-                                color: buttonColor,
-                                margin: const EdgeInsets.only(left: 8.0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        ponto['descricao'],
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
+                      return Dismissible(
+                        key:
+                            UniqueKey(), // Garante que cada item tenha uma chave única
+                        background: Container(
+                          color: Colors.green,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.only(left: 16),
+                          child: const Icon(Icons.edit,
+                              color: Colors.white, size: 30),
+                        ),
+                        secondaryBackground: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16),
+                          child: const Icon(Icons.delete,
+                              color: Colors.white, size: 30),
+                        ),
+                        confirmDismiss: (direction) async {
+                          if (direction == DismissDirection.startToEnd) {
+                            _editarPonto(
+                                index); // Chama a função de edição (retorna void)
+                            return false; // Impede que o item seja descartado
+                          } else {
+                            final bool shouldDelete =
+                                await _confirmDeletePonto(index);
+                            if (shouldDelete) {
+                              setState(() {
+                                _pontos
+                                    .removeAt(index); // Remove o item da lista
+                              });
+                            }
+                            return shouldDelete; // Retorna o resultado da confirmação
+                          }
+                        },
+                        onDismissed: (direction) {
+                          setState(() {
+                            _pontos.removeAt(
+                                index); // Remove o item da lista corretamente
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Card(
+                              color: buttonColor,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ponto['descricao'],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
-                                      const SizedBox(height: 8.0),
-                                      Text(
-                                        ponto['conforme']
-                                            ? 'Conforme'
-                                            : 'Inconforme: ${ponto['inconformidade']}',
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
-                                      if (imagensPonto.isNotEmpty) ...[
-                                        const SizedBox(height: 16.0),
-                                        SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            children:
-                                                imagensPonto.map((imagemPath) {
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                    right: 8.0),
-                                                child: GestureDetector(
-                                                  onTap: () =>
-                                                      _visualizarImagem(
-                                                          imagemPath),
-                                                  child: Container(
-                                                    width: 50,
-                                                    height: 50,
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                      image: DecorationImage(
-                                                        image: FileImage(
-                                                            File(imagemPath)),
-                                                        fit: BoxFit.cover,
-                                                      ),
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    Text(
+                                      ponto['conforme']
+                                          ? 'Conforme'
+                                          : 'Inconforme: ${ponto['inconformidade']}',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                    if (imagensPonto.isNotEmpty)
+                                      const SizedBox(height: 16.0),
+                                    if (imagensPonto.isNotEmpty)
+                                      SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          children:
+                                              imagensPonto.map((imagemPath) {
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  right: 8.0),
+                                              child: GestureDetector(
+                                                onTap: () => _visualizarImagem(
+                                                    imagemPath),
+                                                child: Container(
+                                                  width: 50,
+                                                  height: 50,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    image: DecorationImage(
+                                                      image: FileImage(
+                                                          File(imagemPath)),
+                                                      fit: BoxFit.cover,
                                                     ),
                                                   ),
                                                 ),
-                                              );
-                                            }).toList(),
-                                          ),
+                                              ),
+                                            );
+                                          }).toList(),
                                         ),
-                                      ],
-                                    ],
-                                  ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),
-
-                            // Botões Editar e Excluir (25%)
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Botão Editar
-                                SizedBox(
-                                  height:
-                                      50, // Define uma altura fixa para evitar erro de layout
-                                  width:
-                                      50, // Garante que o botão fique quadrado
-                                  child: ElevatedButton(
-                                    onPressed: () => _editarPonto(index),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: buttonColor,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: const EdgeInsets.all(12),
-                                    ),
-                                    child: const Icon(Icons.edit,
-                                        size: 20, color: Colors.white),
-                                  ),
-                                ),
-                                const SizedBox(
-                                    height: 8.0), // Espaçamento entre os botões
-
-                                // Botão Excluir
-                                SizedBox(
-                                  height:
-                                      50, // Define uma altura fixa para evitar erro de layout
-                                  width:
-                                      50, // Garante que o botão fique quadrado
-                                  child: ElevatedButton(
-                                    onPressed: () => _confirmDeletePonto(index),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: const EdgeInsets.all(12),
-                                    ),
-                                    child: const Icon(Icons.delete,
-                                        size: 20, color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                          ),
                         ),
                       );
                     },
