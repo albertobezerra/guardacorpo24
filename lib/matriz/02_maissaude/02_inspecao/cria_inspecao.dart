@@ -45,23 +45,27 @@ class CreateInspecaoState extends State<CreateInspecao> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now(); // Pré-preencher com a data atual
+    _selectedDate = DateTime.now();
   }
 
   Future<void> _pickImage() async {
-    final ImageSource? source = await showDialog<ImageSource>(
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Escolha uma opção'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(ImageSource.camera),
-              child: const Text('Câmera'),
+        return Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Tirar foto'),
+              onTap: () => Navigator.of(context).pop(ImageSource.camera),
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(ImageSource.gallery),
-              child: const Text('Galeria'),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Escolher da galeria'),
+              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
           ],
         );
@@ -70,11 +74,23 @@ class CreateInspecaoState extends State<CreateInspecao> {
 
     if (source != null) {
       try {
-        final pickedFile = await ImagePicker().pickImage(source: source);
-        if (pickedFile != null) {
-          setState(() {
-            _imagensPonto.add(File(pickedFile.path));
-          });
+        if (source == ImageSource.gallery) {
+          // Permitir múltiplas imagens
+          final List<XFile> pickedFiles = await ImagePicker().pickMultiImage();
+          if (pickedFiles.isNotEmpty) {
+            setState(() {
+              _imagensPonto.addAll(pickedFiles.map((file) => File(file.path)));
+            });
+          }
+        } else {
+          // Capturar imagem única da câmera
+          final XFile? pickedFile =
+              await ImagePicker().pickImage(source: source);
+          if (pickedFile != null) {
+            setState(() {
+              _imagensPonto.add(File(pickedFile.path));
+            });
+          }
         }
       } catch (e) {
         _showSnackBar('Erro ao selecionar imagem: $e');
@@ -135,12 +151,23 @@ class CreateInspecaoState extends State<CreateInspecao> {
 
   void _visualizarImagem(String? imagemPath) {
     if (imagemPath == null) return;
+
+    // Remove o foco imediatamente antes de abrir o diálogo
+    FocusScope.of(context).requestFocus(FocusNode());
+
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(child: Image.file(File(imagemPath)));
+        return Dialog(
+          child: Image.file(File(imagemPath)),
+        );
       },
-    );
+    ).then((_) {
+      // Garante que o foco continua removido após fechar o diálogo
+      if (!mounted) return;
+
+      FocusScope.of(context).requestFocus(FocusNode());
+    });
   }
 
   Future<void> _confirmDeleteImage(File image) async {
@@ -371,47 +398,54 @@ class CreateInspecaoState extends State<CreateInspecao> {
                     ),
                   ),
 
-                  // Linha com Descrição e Ícone da Câmera
+// Linha com Descrição e Ícone da Câmera
                   Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: OutlinedTextField3(
-                            controller: _pontoDescricaoController,
-                            labelText: 'Descrição do Ponto',
-                            obscureText: false,
-                            textCapitalization: TextCapitalization.sentences,
-                            onChanged: (value) {},
-                            maxLines: 2,
-                          ),
-                        ),
-                        const SizedBox(width: 8.0),
-                        // Botão de Câmera (25%)
-                        Expanded(
-                          flex: 1,
-                          child: ElevatedButton(
-                            onPressed: _pickImage,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonColor,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.all(16),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.add_a_photo,
-                                size: 24,
-                                color: Colors.white,
-                              ),
+                    child: IntrinsicHeight(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment
+                            .stretch, // Estica os widgets para a mesma altura
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: OutlinedTextField3(
+                              controller: _pontoDescricaoController,
+                              labelText: 'Descrição do Ponto',
+                              obscureText: false,
+                              textCapitalization: TextCapitalization.sentences,
+                              onChanged: (value) {},
+                              maxLines: 2,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8.0),
+                          // Botão de Câmera (25%)
+                          Expanded(
+                            flex: 1,
+                            child: ElevatedButton(
+                              onPressed: _pickImage,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: buttonColor,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding:
+                                    EdgeInsets.zero, // Remove padding extra
+                              ),
+                              child: const SizedBox.expand(
+                                // Faz o botão ocupar todo o espaço disponível
+                                child: Center(
+                                  child: Icon(
+                                    Icons.add_a_photo,
+                                    size: 24,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -528,11 +562,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
                   ),
                   const SizedBox(height: 16.0),
 
-                  // Lista de Pontos Adicionados
-                  const Text(
-                    'Pontos Adicionados:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -543,116 +572,134 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           ? List<String>.from(ponto['imagens'])
                           : [];
 
-                      return Row(
-                        children: [
-                          // Card com Detalhes do Ponto (75%)
-                          Expanded(
-                            flex: 3,
-                            child: Card(
-                              color: buttonColor,
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 8.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      ponto['descricao'],
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment
+                              .start, // Alinha os elementos no topo
+                          children: [
+                            // Card com Detalhes do Ponto (75%)
+                            Expanded(
+                              flex: 3,
+                              child: Card(
+                                color: buttonColor,
+                                margin: const EdgeInsets.only(left: 8.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        ponto['descricao'],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    Text(
-                                      ponto['conforme']
-                                          ? 'Conforme'
-                                          : 'Inconforme: ${ponto['inconformidade']},',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                    if (imagensPonto.isNotEmpty)
-                                      const SizedBox(height: 16.0),
-                                    if (imagensPonto.isNotEmpty)
-                                      SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          children:
-                                              imagensPonto.map((imagemPath) {
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 8.0),
-                                              child: GestureDetector(
-                                                onTap: () => _visualizarImagem(
-                                                    imagemPath),
-                                                child: Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                    image: DecorationImage(
-                                                      image: FileImage(
-                                                          File(imagemPath)),
-                                                      fit: BoxFit.cover,
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        ponto['conforme']
+                                            ? 'Conforme'
+                                            : 'Inconforme: ${ponto['inconformidade']}',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      ),
+                                      if (imagensPonto.isNotEmpty) ...[
+                                        const SizedBox(height: 16.0),
+                                        SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children:
+                                                imagensPonto.map((imagemPath) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                    right: 8.0),
+                                                child: GestureDetector(
+                                                  onTap: () =>
+                                                      _visualizarImagem(
+                                                          imagemPath),
+                                                  child: Container(
+                                                    width: 50,
+                                                    height: 50,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      image: DecorationImage(
+                                                        image: FileImage(
+                                                            File(imagemPath)),
+                                                        fit: BoxFit.cover,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            );
-                                          }).toList(),
+                                              );
+                                            }).toList(),
+                                          ),
                                         ),
-                                      ),
-                                  ],
+                                      ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
-                          // Botões Editar e Excluir (25%)
-                          Expanded(
-                            flex: 1,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            // Botões Editar e Excluir (25%)
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                ElevatedButton(
-                                  onPressed: () => _editarPonto(index),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: buttonColor,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                // Botão Editar
+                                SizedBox(
+                                  height:
+                                      50, // Define uma altura fixa para evitar erro de layout
+                                  width:
+                                      50, // Garante que o botão fique quadrado
+                                  child: ElevatedButton(
+                                    onPressed: () => _editarPonto(index),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: buttonColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      padding: const EdgeInsets.all(12),
                                     ),
-                                    padding: const EdgeInsets.all(12),
-                                    minimumSize: const Size(40, 40),
+                                    child: const Icon(Icons.edit,
+                                        size: 20, color: Colors.white),
                                   ),
-                                  child: const Icon(Icons.edit,
-                                      size: 20, color: Colors.white),
                                 ),
-                                ElevatedButton(
-                                  onPressed: () => _confirmDeletePonto(index),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                const SizedBox(
+                                    height: 8.0), // Espaçamento entre os botões
+
+                                // Botão Excluir
+                                SizedBox(
+                                  height:
+                                      50, // Define uma altura fixa para evitar erro de layout
+                                  width:
+                                      50, // Garante que o botão fique quadrado
+                                  child: ElevatedButton(
+                                    onPressed: () => _confirmDeletePonto(index),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      padding: const EdgeInsets.all(12),
                                     ),
-                                    padding: const EdgeInsets.all(12),
-                                    minimumSize: const Size(40, 40),
+                                    child: const Icon(Icons.delete,
+                                        size: 20, color: Colors.white),
                                   ),
-                                  child: const Icon(Icons.delete,
-                                      size: 20, color: Colors.white),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),
