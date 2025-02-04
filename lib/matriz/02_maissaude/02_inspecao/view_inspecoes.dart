@@ -115,151 +115,171 @@ class ViewInspecoesState extends State<ViewInspecoes> {
                           ),
                         );
                       } else {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Text(
-                                  'SUAS INSPEÇÕES',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                        return DefaultTextStyle(
+                          style: const TextStyle(
+                            fontFamily: 'Segoe',
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: Text(
+                                    'SUAS INSPEÇÕES',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontFamily: 'Segoe Bold',
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: inspecaoProvider.inspecoes.length,
-                                itemBuilder: (context, index) {
-                                  final inspecao =
-                                      inspecaoProvider.inspecoes[index];
-                                  final imagePaths =
-                                      List<String>.from(inspecao.anexos);
+                                const SizedBox(height: 12),
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: inspecaoProvider.inspecoes.length,
+                                  itemBuilder: (context, index) {
+                                    final inspecao =
+                                        inspecaoProvider.inspecoes[index];
+                                    final imagePaths =
+                                        List<String>.from(inspecao.anexos);
 
-                                  return Card(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical: 8.0),
-                                    elevation: 3,
-                                    child: ListTile(
-                                      contentPadding: const EdgeInsets.all(8.0),
-                                      title: Text(
-                                        inspecao.tipoInspecao,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '${DateFormat('dd/MM/yyyy').format(inspecao.data)} - ${inspecao.local}',
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Card(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 8.0),
+                                        elevation: 3,
+                                        child: ListTile(
+                                          contentPadding:
+                                              const EdgeInsets.all(8.0),
+                                          title: Text(
+                                            inspecao.tipoInspecao,
                                             style: const TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black54),
-                                          ),
-                                          if (imagePaths.isNotEmpty)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  top: 8.0),
-                                              child: Image.file(
-                                                File(imagePaths[0]),
-                                                height: 100,
-                                                fit: BoxFit.cover,
-                                              ),
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                        ],
-                                      ),
-                                      trailing: PopupMenuButton<String>(
-                                        onSelected: (String result) async {
-                                          if (result == 'edit') {
+                                          ),
+                                          subtitle: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '${DateFormat('dd/MM/yyyy').format(inspecao.data)} - ${inspecao.local}',
+                                                style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black54),
+                                              ),
+                                              if (imagePaths.isNotEmpty)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 8.0),
+                                                  child: Image.file(
+                                                    File(imagePaths[0]),
+                                                    height: 100,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          trailing: PopupMenuButton<String>(
+                                            onSelected: (String result) async {
+                                              if (result == 'edit') {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EditInspecaoScreen(
+                                                      index: index,
+                                                      initialData: inspecao,
+                                                    ),
+                                                  ),
+                                                );
+                                              } else if (result == 'delete') {
+                                                final bool shouldDelete =
+                                                    await showDialog(
+                                                          context: context,
+                                                          builder: (BuildContext
+                                                              context) {
+                                                            return AlertDialog(
+                                                              title: const Text(
+                                                                  'Excluir Inspeção'),
+                                                              content: const Text(
+                                                                  'Você tem certeza que deseja excluir esta inspeção?'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop(
+                                                                            false);
+                                                                  },
+                                                                  child: const Text(
+                                                                      'Cancelar'),
+                                                                ),
+                                                                TextButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop(
+                                                                            true);
+                                                                  },
+                                                                  child: const Text(
+                                                                      'Excluir'),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        ) ??
+                                                        false;
+
+                                                if (shouldDelete) {
+                                                  inspecaoProvider
+                                                      .deleteInspecao(index);
+                                                }
+                                              }
+                                            },
+                                            itemBuilder:
+                                                (BuildContext context) =>
+                                                    <PopupMenuEntry<String>>[
+                                              const PopupMenuItem<String>(
+                                                value: 'edit',
+                                                child: Text('Editar'),
+                                              ),
+                                              const PopupMenuItem<String>(
+                                                value: 'delete',
+                                                child: Text('Excluir'),
+                                              ),
+                                            ],
+                                          ),
+                                          onTap: () {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    EditInspecaoScreen(
+                                                    InspecaoDetailScreen(
+                                                  inspecao: inspecao,
                                                   index: index,
-                                                  initialData: inspecao,
                                                 ),
                                               ),
                                             );
-                                          } else if (result == 'delete') {
-                                            final bool shouldDelete =
-                                                await showDialog(
-                                                      context: context,
-                                                      builder: (BuildContext
-                                                          context) {
-                                                        return AlertDialog(
-                                                          title: const Text(
-                                                              'Excluir Inspeção'),
-                                                          content: const Text(
-                                                              'Você tem certeza que deseja excluir esta inspeção?'),
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop(false);
-                                                              },
-                                                              child: const Text(
-                                                                  'Cancelar'),
-                                                            ),
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop(true);
-                                                              },
-                                                              child: const Text(
-                                                                  'Excluir'),
-                                                            ),
-                                                          ],
-                                                        );
-                                                      },
-                                                    ) ??
-                                                    false;
-
-                                            if (shouldDelete) {
-                                              inspecaoProvider
-                                                  .deleteInspecao(index);
-                                            }
-                                          }
-                                        },
-                                        itemBuilder: (BuildContext context) =>
-                                            <PopupMenuEntry<String>>[
-                                          const PopupMenuItem<String>(
-                                            value: 'edit',
-                                            child: Text('Editar'),
-                                          ),
-                                          const PopupMenuItem<String>(
-                                            value: 'delete',
-                                            child: Text('Excluir'),
-                                          ),
-                                        ],
+                                          },
+                                        ),
                                       ),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                InspecaoDetailScreen(
-                                              inspecao: inspecao,
-                                              index: index,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }
@@ -271,10 +291,8 @@ class ViewInspecoesState extends State<ViewInspecoes> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                label: Text('Nova Inspeção'.toUpperCase()),
+            child: Center(
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -284,18 +302,20 @@ class ViewInspecoesState extends State<ViewInspecoes> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 24.0),
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'Segoe Bold',
-                  ),
+                  backgroundColor:
+                      const Color.fromARGB(255, 0, 104, 55), // Cor verde
+                  shape: const CircleBorder(), // Forma circular
+                  padding: const EdgeInsets.all(16), // Espaçamento interno
+                  minimumSize: const Size(56, 56), // Tamanho mínimo do botão
+                ),
+                child: const Icon(
+                  Icons.add, // Ícone de adição
+                  color: Colors.white, // Cor do ícone
+                  size: 28, // Tamanho do ícone
                 ),
               ),
             ),
-          ),
+          )
         ],
       ),
     );

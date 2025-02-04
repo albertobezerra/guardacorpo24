@@ -69,11 +69,12 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
             Container(
               margin: const EdgeInsets.all(6),
               decoration: const BoxDecoration(
-                color: Color.fromARGB(255, 0, 104, 55),
+                color: Colors.white,
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white),
+                icon: const Icon(Icons.edit,
+                    color: Color.fromARGB(255, 0, 104, 55)),
                 onPressed: () async {
                   final updatedInspecao = await Navigator.push(
                     context,
@@ -227,13 +228,13 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
           ),
 
           // Botão Excluir Inspeção
+          // Botão Excluir Inspeção
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
-              label: Text('Excluir Inspeção'.toUpperCase()),
+            child: ElevatedButton(
               onPressed: () async {
                 if (!mounted) return;
-
+                // Dialogo de confirmação
                 final shouldDelete = await showDialog<bool>(
                       context: context,
                       builder: (dialogContext) {
@@ -261,13 +262,14 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
 
                 if (!shouldDelete || !context.mounted) return;
 
+                // Lógica de exclusão
                 final inspecaoProvider =
                     Provider.of<InspecaoProvider>(context, listen: false);
                 await inspecaoProvider.deleteInspecao(widget.index);
 
                 if (!context.mounted) return;
 
-                // Usar `ScaffoldMessenger` dentro de um `Future.microtask`
+                // Mostrar SnackBar de sucesso
                 Future.microtask(() {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -277,8 +279,6 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                   }
                 });
 
-                if (!mounted) return;
-
                 // Fechar a tela
                 Future.microtask(() {
                   if (context.mounted) {
@@ -287,14 +287,16 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.red,
-                padding: const EdgeInsets.symmetric(
-                    vertical: 12.0, horizontal: 24.0),
-                textStyle:
-                    const TextStyle(fontSize: 16, fontFamily: 'Segoe Bold'),
+                backgroundColor: Colors.red, // Cor de fundo do botão
+                shape: const CircleBorder(), // Forma circular
+                padding: const EdgeInsets.all(12), // Espaçamento interno
+                minimumSize: const Size(48, 48), // Tamanho mínimo do botão
               ),
-              icon: const Icon(Icons.delete),
+              child: const Icon(
+                Icons.delete, // Ícone de exclusão
+                color: Colors.white, // Cor do ícone
+                size: 24, // Tamanho do ícone
+              ),
             ),
           ),
         ],

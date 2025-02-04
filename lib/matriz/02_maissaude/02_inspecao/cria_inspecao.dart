@@ -225,7 +225,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
       return;
     }
 
-    // Verificar se há um ponto de verificação em andamento
     if (_pontoDescricaoController.text.isNotEmpty || _imagensPonto.isNotEmpty) {
       _showSnackBar(
           'Há um ponto de verificação em andamento. Por favor, finalize-o antes de salvar.');
@@ -333,7 +332,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
                   const SizedBox(height: 16.0),
 
                   // Data ocupando 50% da largura
-                  // Data ocupando 50% da largura e pré-preenchida com a data atual
                   Row(
                     children: [
                       Expanded(
@@ -363,58 +361,118 @@ class CreateInspecaoState extends State<CreateInspecao> {
                   ),
                   const SizedBox(height: 16.0),
 
-                  // Descrição do Ponto
-                  OutlinedTextField3(
-                    controller: _pontoDescricaoController,
-                    labelText: 'Descrição do Ponto',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: (value) {},
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 16.0),
-
-                  // Adicionar Imagens
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.add_a_photo),
-                        onPressed: _pickImage,
-                      ),
-                    ],
-                  ),
-
-                  if (_imagensPonto.isNotEmpty)
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: _imagensPonto.map((imagem) {
-                        return Stack(
-                          children: [
-                            GestureDetector(
-                              onTap: () => _visualizarImagem(imagem.path),
-                              child: Image.file(
-                                imagem,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _confirmDeleteImage(imagem),
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                  // Pontos de Verificação
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      'Pontos de Verificação',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
+                  ),
 
-                  const SizedBox(height: 16.0),
+                  // Linha com Descrição e Ícone da Câmera
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: OutlinedTextField3(
+                            controller: _pontoDescricaoController,
+                            labelText: 'Descrição do Ponto',
+                            obscureText: false,
+                            textCapitalization: TextCapitalization.sentences,
+                            onChanged: (value) {},
+                            maxLines: 2,
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        // Botão de Câmera (25%)
+                        Expanded(
+                          flex: 1,
+                          child: ElevatedButton(
+                            onPressed: _pickImage,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: buttonColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.all(16),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.add_a_photo,
+                                size: 24,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Exibição das Imagens Selecionadas
+                  if (_imagensPonto.isNotEmpty)
+                    Container(
+                      height: 120, // Altura fixa para o scroll horizontal
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _imagensPonto.length,
+                        itemBuilder: (context, index) {
+                          final imagem = _imagensPonto[index];
+                          return Container(
+                            margin: const EdgeInsets.only(right: 8.0),
+                            width: 100,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      12), // Bordas arredondadas
+                                  child: GestureDetector(
+                                    onTap: () => _visualizarImagem(imagem.path),
+                                    child: Image.file(
+                                      imagem,
+                                      fit: BoxFit
+                                          .cover, // Ajusta a imagem ao container
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: ClipOval(
+                                    child: Material(
+                                      color: Colors.red.withValues(
+                                          alpha: 0.7), // Cor do botão
+                                      child: InkWell(
+                                        onTap: () =>
+                                            _confirmDeleteImage(imagem),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(4.0),
+                                          child: Icon(
+                                            Icons.delete,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  else
+                    const SizedBox.shrink(),
 
                   // Conforme/Inconforme
                   Row(
@@ -424,6 +482,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                         style: TextStyle(fontSize: 16),
                       ),
                       Checkbox(
+                        activeColor: buttonColor,
                         value: _conformePonto,
                         onChanged: (value) {
                           setState(() {
@@ -433,7 +492,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       ),
                     ],
                   ),
-
                   if (!_conformePonto)
                     OutlinedTextField3(
                       controller:
@@ -446,12 +504,14 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       },
                       maxLines: 1,
                     ),
-
                   const SizedBox(height: 16.0),
 
                   // Botão para adicionar/atualizar ponto
                   ElevatedButton(
-                    onPressed: _adicionarPonto,
+                    onPressed: () {
+                      _adicionarPonto();
+                      FocusScope.of(context).unfocus(); // Fechar teclado
+                    },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: buttonColor,
@@ -466,7 +526,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           : 'Atualizar Ponto'.toUpperCase(),
                     ),
                   ),
-
                   const SizedBox(height: 16.0),
 
                   // Lista de Pontos Adicionados
@@ -484,80 +543,144 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           ? List<String>.from(ponto['imagens'])
                           : [];
 
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: ListTile(
-                          title: Text(ponto['descricao']),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                ponto['conforme']
-                                    ? 'Conforme'
-                                    : 'Inconforme: ${ponto['inconformidade']}',
+                      return Row(
+                        children: [
+                          // Card com Detalhes do Ponto (75%)
+                          Expanded(
+                            flex: 3,
+                            child: Card(
+                              color: buttonColor,
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 8.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              if (imagensPonto.isNotEmpty)
-                                Wrap(
-                                  spacing: 8.0,
-                                  runSpacing: 8.0,
-                                  children: imagensPonto.map((imagemPath) {
-                                    return GestureDetector(
-                                      onTap: () =>
-                                          _visualizarImagem(imagemPath),
-                                      child: Image.file(
-                                        File(imagemPath),
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ponto['descricao'],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
-                                    );
-                                  }).toList(),
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    Text(
+                                      ponto['conforme']
+                                          ? 'Conforme'
+                                          : 'Inconforme: ${ponto['inconformidade']},',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                    if (imagensPonto.isNotEmpty)
+                                      const SizedBox(height: 16.0),
+                                    if (imagensPonto.isNotEmpty)
+                                      SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          children:
+                                              imagensPonto.map((imagemPath) {
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  right: 8.0),
+                                              child: GestureDetector(
+                                                onTap: () => _visualizarImagem(
+                                                    imagemPath),
+                                                child: Container(
+                                                  width: 50,
+                                                  height: 50,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    image: DecorationImage(
+                                                      image: FileImage(
+                                                          File(imagemPath)),
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () => _editarPonto(index),
                               ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _confirmDeletePonto(index),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
+
+                          // Botões Editar e Excluir (25%)
+                          Expanded(
+                            flex: 1,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () => _editarPonto(index),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: buttonColor,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.all(12),
+                                    minimumSize: const Size(40, 40),
+                                  ),
+                                  child: const Icon(Icons.edit,
+                                      size: 20, color: Colors.white),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => _confirmDeletePonto(index),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.all(12),
+                                    minimumSize: const Size(40, 40),
+                                  ),
+                                  child: const Icon(Icons.delete,
+                                      size: 20, color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
-                ],
-              ),
-            ),
-          ),
 
-          // Botão Finalizar Inspeção
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                label: Text('Finalizar Inspeção'.toUpperCase()),
-                onPressed: _isLoading ? null : _submitInspecao,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: buttonColor,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 24.0),
-                  textStyle:
-                      const TextStyle(fontSize: 16, fontFamily: 'Segoe Bold'),
-                ),
-                icon: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Icon(Icons.check),
+                  // Botão Finalizar Inspeção
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _submitInspecao,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonColor,
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(16),
+                          minimumSize: const Size(56, 56),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
