@@ -24,15 +24,14 @@ class EditInspecaoScreen extends StatefulWidget {
 class EditInspecaoScreenState extends State<EditInspecaoScreen> {
   late TextEditingController _tipoController;
   late TextEditingController _localController;
-  late TextEditingController
-      _pontoDescricaoController; // Declaração do controller
+  late TextEditingController _pontoDescricaoController;
   DateTime? _selectedDate;
   List<Map<String, dynamic>> _pontos = [];
   final List<File> _imagensPonto = [];
   bool _conformePonto = true;
   String? _inconformidadePonto;
   int? _editingIndex;
-  bool _isLoading = false; // Adicionado no topo da classe
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -40,8 +39,7 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
     _tipoController =
         TextEditingController(text: widget.initialData.tipoInspecao);
     _localController = TextEditingController(text: widget.initialData.local);
-    _pontoDescricaoController =
-        TextEditingController(); // Inicialização corrigida
+    _pontoDescricaoController = TextEditingController();
     _selectedDate = widget.initialData.data;
     _pontos = List<Map<String, dynamic>>.from(widget.initialData.pontos);
   }
@@ -50,7 +48,7 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
   void dispose() {
     _tipoController.dispose();
     _localController.dispose();
-    _pontoDescricaoController.dispose(); // Descarte o controller
+    _pontoDescricaoController.dispose();
     super.dispose();
   }
 
@@ -72,7 +70,7 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
   Future<void> _pickImage() async {
     final ImageSource? source = await showDialog<ImageSource>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
           title: const Text('Escolha uma opção'),
           actions: [
@@ -98,20 +96,19 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
           });
         }
       } catch (e) {
-        _showSnackBar('Erro ao selecionar imagem: $e');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao selecionar imagem: $e')),
+        );
       }
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
   void _adicionarPonto() {
     if (_pontoDescricaoController.text.isEmpty) {
-      _showSnackBar('A descrição do ponto é obrigatória.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A descrição do ponto é obrigatória.')),
+      );
       return;
     }
 
@@ -124,15 +121,12 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
 
     setState(() {
       if (_editingIndex == null) {
-        // Adicionar novo ponto
         _pontos.add(novoPonto);
       } else {
-        // Atualizar ponto existente
         _pontos[_editingIndex!] = novoPonto;
-        _editingIndex = null; // Limpar índice de edição
+        _editingIndex = null;
       }
 
-      // Limpar campos após adicionar/atualizar
       _pontoDescricaoController.clear();
       _imagensPonto.clear();
       _conformePonto = true;
@@ -144,24 +138,22 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
     if (_tipoController.text.isEmpty ||
         _localController.text.isEmpty ||
         _selectedDate == null) {
-      _showSnackBar('Todos os campos são obrigatórios.');
-      return;
-    }
-
-    // Verificar se há um ponto de verificação em andamento
-    if (_pontoDescricaoController.text.isNotEmpty || _imagensPonto.isNotEmpty) {
-      _showSnackBar(
-          'Há um ponto de verificação em andamento. Por favor, finalize-o antes de salvar.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Todos os campos são obrigatórios.')),
+      );
       return;
     }
 
     if (_pontos.isEmpty) {
-      _showSnackBar('Adicione pelo menos um ponto de verificação.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Adicione pelo menos um ponto de verificação.')),
+      );
       return;
     }
 
     setState(() {
-      _isLoading = true; // Ativar estado de carregamento
+      _isLoading = true;
     });
 
     final updatedInspecao = Inspecao(
@@ -170,7 +162,7 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
       local: _localController.text,
       data: _selectedDate!,
       pontos: _pontos,
-      anexos: [], // Limpar anexos não utilizados
+      anexos: [],
     );
 
     final inspecaoProvider =
@@ -180,103 +172,19 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
     if (!mounted) return;
 
     setState(() {
-      _isLoading = false; // Desativar estado de carregamento
+      _isLoading = false;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Inspeção atualizada')),
+      const SnackBar(content: Text('Inspeção atualizada.')),
     );
 
     Navigator.of(context).pop(updatedInspecao);
   }
 
-  void _visualizarImagem(String? imagemPath) {
-    if (imagemPath == null) return;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(child: Image.file(File(imagemPath)));
-      },
-    );
-  }
-
-  Future<void> _confirmDeleteImage(File image) async {
-    final shouldDelete = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Excluir Imagem'),
-              content: const Text(
-                  'Você tem certeza que deseja excluir esta imagem?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancelar'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Excluir'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
-
-    if (shouldDelete) {
-      setState(() {
-        _imagensPonto.remove(image);
-      });
-    }
-  }
-
-  Future<void> _confirmDeletePonto(int index) async {
-    final shouldDelete = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Excluir Ponto de Verificação'),
-              content: const Text(
-                  'Você tem certeza que deseja excluir este ponto de verificação?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancelar'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Excluir'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
-
-    if (shouldDelete) {
-      setState(() {
-        _pontos.removeAt(index);
-      });
-    }
-  }
-
-  void _editarPonto(int index) {
-    final ponto = _pontos[index];
-    setState(() {
-      _pontoDescricaoController.text = ponto['descricao'];
-      _imagensPonto.clear();
-      for (var path in ponto['imagens']) {
-        _imagensPonto.add(File(path));
-      }
-      _conformePonto = ponto['conforme'];
-      _inconformidadePonto = ponto['inconformidade'];
-      _editingIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
+    const Color buttonColor = Color.fromARGB(255, 0, 104, 55); // Verde padrão
 
     return Scaffold(
       appBar: PreferredSize(
@@ -342,7 +250,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                   const SizedBox(height: 16.0),
 
                   // Data ocupando 50% da largura
-                  // Data ocupando 50% da largura
                   Row(
                     children: [
                       Expanded(
@@ -353,9 +260,13 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                             foregroundColor: Colors.white,
                             backgroundColor: buttonColor,
                             padding: const EdgeInsets.symmetric(
-                                vertical: 12.0, horizontal: 8.0),
+                              vertical: 12.0,
+                              horizontal: 8.0,
+                            ),
                             textStyle: const TextStyle(
-                                fontSize: 14, fontFamily: 'Segoe Bold'),
+                              fontSize: 14,
+                              fontFamily: 'Segoe Bold',
+                            ),
                           ),
                           child: Text(
                             _selectedDate == null
@@ -370,27 +281,43 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                   ),
                   const SizedBox(height: 16.0),
 
-                  // Descrição do Ponto
-                  OutlinedTextField3(
-                    controller: _pontoDescricaoController,
-                    labelText: 'Descrição do Ponto',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.sentences,
-                    onChanged: (value) {},
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 16.0),
-
-                  // Adicionar Imagens
+                  // Descrição do Ponto (2 linhas)
                   Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.add_a_photo),
-                        onPressed: _pickImage,
+                      Expanded(
+                        flex: 3, // Proporção menor para o campo de texto
+                        child: OutlinedTextField3(
+                          controller: _pontoDescricaoController,
+                          labelText: 'Descrição do Ponto',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.sentences,
+                          onChanged: (value) {},
+                          maxLines: 2, // Apenas 2 linhas
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      // Botão da Câmera (Tamanho Maior)
+                      Expanded(
+                        flex: 1, // Proporção maior para o botão
+                        child: ElevatedButton(
+                          onPressed: _pickImage,
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: buttonColor,
+                            padding: const EdgeInsets.all(16.0),
+                            shape: const CircleBorder(),
+                          ),
+                          child: const Icon(
+                            Icons.add_a_photo,
+                            size: 32, // Tamanho maior
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16.0),
 
+                  // Exibição de Imagens Selecionadas
                   if (_imagensPonto.isNotEmpty)
                     Wrap(
                       spacing: 8.0,
@@ -400,11 +327,20 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                           children: [
                             GestureDetector(
                               onTap: () => _visualizarImagem(imagem.path),
-                              child: Image.file(
-                                imagem,
+                              child: Container(
                                 width: 100,
                                 height: 100,
-                                fit: BoxFit.cover,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: buttonColor,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: FileImage(imagem),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
                             ),
                             Positioned(
@@ -420,7 +356,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                         );
                       }).toList(),
                     ),
-
                   const SizedBox(height: 16.0),
 
                   // Conforme/Inconforme
@@ -440,7 +375,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                       ),
                     ],
                   ),
-
                   if (!_conformePonto)
                     OutlinedTextField3(
                       controller:
@@ -453,7 +387,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                       },
                       maxLines: 1,
                     ),
-
                   const SizedBox(height: 16.0),
 
                   // Botão para adicionar/atualizar ponto
@@ -463,9 +396,13 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                       foregroundColor: Colors.white,
                       backgroundColor: buttonColor,
                       padding: const EdgeInsets.symmetric(
-                          vertical: 12.0, horizontal: 24.0),
+                        vertical: 12.0,
+                        horizontal: 24.0,
+                      ),
                       textStyle: const TextStyle(
-                          fontSize: 16, fontFamily: 'Segoe Bold'),
+                        fontSize: 16,
+                        fontFamily: 'Segoe Bold',
+                      ),
                     ),
                     child: Text(
                       _editingIndex == null
@@ -473,7 +410,6 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
                           : 'Atualizar Ponto'.toUpperCase(),
                     ),
                   ),
-
                   const SizedBox(height: 16.0),
 
                   // Lista de Pontos Adicionados
@@ -493,47 +429,84 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
 
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: ListTile(
-                          title: Text(ponto['descricao']),
-                          subtitle: Column(
+                        color: Colors.white, // Mesma cor de fundo
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(
+                            color: buttonColor,
+                            width: 2,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text(
+                                ponto['descricao'],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: buttonColor,
+                                ),
+                              ),
+                              const SizedBox(height: 8.0),
                               Text(
                                 ponto['conforme']
                                     ? 'Conforme'
                                     : 'Inconforme: ${ponto['inconformidade']}',
+                                style: const TextStyle(color: Colors.black54),
                               ),
                               if (imagensPonto.isNotEmpty)
-                                Wrap(
-                                  spacing: 8.0,
-                                  runSpacing: 8.0,
-                                  children: imagensPonto.map((imagemPath) {
-                                    return GestureDetector(
-                                      onTap: () =>
-                                          _visualizarImagem(imagemPath),
-                                      child: Image.file(
-                                        File(imagemPath),
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    );
-                                  }).toList(),
+                                const SizedBox(height: 16.0),
+                              if (imagensPonto.isNotEmpty)
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: imagensPonto.map((imagemPath) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 8.0),
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              _visualizarImagem(imagemPath),
+                                          child: Container(
+                                            width: 50,
+                                            height: 50,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: buttonColor,
+                                                width: 2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              image: DecorationImage(
+                                                image:
+                                                    FileImage(File(imagemPath)),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () => _editarPonto(index),
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _confirmDeletePonto(index),
+                              const SizedBox(height: 16.0),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.blue),
+                                    onPressed: () => _editarPonto(index),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    onPressed: () => _confirmDeletePonto(index),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -545,35 +518,99 @@ class EditInspecaoScreenState extends State<EditInspecaoScreen> {
               ),
             ),
           ),
-
-          // Botão Salvar Alterações
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                label: Text('Salvar alterações'.toUpperCase()),
-                onPressed: _isLoading
-                    ? null
-                    : _submitInspecao, // Desabilitar se _isLoading for true
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: buttonColor,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 24.0),
-                  textStyle:
-                      const TextStyle(fontSize: 16, fontFamily: 'Segoe Bold'),
-                ),
-                icon: _isLoading
-                    ? const CircularProgressIndicator(
-                        color:
-                            Colors.white) // Mostrar indicador de carregamento
-                    : const Icon(Icons.save),
-              ),
-            ),
-          ),
         ],
       ),
+
+      // Botão Flutuante Circular para Salvar
+      floatingActionButton: FloatingActionButton(
+        onPressed: _isLoading ? null : _submitInspecao,
+        backgroundColor: buttonColor,
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Icon(Icons.save, color: Colors.white, size: 28),
+      ),
     );
+  }
+
+  void _visualizarImagem(String? imagemPath) {
+    if (imagemPath == null) return;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(child: Image.file(File(imagemPath)));
+      },
+    );
+  }
+
+  Future<bool?> _confirmDeleteImage(File image) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Excluir Imagem'),
+          content:
+              const Text('Você tem certeza que deseja excluir esta imagem?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+    if (shouldDelete == true) {
+      setState(() {
+        _imagensPonto.remove(image);
+      });
+    }
+    return shouldDelete;
+  }
+
+  Future<bool?> _confirmDeletePonto(int index) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Excluir Ponto de Verificação'),
+          content: const Text(
+              'Você tem certeza que deseja excluir este ponto de verificação?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+    if (shouldDelete == true) {
+      setState(() {
+        _pontos.removeAt(index);
+      });
+    }
+    return shouldDelete;
+  }
+
+  void _editarPonto(int index) {
+    final ponto = _pontos[index];
+    setState(() {
+      _pontoDescricaoController.text = ponto['descricao'];
+      _imagensPonto.clear();
+      for (var path in ponto['imagens']) {
+        _imagensPonto.add(File(path));
+      }
+      _conformePonto = ponto['conforme'];
+      _inconformidadePonto = ponto['inconformidade'];
+      _editingIndex = index;
+    });
   }
 }

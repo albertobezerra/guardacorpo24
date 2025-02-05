@@ -7,25 +7,57 @@ import 'inspecao_provider.dart';
 import 'dados_inspecao.dart';
 import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_inspecoes.dart';
 
-class CreateInspecao extends StatefulWidget {
-  const CreateInspecao({super.key});
+class InspecaoForm extends StatefulWidget {
+  final int? index; // Índice da inspeção (opcional, usado apenas para edição)
+  final Inspecao? initialData; // Dados iniciais da inspeção (opcional)
+
+  const InspecaoForm({
+    super.key,
+    this.index,
+    this.initialData,
+  });
 
   @override
-  CreateInspecaoState createState() => CreateInspecaoState();
+  InspecaoFormState createState() => InspecaoFormState();
 }
 
-class CreateInspecaoState extends State<CreateInspecao> {
-  final TextEditingController _tipoController = TextEditingController();
-  final TextEditingController _localController = TextEditingController();
-  final TextEditingController _pontoDescricaoController =
-      TextEditingController();
+class InspecaoFormState extends State<InspecaoForm> {
+  late TextEditingController _tipoController;
+  late TextEditingController _localController;
+  late TextEditingController _pontoDescricaoController;
   DateTime? _selectedDate;
-  final List<Map<String, dynamic>> _pontos = [];
+  List<Map<String, dynamic>> _pontos = [];
   final List<File> _imagensPonto = [];
-  bool _isLoading = false;
   bool _conformePonto = true;
   String? _inconformidadePonto;
   int? _editingIndex;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialData = widget.initialData;
+
+    _tipoController = TextEditingController(
+        text: initialData?.tipoInspecao ?? ''); // Preenche se estiver editando
+    _localController = TextEditingController(
+        text: initialData?.local ?? ''); // Preenche se estiver editando
+    _pontoDescricaoController = TextEditingController();
+
+    _selectedDate = initialData?.data ?? DateTime.now(); // Define data inicial
+
+    if (initialData != null) {
+      _pontos = List<Map<String, dynamic>>.from(initialData.pontos);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tipoController.dispose();
+    _localController.dispose();
+    _pontoDescricaoController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickDate() async {
     final DateTime? picked = await showDatePicker(
@@ -42,19 +74,13 @@ class CreateInspecaoState extends State<CreateInspecao> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedDate = DateTime.now();
-  }
-
   Future<void> _pickImage() async {
-    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+    final ImageSource? source = await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (BuildContext context) {
+      builder: (context) {
         return Wrap(
           children: [
             ListTile(
@@ -75,7 +101,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
     if (source != null) {
       try {
         if (source == ImageSource.gallery) {
-          // Permitir múltiplas imagens
           final List<XFile> pickedFiles = await ImagePicker().pickMultiImage();
           if (pickedFiles.isNotEmpty) {
             setState(() {
@@ -83,7 +108,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
             });
           }
         } else {
-          // Capturar imagem única da câmera
           final XFile? pickedFile =
               await ImagePicker().pickImage(source: source);
           if (pickedFile != null) {
@@ -93,34 +117,19 @@ class CreateInspecaoState extends State<CreateInspecao> {
           }
         }
       } catch (e) {
-        _showSnackBar('Erro ao selecionar imagem: $e');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao selecionar imagem: $e')),
+        );
       }
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  void _clearForm() {
-    _tipoController.clear();
-    _localController.clear();
-    _pontoDescricaoController.clear();
-    setState(() {
-      _selectedDate = null;
-      _pontos.clear();
-      _imagensPonto.clear();
-      _conformePonto = true;
-      _inconformidadePonto = null;
-      _editingIndex = null;
-    });
-  }
-
   void _adicionarPonto() {
     if (_pontoDescricaoController.text.isEmpty) {
-      _showSnackBar('A descrição do ponto é obrigatória.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A descrição do ponto é obrigatória.')),
+      );
       return;
     }
 
@@ -133,15 +142,12 @@ class CreateInspecaoState extends State<CreateInspecao> {
 
     setState(() {
       if (_editingIndex == null) {
-        // Adicionar novo ponto
         _pontos.add(novoPonto);
       } else {
-        // Atualizar ponto existente
         _pontos[_editingIndex!] = novoPonto;
-        _editingIndex = null; // Limpar índice de edição
+        _editingIndex = null;
       }
 
-      // Limpar campos após adicionar/atualizar
       _pontoDescricaoController.clear();
       _imagensPonto.clear();
       _conformePonto = true;
@@ -149,79 +155,131 @@ class CreateInspecaoState extends State<CreateInspecao> {
     });
   }
 
+  Future<void> _submitInspecao() async {
+    if (_tipoController.text.isEmpty ||
+        _localController.text.isEmpty ||
+        _selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Todos os campos são obrigatórios.')),
+      );
+      return;
+    }
+
+    if (_pontos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Adicione pelo menos um ponto de verificação.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final inspecao = Inspecao(
+      id: widget.index != null
+          ? widget.initialData!.id
+          : DateTime.now().toString(),
+      tipoInspecao: _tipoController.text,
+      local: _localController.text,
+      data: _selectedDate!,
+      pontos: _pontos,
+      anexos: [],
+    );
+
+    final inspecaoProvider =
+        Provider.of<InspecaoProvider>(context, listen: false);
+
+    if (widget.index == null) {
+      // Modo de criação
+      await inspecaoProvider.saveInspecao(inspecao);
+    } else {
+      // Modo de edição
+      await inspecaoProvider.updateInspecao(widget.index!, inspecao);
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Inspeção salva com sucesso!')),
+    );
+
+    Navigator.of(context).pop(); // Volta para a tela anterior
+  }
+
   void _visualizarImagem(String? imagemPath) {
     if (imagemPath == null) return;
-
-    // Remove o foco imediatamente antes de abrir o diálogo
-    FocusScope.of(context).requestFocus(FocusNode());
-
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(
-          child: Image.file(File(imagemPath)),
-        );
+        return Dialog(child: Image.file(File(imagemPath)));
       },
-    ).then((_) {
-      // Garante que o foco continua removido após fechar o diálogo
-      if (!mounted) return;
-
-      FocusScope.of(context).requestFocus(FocusNode());
-    });
+    );
   }
 
-  Future<void> _confirmDeleteImage(File image) async {
+  Future<bool?> _confirmDeleteImage(File image) async {
     final shouldDelete = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Excluir Imagem'),
-              content: const Text(
-                  'Você tem certeza que deseja excluir esta imagem?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancelar'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Excluir'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Excluir Imagem'),
+          content:
+              const Text('Você tem certeza que deseja excluir esta imagem?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
 
-    if (shouldDelete) {
+    if (shouldDelete == true) {
       setState(() {
         _imagensPonto.remove(image);
       });
     }
+
+    return shouldDelete;
   }
 
-  Future<bool> _confirmDeletePonto(int index) async {
+  Future<bool?> _confirmDeletePonto(int index) async {
     final shouldDelete = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Excluir Ponto de Verificação'),
-              content: const Text(
-                  'Você tem certeza que deseja excluir este ponto de verificação?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancelar'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Excluir'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Excluir Ponto de Verificação'),
+          content: const Text(
+              'Você tem certeza que deseja excluir este ponto de verificação?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      setState(() {
+        _pontos.removeAt(index);
+      });
+    }
 
     return shouldDelete;
   }
@@ -240,53 +298,6 @@ class CreateInspecaoState extends State<CreateInspecao> {
     });
   }
 
-  Future<void> _submitInspecao() async {
-    if (_tipoController.text.isEmpty ||
-        _localController.text.isEmpty ||
-        _selectedDate == null) {
-      _showSnackBar('Todos os campos são obrigatórios.');
-      return;
-    }
-
-    if (_pontoDescricaoController.text.isNotEmpty || _imagensPonto.isNotEmpty) {
-      _showSnackBar(
-          'Há um ponto de verificação em andamento. Por favor, finalize-o antes de salvar.');
-      return;
-    }
-
-    if (_pontos.isEmpty) {
-      _showSnackBar('Adicione pelo menos um ponto de verificação.');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true; // Ativar estado de carregamento
-    });
-
-    final inspecao = Inspecao(
-      id: DateTime.now().toString(),
-      tipoInspecao: _tipoController.text,
-      local: _localController.text,
-      data: _selectedDate!,
-      pontos: _pontos,
-      anexos: [], // Limpar anexos não utilizados
-    );
-
-    final inspecaoProvider =
-        Provider.of<InspecaoProvider>(context, listen: false);
-    await inspecaoProvider.saveInspecao(inspecao);
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false; // Desativar estado de carregamento
-    });
-
-    _clearForm();
-    _showSnackBar('Inspeção salva com sucesso!');
-    Navigator.of(context).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
     const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
@@ -298,7 +309,9 @@ class CreateInspecaoState extends State<CreateInspecao> {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Nova Inspeção'.toUpperCase(),
+            widget.index == null
+                ? 'Nova Inspeção'.toUpperCase()
+                : 'Editar Inspeção'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,
@@ -365,9 +378,13 @@ class CreateInspecaoState extends State<CreateInspecao> {
                             foregroundColor: Colors.white,
                             backgroundColor: buttonColor,
                             padding: const EdgeInsets.symmetric(
-                                vertical: 12.0, horizontal: 8.0),
+                              vertical: 12.0,
+                              horizontal: 8.0,
+                            ),
                             textStyle: const TextStyle(
-                                fontSize: 14, fontFamily: 'Segoe Bold'),
+                              fontSize: 14,
+                              fontFamily: 'Segoe Bold',
+                            ),
                           ),
                           child: Text(
                             _selectedDate == null
@@ -394,13 +411,12 @@ class CreateInspecaoState extends State<CreateInspecao> {
                     ),
                   ),
 
-// Linha com Descrição e Ícone da Câmera
+                  // Linha com Descrição e Ícone da Câmera
                   Center(
                     child: IntrinsicHeight(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment
-                            .stretch, // Estica os widgets para a mesma altura
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
                             flex: 3,
@@ -414,7 +430,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                             ),
                           ),
                           const SizedBox(width: 8.0),
-                          // Botão de Câmera (25%)
+                          // Botão da Câmera (25%)
                           Expanded(
                             flex: 1,
                             child: ElevatedButton(
@@ -425,11 +441,9 @@ class CreateInspecaoState extends State<CreateInspecao> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                padding:
-                                    EdgeInsets.zero, // Remove padding extra
+                                padding: EdgeInsets.zero,
                               ),
                               child: const SizedBox.expand(
-                                // Faz o botão ocupar todo o espaço disponível
                                 child: Center(
                                   child: Icon(
                                     Icons.add_a_photo,
@@ -444,11 +458,12 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8.0),
 
                   // Exibição das Imagens Selecionadas
                   if (_imagensPonto.isNotEmpty)
                     Container(
-                      height: 120, // Altura fixa para o scroll horizontal
+                      height: 120,
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
@@ -464,25 +479,19 @@ class CreateInspecaoState extends State<CreateInspecao> {
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: const Color.fromARGB(255, 0, 104,
-                                          55), // Cor da borda (verde)
-                                      width: 2.0, // Espessura da borda
+                                      color: buttonColor,
+                                      width: 2.0,
                                     ),
-                                    borderRadius: BorderRadius.circular(
-                                        14), // Raio das bordas
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                      12,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12),
                                     child: GestureDetector(
                                       onTap: () =>
                                           _visualizarImagem(imagem.path),
                                       child: Image.file(
                                         imagem,
-
-                                        fit: BoxFit
-                                            .cover, // Ajusta a imagem ao container
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
@@ -492,8 +501,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                                   right: 4,
                                   child: ClipOval(
                                     child: Material(
-                                      color: Colors.red.withValues(
-                                          alpha: 0.7), // Cor do botão
+                                      color: Colors.red.withAlpha(180),
                                       child: InkWell(
                                         onTap: () =>
                                             _confirmDeleteImage(imagem),
@@ -514,9 +522,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           );
                         },
                       ),
-                    )
-                  else
-                    const SizedBox.shrink(),
+                    ),
 
                   // Conforme/Inconforme
                   Row(
@@ -552,17 +558,18 @@ class CreateInspecaoState extends State<CreateInspecao> {
 
                   // Botão para adicionar/atualizar ponto
                   ElevatedButton(
-                    onPressed: () {
-                      _adicionarPonto();
-                      FocusScope.of(context).unfocus(); // Fechar teclado
-                    },
+                    onPressed: _adicionarPonto,
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: buttonColor,
                       padding: const EdgeInsets.symmetric(
-                          vertical: 12.0, horizontal: 24.0),
+                        vertical: 12.0,
+                        horizontal: 24.0,
+                      ),
                       textStyle: const TextStyle(
-                          fontSize: 16, fontFamily: 'Segoe Bold'),
+                        fontSize: 16,
+                        fontFamily: 'Segoe Bold',
+                      ),
                     ),
                     child: Text(
                       _editingIndex == null
@@ -572,6 +579,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                   ),
                   const SizedBox(height: 16.0),
 
+                  // Lista de Pontos Adicionados
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -583,8 +591,7 @@ class CreateInspecaoState extends State<CreateInspecao> {
                           : [];
 
                       return Dismissible(
-                        key:
-                            UniqueKey(), // Garante que cada item tenha uma chave única
+                        key: UniqueKey(),
                         background: Container(
                           color: Colors.green,
                           alignment: Alignment.centerLeft,
@@ -601,98 +608,84 @@ class CreateInspecaoState extends State<CreateInspecao> {
                         ),
                         confirmDismiss: (direction) async {
                           if (direction == DismissDirection.startToEnd) {
-                            _editarPonto(
-                                index); // Chama a função de edição (retorna void)
-                            return false; // Impede que o item seja descartado
+                            _editarPonto(index);
+                            return false; // Impede a remoção ao editar
                           } else {
-                            final bool shouldDelete =
+                            final shouldDelete =
                                 await _confirmDeletePonto(index);
-                            if (shouldDelete) {
-                              setState(() {
-                                _pontos
-                                    .removeAt(index); // Remove o item da lista
-                              });
-                            }
-                            return shouldDelete; // Retorna o resultado da confirmação
+                            return shouldDelete;
                           }
                         },
                         onDismissed: (direction) {
                           setState(() {
-                            _pontos.removeAt(
-                                index); // Remove o item da lista corretamente
+                            _pontos.removeAt(index);
                           });
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Card(
-                              color: buttonColor,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      ponto['descricao'],
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
+                          child: Card(
+                            color: buttonColor,
+                            margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    ponto['descricao'],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
                                     ),
-                                    const SizedBox(height: 8.0),
-                                    Text(
-                                      ponto['conforme']
-                                          ? 'Conforme'
-                                          : 'Inconforme: ${ponto['inconformidade']}',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                    if (imagensPonto.isNotEmpty)
-                                      const SizedBox(height: 16.0),
-                                    if (imagensPonto.isNotEmpty)
-                                      SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          children:
-                                              imagensPonto.map((imagemPath) {
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 8.0),
-                                              child: GestureDetector(
-                                                onTap: () => _visualizarImagem(
-                                                    imagemPath),
-                                                child: Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  decoration: BoxDecoration(
-                                                    border: Border.all(
-                                                      color: Colors.white,
-                                                      width: 2,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                    image: DecorationImage(
-                                                      image: FileImage(
-                                                          File(imagemPath)),
-                                                      fit: BoxFit.cover,
-                                                    ),
+                                  ),
+                                  const SizedBox(height: 8.0),
+                                  Text(
+                                    ponto['conforme']
+                                        ? 'Conforme'
+                                        : 'Inconforme: ${ponto['inconformidade']}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  if (imagensPonto.isNotEmpty)
+                                    const SizedBox(height: 16.0),
+                                  if (imagensPonto.isNotEmpty)
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children:
+                                            imagensPonto.map((imagemPath) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 8.0),
+                                            child: GestureDetector(
+                                              onTap: () =>
+                                                  _visualizarImagem(imagemPath),
+                                              child: Container(
+                                                width: 50,
+                                                height: 50,
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 2,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  image: DecorationImage(
+                                                    image: FileImage(
+                                                        File(imagemPath)),
+                                                    fit: BoxFit.cover,
                                                   ),
                                                 ),
                                               ),
-                                            );
-                                          }).toList(),
-                                        ),
+                                            ),
+                                          );
+                                        }).toList(),
                                       ),
-                                  ],
-                                ),
+                                    ),
+                                ],
                               ),
                             ),
                           ),
@@ -700,32 +693,20 @@ class CreateInspecaoState extends State<CreateInspecao> {
                       );
                     },
                   ),
-
-                  // Botão Finalizar Inspeção
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Center(
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submitInspecao,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(16),
-                          minimumSize: const Size(56, 56),
-                        ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white)
-                            : const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
+            ),
+          ),
+
+          // Botão Flutuante Circular para Salvar
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: FloatingActionButton(
+              onPressed: _isLoading ? null : _submitInspecao,
+              backgroundColor: buttonColor,
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Icon(Icons.check, color: Colors.white, size: 28),
             ),
           ),
         ],

@@ -48,15 +48,18 @@ class OutlinedTextField3State extends State<OutlinedTextField3> {
         fillColor: Colors.transparent,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color.fromARGB(255, 0, 104, 55)),
+          borderSide: const BorderSide(
+              color: Color.fromARGB(255, 0, 104, 55), width: 2),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color.fromARGB(255, 0, 104, 55)),
+          borderSide: const BorderSide(
+              color: Color.fromARGB(255, 0, 104, 55), width: 2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color.fromARGB(255, 0, 104, 55)),
+          borderSide: const BorderSide(
+              color: Color.fromARGB(255, 0, 104, 55), width: 2),
         ),
         suffixIcon: widget.obscureText
             ? IconButton(
