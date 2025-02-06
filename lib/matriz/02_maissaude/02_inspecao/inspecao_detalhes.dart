@@ -41,6 +41,7 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize:
@@ -109,19 +110,22 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Tipo de Inspeção:',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Tipo de Inspeção:',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(_inspecao.tipoInspecao),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(_inspecao.tipoInspecao),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16.0),
@@ -150,31 +154,38 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                     children: [
                       Expanded(
                         flex: 1,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Data:',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Data:',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              DateFormat('dd/MM/yyyy').format(_inspecao.data),
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                DateFormat('dd/MM/yyyy').format(_inspecao.data),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const Divider(height: 32, thickness: 1, color: Colors.grey),
-
+                  // const Divider(height: 32, thickness: 1, color: Colors.grey),
+                  const SizedBox(height: 16),
                   // Pontos de Verificação
-                  const Text(
-                    'Pontos de Verificação:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      'Pontos de Verificação:',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ListView.builder(
@@ -188,33 +199,66 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                           : [];
 
                       return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: ListTile(
-                          title: Text(ponto['descricao']),
-                          subtitle: Column(
+                        color: buttonColor,
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 8.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text(
+                                ponto['descricao'],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 8.0),
                               Text(
                                 ponto['conforme']
                                     ? 'Conforme'
                                     : 'Inconforme: ${ponto['inconformidade']}',
+                                style: const TextStyle(color: Colors.white),
                               ),
                               if (imagensPonto.isNotEmpty)
-                                Wrap(
-                                  spacing: 8.0,
-                                  runSpacing: 8.0,
-                                  children: imagensPonto.map((imagemPath) {
-                                    return GestureDetector(
-                                      onTap: () => _visualizarImagem(
-                                          context, imagemPath),
-                                      child: Image.file(
-                                        File(imagemPath),
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    );
-                                  }).toList(),
+                                const SizedBox(height: 16.0),
+                              if (imagensPonto.isNotEmpty)
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: imagensPonto.map((imagemPath) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 8.0),
+                                        child: GestureDetector(
+                                          onTap: () => _visualizarImagem(
+                                              context, imagemPath),
+                                          child: Container(
+                                            width: 50,
+                                            height: 50,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              image: DecorationImage(
+                                                image:
+                                                    FileImage(File(imagemPath)),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
                             ],
                           ),
