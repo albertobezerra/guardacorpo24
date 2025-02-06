@@ -156,6 +156,7 @@ class InspecaoFormState extends State<InspecaoForm> {
   }
 
   Future<void> _submitInspecao() async {
+    // Verifica se os campos principais estão preenchidos
     if (_tipoController.text.isEmpty ||
         _localController.text.isEmpty ||
         _selectedDate == null) {
@@ -165,10 +166,37 @@ class InspecaoFormState extends State<InspecaoForm> {
       return;
     }
 
-    if (_pontos.isEmpty) {
+    // Verifica se há pelo menos um ponto de verificação
+    if (_pontos.isEmpty && _pontoDescricaoController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Adicione pelo menos um ponto de verificação.')),
+      );
+      return;
+    }
+
+    // Verifica se há um ponto em andamento
+    bool hasUnfinishedPoint = false;
+
+    // Verifica se há um ponto sendo adicionado/editado
+    if (_pontoDescricaoController.text.isNotEmpty || _imagensPonto.isNotEmpty) {
+      hasUnfinishedPoint = true;
+    }
+
+    // Verifica se algum ponto na lista está incompleto
+    for (var ponto in _pontos) {
+      if (ponto['descricao'].toString().isEmpty) {
+        hasUnfinishedPoint = true;
+        break;
+      }
+    }
+
+    // Exibe aviso se houver ponto em andamento
+    if (hasUnfinishedPoint) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Há pontos de verificação em andamento. Por favor, finalize-os antes de salvar.')),
       );
       return;
     }
@@ -200,7 +228,6 @@ class InspecaoFormState extends State<InspecaoForm> {
     }
 
     if (!mounted) return;
-
     setState(() {
       _isLoading = false;
     });
@@ -209,7 +236,8 @@ class InspecaoFormState extends State<InspecaoForm> {
       const SnackBar(content: Text('Inspeção salva com sucesso!')),
     );
 
-    Navigator.of(context).pop(); // Volta para a tela anterior
+    // Retorna a inspeção atualizada para a tela anterior
+    Navigator.of(context).pop(inspecao);
   }
 
   void _visualizarImagem(String? imagemPath) {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_form.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'editar_inspecao.dart';
 import 'dados_inspecao.dart';
 
 class InspecaoDetailScreen extends StatefulWidget {
@@ -77,15 +77,18 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
                 icon: const Icon(Icons.edit,
                     color: Color.fromARGB(255, 0, 104, 55)),
                 onPressed: () async {
+                  // Abre o InspecaoForm no modo de edição
                   final updatedInspecao = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditInspecaoScreen(
-                        index: widget.index,
-                        initialData: _inspecao,
+                      builder: (context) => InspecaoForm(
+                        index: widget.index, // Índice da inspeção
+                        initialData: _inspecao, // Dados atuais da inspeção
                       ),
                     ),
                   );
+
+                  // Atualiza a inspeção na tela de detalhes se houver mudanças
                   if (updatedInspecao != null && mounted) {
                     setState(() {
                       _inspecao = updatedInspecao;

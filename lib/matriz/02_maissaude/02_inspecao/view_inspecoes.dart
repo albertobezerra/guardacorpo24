@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/cria_inspecao.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_detalhes.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_form.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'inspecao_provider.dart';
@@ -238,7 +238,10 @@ class ViewInspecoesState extends State<ViewInspecoes> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CreateInspecao(),
+                      builder: (context) => const InspecaoForm(
+                        index: null,
+                        initialData: null,
+                      ),
                     ),
                   );
                 },
