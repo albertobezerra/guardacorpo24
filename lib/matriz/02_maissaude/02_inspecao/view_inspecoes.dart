@@ -1,10 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/cria_inspecao.dart';
-import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_detalhes.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_form.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'inspecao_provider.dart';
+import 'inspecao_detalhes.dart'; // Importe a tela consolidada
 
 class ViewInspecoes extends StatefulWidget {
   const ViewInspecoes({super.key});
@@ -35,7 +36,7 @@ class ViewInspecoesState extends State<ViewInspecoes> {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Inspeções'.toUpperCase(),
+            'INSPEÇÕES'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,
@@ -43,10 +44,7 @@ class ViewInspecoesState extends State<ViewInspecoes> {
             ),
           ),
           leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -62,171 +60,180 @@ class ViewInspecoesState extends State<ViewInspecoes> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(
-                        left: 30.0, top: 30.0, right: 30.0),
-                    child: RichText(
-                      textAlign: TextAlign.justify,
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontFamily: 'Segoe',
-                          fontSize: 14,
-                          color: Colors.black,
+              child: Consumer<InspecaoProvider>(
+                builder: (context, inspecaoProvider, child) {
+                  if (inspecaoProvider.inspecoes.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          'Nenhuma inspeção encontrada.\nVamos criar sua primeira inspeção?',
+                          style: TextStyle(fontSize: 18, color: Colors.black54),
+                          textAlign: TextAlign.center,
                         ),
-                        children: [
-                          TextSpan(
-                            text:
-                                'Esta seção permite que você visualize e gerencie suas inspeções. As inspeções ajudam a identificar e avaliar problemas, promovendo a saúde e a segurança no local de trabalho.\n\n',
-                          ),
-                          TextSpan(
-                            text: 'Funções das Inspeções:\n\n',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          TextSpan(
-                            text:
-                                '• Visualizar Inspeções: Veja a descrição, data e local das inspeções realizadas.\n'
-                                '• Editar Inspeções: Atualize as informações das inspeções existentes.\n'
-                                '• Excluir Inspeções: Remova inspeções desatualizadas ou incorretas.\n\n',
-                          ),
-                        ],
                       ),
-                    ),
-                  ),
-                  Consumer<InspecaoProvider>(
-                    builder: (context, inspecaoProvider, child) {
-                      if (inspecaoProvider.inspecoes.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Text(
-                              'Nenhuma inspeção encontrada.\nVamos criar sua primeira inspeção?',
-                              style: TextStyle(
-                                  fontSize: 18, color: Colors.black54),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      } else {
-                        return DefaultTextStyle(
-                          style: const TextStyle(
-                            fontFamily: 'Segoe',
-                          ),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 16.0),
-                                  child: Text(
-                                    'SUAS INSPEÇÕES',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontFamily: 'Segoe Bold',
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 0, 104, 55),
-                                    ),
-                                  ),
+                    );
+                  } else {
+                    return DefaultTextStyle(
+                      style: const TextStyle(fontFamily: 'Segoe'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Text(
+                                'SUAS INSPEÇÕES',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontFamily: 'Segoe Bold',
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
-                                const SizedBox(height: 12),
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: inspecaoProvider.inspecoes.length,
-                                  itemBuilder: (context, index) {
-                                    final inspecao =
-                                        inspecaoProvider.inspecoes[index];
-                                    final imagePaths =
-                                        List.from(inspecao.anexos);
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: inspecaoProvider.inspecoes.length,
+                              itemBuilder: (context, index) {
+                                final inspecao =
+                                    inspecaoProvider.inspecoes[index];
+                                final imagePaths =
+                                    List<String>.from(inspecao.anexos);
 
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10),
-                                      child: Card(
-                                        margin: const EdgeInsets.symmetric(
-                                            vertical: 8.0),
-                                        elevation: 0,
-                                        color: const Color.fromARGB(
-                                            0, 255, 255, 255),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            side: const BorderSide(
-                                              color: Color.fromARGB(
-                                                  255, 0, 104, 55),
-                                              width: 2.0,
-                                            )),
-                                        child: ListTile(
-                                          contentPadding:
-                                              const EdgeInsets.all(16.0),
-                                          title: Text(
-                                            inspecao.tipoInspecao,
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
+                                  child: Card(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8.0),
+                                    elevation: 3,
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.all(8.0),
+                                      title: Text(
+                                        inspecao.tipoInspecao,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '${DateFormat('dd/MM/yyyy').format(inspecao.data)} - ${inspecao.local}',
                                             style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color.fromARGB(
-                                                  255, 0, 104, 55),
+                                              fontSize: 14,
+                                              color: Colors.black54,
                                             ),
                                           ),
-                                          subtitle: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '${DateFormat('dd/MM/yyyy').format(inspecao.data)} - ${inspecao.local}',
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  color: Color.fromARGB(
-                                                      255, 0, 104, 55),
-                                                ),
+                                          if (imagePaths.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 8.0),
+                                              child: Image.file(
+                                                File(imagePaths[0]),
+                                                height: 100,
+                                                fit: BoxFit.cover,
                                               ),
-                                              if (imagePaths.isNotEmpty)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 8.0),
-                                                  child: Image.file(
-                                                    File(imagePaths[0]),
-                                                    height: 100,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                          onTap: () {
+                                            ),
+                                        ],
+                                      ),
+                                      trailing: PopupMenuButton(
+                                        onSelected: (String result) async {
+                                          if (result == 'edit') {
+                                            // Redireciona para InspecaoForm no modo de edição
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    InspecaoDetailScreen(
-                                                  inspecao: inspecao,
+                                                    InspecaoForm(
                                                   index: index,
+                                                  initialData: inspecao,
                                                 ),
                                               ),
                                             );
-                                          },
-                                        ),
+                                          } else if (result == 'delete') {
+                                            final bool shouldDelete =
+                                                await showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return AlertDialog(
+                                                          title: const Text(
+                                                              'Excluir Inspeção'),
+                                                          content: const Text(
+                                                              'Você tem certeza que deseja excluir esta inspeção?'),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          false),
+                                                              child: const Text(
+                                                                  'Cancelar'),
+                                                            ),
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          true),
+                                                              child: const Text(
+                                                                  'Excluir'),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    ) ??
+                                                    false;
+
+                                            if (shouldDelete) {
+                                              inspecaoProvider
+                                                  .deleteInspecao(index);
+                                            }
+                                          }
+                                        },
+                                        itemBuilder: (BuildContext context) => [
+                                          const PopupMenuItem(
+                                            value: 'edit',
+                                            child: Text('Editar'),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: 'delete',
+                                            child: Text('Excluir'),
+                                          ),
+                                        ],
                                       ),
-                                    );
-                                  },
-                                ),
-                              ],
+                                      onTap: () {
+                                        // Redireciona para InspecaoDetailScreen
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                InspecaoDetailScreen(
+                                              inspecao: inspecao,
+                                              index: index,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ],
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                },
               ),
             ),
           ),
@@ -238,7 +245,8 @@ class ViewInspecoesState extends State<ViewInspecoes> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CreateInspecao(),
+                      builder: (context) =>
+                          const InspecaoForm(), // Nova inspeção
                     ),
                   );
                 },
@@ -256,7 +264,7 @@ class ViewInspecoesState extends State<ViewInspecoes> {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

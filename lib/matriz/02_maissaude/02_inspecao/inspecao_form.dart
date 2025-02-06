@@ -214,12 +214,20 @@ class InspecaoFormState extends State<InspecaoForm> {
 
   void _visualizarImagem(String? imagemPath) {
     if (imagemPath == null) return;
+    // Remove o foco imediatamente antes de abrir o diálogo
+    FocusScope.of(context).requestFocus(FocusNode());
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(child: Image.file(File(imagemPath)));
+        return Dialog(
+          child: Image.file(File(imagemPath)),
+        );
       },
-    );
+    ).then((_) {
+      // Garante que o foco continua removido após fechar o diálogo
+      if (!mounted) return;
+      FocusScope.of(context).requestFocus(FocusNode());
+    });
   }
 
   Future<bool?> _confirmDeleteImage(File image) async {
@@ -623,69 +631,75 @@ class InspecaoFormState extends State<InspecaoForm> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Card(
-                            color: buttonColor,
-                            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    ponto['descricao'],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Card(
+                              color: buttonColor,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ponto['descricao'],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  Text(
-                                    ponto['conforme']
-                                        ? 'Conforme'
-                                        : 'Inconforme: ${ponto['inconformidade']}',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  if (imagensPonto.isNotEmpty)
-                                    const SizedBox(height: 16.0),
-                                  if (imagensPonto.isNotEmpty)
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children:
-                                            imagensPonto.map((imagemPath) {
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                                right: 8.0),
-                                            child: GestureDetector(
-                                              onTap: () =>
-                                                  _visualizarImagem(imagemPath),
-                                              child: Container(
-                                                width: 50,
-                                                height: 50,
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                    color: Colors.white,
-                                                    width: 2,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  image: DecorationImage(
-                                                    image: FileImage(
-                                                        File(imagemPath)),
-                                                    fit: BoxFit.cover,
+                                    const SizedBox(height: 8.0),
+                                    Text(
+                                      ponto['conforme']
+                                          ? 'Conforme'
+                                          : 'Inconforme: ${ponto['inconformidade']}',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                    if (imagensPonto.isNotEmpty)
+                                      const SizedBox(height: 16.0),
+                                    if (imagensPonto.isNotEmpty)
+                                      SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          children:
+                                              imagensPonto.map((imagemPath) {
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  right: 8.0),
+                                              child: GestureDetector(
+                                                onTap: () => _visualizarImagem(
+                                                    imagemPath),
+                                                child: Container(
+                                                  width: 50,
+                                                  height: 50,
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                      color: Colors.white,
+                                                      width: 2,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    image: DecorationImage(
+                                                      image: FileImage(
+                                                          File(imagemPath)),
+                                                      fit: BoxFit.cover,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          );
-                                        }).toList(),
+                                            );
+                                          }).toList(),
+                                        ),
                                       ),
-                                    ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -701,9 +715,14 @@ class InspecaoFormState extends State<InspecaoForm> {
           // Botão Flutuante Circular para Salvar
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: FloatingActionButton(
+            child: ElevatedButton(
               onPressed: _isLoading ? null : _submitInspecao,
-              backgroundColor: buttonColor,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonColor,
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(16),
+                minimumSize: const Size(56, 56),
+              ),
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Icon(Icons.check, color: Colors.white, size: 28),
