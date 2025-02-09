@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
+import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_provider.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,14 +14,10 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   MobileAds.instance.initialize();
-
-  final prefs = await SharedPreferences.getInstance();
-  final bool hasCompletedOnboarding =
-      prefs.getBool('hasCompletedOnboarding') ?? false;
-  final bool hasShownSplash = prefs.getBool('hasShownSplash') ?? false;
-
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -28,36 +25,55 @@ void main() async {
     systemNavigationBarColor: Colors.white,
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
+  runApp(const MyApp());
+}
 
-  runApp(MyApp(
-      hasCompletedOnboarding: hasCompletedOnboarding,
-      hasShownSplash: hasShownSplash));
+class Preferences {
+  static Future<bool> get hasCompletedOnboarding async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('hasCompletedOnboarding') ?? false;
+  }
+
+  static Future<bool> get hasShownSplash async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('hasShownSplash') ?? false;
+  }
+
+  static Future<void> setHasCompletedOnboarding(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasCompletedOnboarding', value);
+  }
+
+  static Future<void> setHasShownSplash(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasShownSplash', value);
+  }
 }
 
 class MyApp extends StatefulWidget {
-  final bool hasCompletedOnboarding;
-  final bool hasShownSplash;
-
-  const MyApp(
-      {super.key,
-      required this.hasCompletedOnboarding,
-      required this.hasShownSplash});
+  const MyApp({super.key});
 
   @override
-  MyAppState createState() => MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
-class MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
     checkForUpdate();
   }
 
+  /// Verifica se há atualizações disponíveis.
   Future<void> checkForUpdate() async {
-    final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
-    if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-      InAppUpdate.performImmediateUpdate();
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        // Se uma atualização estiver disponível, inicie a atualização imediata.
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (e) {
+      debugPrint('Erro ao verificar atualizações: $e');
     }
   }
 
@@ -77,11 +93,25 @@ class MyAppState extends State<MyApp> {
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate, // Suporte ao Cupertino
+          GlobalCupertinoLocalizations.delegate,
         ],
-        home: widget.hasCompletedOnboarding
-            ? (widget.hasShownSplash ? const AuthPage() : const SplashScreen())
-            : const OnboardingPage(),
+        home: FutureBuilder(
+          future: Future.wait([
+            Preferences.hasCompletedOnboarding,
+            Preferences.hasShownSplash,
+          ]),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const SizedBox(); // Loader temporário
+            }
+            final hasCompletedOnboarding = snapshot.data![0];
+            final hasShownSplash = snapshot.data![1];
+
+            return hasCompletedOnboarding
+                ? (hasShownSplash ? const AuthPage() : const SplashScreen())
+                : const OnboardingPage();
+          },
+        ),
       ),
     );
   }
