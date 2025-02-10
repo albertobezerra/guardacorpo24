@@ -68,9 +68,18 @@ class _MyAppState extends State<MyApp> {
   Future<void> checkForUpdate() async {
     try {
       final info = await InAppUpdate.checkForUpdate();
+
       if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-        // Se uma atualização estiver disponível, inicie a atualização imediata.
-        await InAppUpdate.performImmediateUpdate();
+        if (info.immediateUpdateAllowed) {
+          // Executa a atualização imediata
+          await InAppUpdate.performImmediateUpdate();
+        } else if (info.flexibleUpdateAllowed) {
+          // Executa a atualização flexível
+          await InAppUpdate.startFlexibleUpdate();
+        } else {
+          debugPrint(
+              'Atualização disponível, mas não permitida de forma imediata.');
+        }
       }
     } catch (e) {
       debugPrint('Erro ao verificar atualizações: $e');

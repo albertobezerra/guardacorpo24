@@ -1,14 +1,30 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/incident_report.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/edit_report_screen.dart';
+import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/incidentForm.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_detail_screen.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_provider.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../admob/banner_ad_widget.dart';
 
-class ViewReports extends StatelessWidget {
+class ViewReports extends StatefulWidget {
   const ViewReports({super.key});
+
+  @override
+  ViewReportsState createState() => ViewReportsState();
+}
+
+class ViewReportsState extends State {
+  @override
+  void initState() {
+    super.initState();
+    _loadReports();
+  }
+
+  Future _loadReports() async {
+    final reportProvider = Provider.of<ReportProvider>(context, listen: false);
+    await reportProvider
+        .loadReports(); // Suponha que há um método loadReports()
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +43,14 @@ class ViewReports extends StatelessWidget {
             ),
           ),
           leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/cid.jpg'),
+            image: AssetImage(
+                'assets/images/relatorios.jpg'), // Altere para o caminho da imagem desejada
             fit: BoxFit.cover,
           ),
         ),
@@ -63,7 +77,7 @@ class ViewReports extends StatelessWidget {
                         children: [
                           TextSpan(
                             text:
-                                'Esta seção permite que você visualize e gerencie seus relatórios de Análises Ergonômicas do Trabalho (AET). Os relatórios ajudam a identificar e avaliar problemas ergonômicos, promovendo a saúde e a segurança no local de trabalho.\n\n',
+                                'Esta seção permite que você visualize e gerencie seus relatórios de incidentes. Os relatórios ajudam a documentar e rastrear eventos importantes.\n\n',
                           ),
                           TextSpan(
                             text: 'Funções dos Relatórios:\n\n',
@@ -98,126 +112,114 @@ class ViewReports extends StatelessWidget {
                           ),
                         );
                       } else {
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                                child: Text(
-                                  'SEUS RELATÓRIOS',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                        return DefaultTextStyle(
+                          style: const TextStyle(fontFamily: 'Segoe'),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: Text(
+                                    'SEUS RELATÓRIOS',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontFamily: 'Segoe Bold',
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromARGB(255, 0, 104, 55),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: reportProvider.reports.length,
-                                itemBuilder: (context, index) {
-                                  final report = reportProvider.reports[index];
-                                  final imagePaths =
-                                      List<String>.from(report['imagePaths']);
+                                const SizedBox(height: 12),
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: reportProvider.reports.length,
+                                  itemBuilder: (context, index) {
+                                    final report =
+                                        reportProvider.reports[index];
+                                    final imagePaths =
+                                        List.from(report['imagePaths'] ?? []);
 
-                                  return ListTile(
-                                    title: Text(
-                                      report['description'] ??
-                                          'Nenhuma descrição',
-                                    ),
-                                    subtitle: Text(
-                                        '${report['date']} - ${report['location']}'),
-                                    leading: imagePaths.isNotEmpty
-                                        ? Image.file(File(imagePaths[0]))
-                                        : null,
-                                    trailing: PopupMenuButton<String>(
-                                      onSelected: (String result) async {
-                                        if (result == 'edit') {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditReportScreen(
-                                                index: index,
-                                                initialData: report,
-                                                onSave: (updatedReport) =>
-                                                    reportProvider.updateReport(
-                                                        index, updatedReport),
-                                              ),
-                                            ),
-                                          );
-                                        } else if (result == 'delete') {
-                                          final bool shouldDelete =
-                                              await showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        title: const Text(
-                                                            'Excluir Relatório'),
-                                                        content: const Text(
-                                                            'Você tem certeza que deseja excluir este relatório?'),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(false);
-                                                            },
-                                                            child: const Text(
-                                                                'Cancelar'),
-                                                          ),
-                                                          TextButton(
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(true);
-                                                            },
-                                                            child: const Text(
-                                                                'Excluir'),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  ) ??
-                                                  false;
-
-                                          if (shouldDelete) {
-                                            reportProvider.deleteReport(index);
-                                          }
-                                        }
-                                      },
-                                      itemBuilder: (BuildContext context) =>
-                                          <PopupMenuEntry<String>>[
-                                        const PopupMenuItem<String>(
-                                          value: 'edit',
-                                          child: Text('Editar'),
-                                        ),
-                                        const PopupMenuItem<String>(
-                                          value: 'delete',
-                                          child: Text('Excluir'),
-                                        ),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ReportDetailScreen(
-                                            report: report,
-                                            index: index,
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Card(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 8.0),
+                                        elevation: 0,
+                                        color: const Color.fromARGB(
+                                            0, 255, 255, 255),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          side: const BorderSide(
+                                            color:
+                                                Color.fromARGB(255, 0, 104, 55),
+                                            width: 2.0,
                                           ),
                                         ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ],
+                                        child: ListTile(
+                                          contentPadding:
+                                              const EdgeInsets.all(16.0),
+                                          title: Text(
+                                            report['description'],
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color.fromARGB(
+                                                  255, 0, 104, 55),
+                                            ),
+                                          ),
+                                          subtitle: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '${DateFormat('dd/MM/yyyy').format(DateFormat('dd/MM/yyyy').parse(report['date']))} - ${report['location']}',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color.fromARGB(
+                                                      255, 0, 104, 55),
+                                                ),
+                                              ),
+                                              if (imagePaths.isNotEmpty)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 8.0),
+                                                  child: Image.file(
+                                                    File(imagePaths[0]),
+                                                    height: 100,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ReportDetailScreen(
+                                                  report: report,
+                                                  index: index,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }
@@ -227,34 +229,37 @@ class ViewReports extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                label: Text('Novo Relatório'.toUpperCase()),
+          // Botão flutuante no final da tela
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const IncidentReport(),
+                      builder: (context) => const IncidentForm(
+                        index: null,
+                        initialData: null,
+                      ),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 24.0),
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'Segoe Bold',
-                  ),
+                  backgroundColor:
+                      const Color.fromARGB(255, 0, 104, 55), // Cor verde
+                  shape: const CircleBorder(), // Forma circular
+                  padding: const EdgeInsets.all(16), // Espaçamento interno
+                  minimumSize: const Size(56, 56), // Tamanho mínimo do botão
+                ),
+                child: const Icon(
+                  Icons.add, // Ícone de adição
+                  color: Colors.white, // Cor do ícone
+                  size: 28, // Tamanho do ícone
                 ),
               ),
             ),
           ),
-          const BannerAdWidget(),
         ],
       ),
     );
