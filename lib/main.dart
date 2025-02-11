@@ -64,25 +64,25 @@ class _MyAppState extends State<MyApp> {
     checkForUpdate();
   }
 
-  /// Verifica se há atualizações disponíveis.
   Future<void> checkForUpdate() async {
     try {
       final info = await InAppUpdate.checkForUpdate();
 
       if (info.updateAvailability == UpdateAvailability.updateAvailable) {
         if (info.immediateUpdateAllowed) {
-          // Executa a atualização imediata
           await InAppUpdate.performImmediateUpdate();
         } else if (info.flexibleUpdateAllowed) {
-          // Executa a atualização flexível
           await InAppUpdate.startFlexibleUpdate();
-        } else {
-          debugPrint(
-              'Atualização disponível, mas não permitida de forma imediata.');
+          // Após o download, solicita ao usuário que reinicie o app
+          InAppUpdate.completeFlexibleUpdate().then((_) {
+            debugPrint("Atualização concluída!");
+          }).catchError((e) {
+            debugPrint("Erro ao finalizar atualização flexível: $e");
+          });
         }
       }
     } catch (e) {
-      debugPrint('Erro ao verificar atualizações: $e');
+      debugPrint('Erro ao verificar/atualizar: $e');
     }
   }
 
