@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_00_raiz/aet_raiz.dart';
 import '../../admob/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
@@ -9,7 +10,6 @@ import '../02_maissaude/epi.dart';
 import '../02_maissaude/mapa_da_risco.dart';
 import '../02_maissaude/nbrs.dart';
 import '../02_maissaude/nho_raiz.dart';
-import '../02_maissaude/os.dart';
 import '../02_maissaude/ppp.dart';
 import '../02_maissaude/primeiros_soc_raiz.dart';
 import '../02_maissaude/riscoamb.dart';
@@ -580,7 +580,7 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   onPressed: () {
                     InterstitialAdManager.showInterstitialAd(
                       context,
-                      const Os(),
+                      const OrdemRaiz(),
                     );
                   },
                   child: Container(
