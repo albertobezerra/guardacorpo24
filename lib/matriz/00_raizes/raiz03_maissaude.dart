@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/05_anaergo/05_00_raiz/aet_raiz.dart';
 import '../../admob/interstitial_ad_manager.dart';
@@ -19,7 +20,6 @@ import '../02_maissaude/cipa.dart';
 import '../02_maissaude/datas.dart';
 import '../02_maissaude/esocial.dart';
 import '../02_maissaude/historia.dart';
-import '../02_maissaude/incendio.dart';
 import '../02_maissaude/sinalizacao.dart';
 import '../02_maissaude/tecnico.dart';
 
@@ -440,7 +440,7 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   onPressed: () {
                     InterstitialAdManager.showInterstitialAd(
                       context,
-                      const Incendio(),
+                      const IncendioRaiz(),
                     );
                   },
                   child: Container(
