@@ -53,7 +53,7 @@ class _IncendioRelaState extends State<IncendioRela> {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/menu.jpg'),
+            image: AssetImage('assets/images/incendio3.jpg'),
             fit: BoxFit.cover,
           ),
         ),

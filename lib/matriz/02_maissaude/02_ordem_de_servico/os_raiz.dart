@@ -46,7 +46,7 @@ class OrdemRaiz extends StatelessWidget {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/menu.jpg'),
+            image: AssetImage('assets/images/os.jpg'),
             fit: BoxFit.cover,
           ),
         ),
@@ -74,7 +74,7 @@ class OrdemRaiz extends StatelessWidget {
                         Radius.circular(18),
                       ),
                       image: DecorationImage(
-                        image: ExactAssetImage('assets/images/menu.jpg'),
+                        image: ExactAssetImage('assets/images/os2.jpg'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -109,7 +109,7 @@ class OrdemRaiz extends StatelessWidget {
                         Radius.circular(18),
                       ),
                       image: DecorationImage(
-                        image: ExactAssetImage('assets/images/menu.jpg'),
+                        image: ExactAssetImage('assets/images/os3.jpg'),
                         fit: BoxFit.cover,
                       ),
                     ),

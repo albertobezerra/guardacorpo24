@@ -47,7 +47,7 @@ class IncendioRaiz extends StatelessWidget {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/menu.jpg'),
+            image: AssetImage('assets/images/incendio4.jpg'),
             fit: BoxFit.cover,
           ),
         ),
@@ -75,7 +75,7 @@ class IncendioRaiz extends StatelessWidget {
                         Radius.circular(18),
                       ),
                       image: DecorationImage(
-                        image: ExactAssetImage('assets/images/menu.jpg'),
+                        image: ExactAssetImage('assets/images/incendio2.jpg'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -110,7 +110,7 @@ class IncendioRaiz extends StatelessWidget {
                         Radius.circular(18),
                       ),
                       image: DecorationImage(
-                        image: ExactAssetImage('assets/images/menu.jpg'),
+                        image: ExactAssetImage('assets/images/incendio3.jpg'),
                         fit: BoxFit.cover,
                       ),
                     ),
