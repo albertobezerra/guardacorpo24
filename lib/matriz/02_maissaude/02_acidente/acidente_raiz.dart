@@ -4,6 +4,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente.dart'
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente_calculadora.dart';
 
 class AcidenteRaiz extends StatelessWidget {
+  //
   const AcidenteRaiz({super.key});
 
   @override
