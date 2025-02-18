@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
 import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_login.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
+import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
@@ -17,6 +18,7 @@ class AuthPageState extends State<AuthPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLogin = true;
+  bool _isLoading = false; // Estado para indicador de progresso
 
   @override
   void initState() {
@@ -35,37 +37,85 @@ class AuthPageState extends State<AuthPage> {
     if (isLoggedIn && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const NavBarPage()),
+        MaterialPageRoute(builder: (context) => const Raiz()),
       );
     }
   }
 
-  Future<void> _authenticate() async {
-    if (_emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        (!_isLogin && _nameController.text.isEmpty)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, preencha todos os campos.')),
-        );
-      }
-      return;
+  /// Validação de entrada dos campos
+  bool _validateInputs() {
+    if (_nameController.text.isEmpty && !_isLogin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira seu nome.')),
+      );
+      return false;
     }
+    if (_emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira seu email.')),
+      );
+      return false;
+    }
+    if (!_isValidEmail(_emailController.text.trim())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira um email válido.')),
+      );
+      return false;
+    }
+    if (_passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira sua senha.')),
+      );
+      return false;
+    }
+    if (_passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('A senha deve ter pelo menos 6 caracteres.')),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  Future saveUserDetails(String uid, String name, String email) async {
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'name': name,
+      'email': email,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future _authenticate() async {
+    if (!_validateInputs()) return;
+
+    setState(() => _isLoading = true); // Ativa o estado de carregamento
 
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       if (_isLogin) {
+        // Lógica de login
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
         await prefs.setBool('isLoggedIn', true);
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const NavBarPage()),
+            MaterialPageRoute(builder: (context) => const Raiz()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login bem-sucedido!')),
           );
         }
       } else {
+        // Lógica de cadastro
         UserCredential userCredential =
             await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
@@ -73,14 +123,19 @@ class AuthPageState extends State<AuthPage> {
         );
         await userCredential.user!
             .updateDisplayName(_nameController.text.trim());
+        await saveUserDetails(
+          userCredential.user!.uid,
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+        );
         await prefs.setBool('isLoggedIn', true);
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const NavBarPage()),
+            MaterialPageRoute(builder: (context) => const Raiz()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registro bem-sucedido! ')),
+            const SnackBar(content: Text('Registro bem-sucedido!')),
           );
         }
       }
@@ -110,23 +165,22 @@ class AuthPageState extends State<AuthPage> {
           SnackBar(content: Text(errorMessage)),
         );
       }
+    } finally {
+      setState(() => _isLoading = false); // Desativa o estado de carregamento
     }
   }
 
   void _handleSubmit() {
     _closeKeyboard();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        _authenticate();
-      }
-    });
+    if (mounted) {
+      _authenticate(); // Chama o método de autenticação
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
-
     double logoHeight = screenHeight * 0.14;
     double titleFontSize = screenHeight * 0.04;
     double subtitleFontSize = screenHeight * 0.02;
@@ -152,9 +206,9 @@ class AuthPageState extends State<AuthPage> {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: .9),
-                      Colors.black.withValues(alpha: .8),
-                      Colors.black.withValues(alpha: .2),
+                      Colors.black.withAlpha(230),
+                      Colors.black.withAlpha(180),
+                      Colors.black.withAlpha(50),
                     ],
                   ),
                 ),
@@ -162,9 +216,7 @@ class AuthPageState extends State<AuthPage> {
             ),
             SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: screenHeight,
-                ),
+                constraints: BoxConstraints(minHeight: screenHeight),
                 child: Padding(
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -201,14 +253,14 @@ class AuthPageState extends State<AuthPage> {
                       const SizedBox(height: 40),
                       if (!_isLogin)
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: SizedBox(
                             width: double.infinity,
                             child: OutlinedTextField(
                               controller: _nameController,
                               labelText: 'Nome',
+                              textCapitalization: TextCapitalization.words,
+                              keyboardType: TextInputType.name,
                               onSubmitted: (value) => _handleSubmit(),
                             ),
                           ),
@@ -248,7 +300,7 @@ class AuthPageState extends State<AuthPage> {
                         child: SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
-                            onPressed: _handleSubmit,
+                            onPressed: _isLoading ? null : _handleSubmit,
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Colors.white),
                               padding: const EdgeInsets.symmetric(vertical: 15),
@@ -256,20 +308,22 @@ class AuthPageState extends State<AuthPage> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: Text(
-                              _isLogin ? 'Entrar' : 'Registrar',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : Text(
+                                    _isLogin ? 'Entrar' : 'Registrar',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      const SizedBox(height: 10),
                       TextButton(
                         onPressed: () {
                           setState(() {

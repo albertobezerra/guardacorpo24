@@ -25,7 +25,7 @@ class ReportProvider with ChangeNotifier {
   }
 
   Future<void> updateReport(
-      int? index, Map<String, dynamic> updatedReport) async {
+      int? index, Map<String, dynamic> updatedReport, List<File> images) async {
     _logger.i('Atualizando relatório no índice $index: $updatedReport');
     await _localStorageService.updateReport(index!, updatedReport);
     await loadReports();

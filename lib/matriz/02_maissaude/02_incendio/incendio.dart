@@ -30,7 +30,7 @@ class Incendio extends StatelessWidget {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/incendio.jpg'),
+            image: AssetImage('assets/images/incendio2.jpg'),
             fit: BoxFit.cover,
           ),
         ),

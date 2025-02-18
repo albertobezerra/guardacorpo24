@@ -12,35 +12,51 @@ class ResetPasswordPage extends StatefulWidget {
 class ResetPasswordPageState extends State<ResetPasswordPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
 
   void _closeKeyboard() {
     FocusScope.of(context).unfocus();
   }
 
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
   Future<void> _resetPassword() async {
     if (_emailController.text.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, insira um email.')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira um email.')),
+      );
+      return;
+    }
+
+    if (!_isValidEmail(_emailController.text.trim())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, insira um email válido.')),
+      );
       return;
     }
 
     try {
+      setState(() => _isLoading = true); // Habilita o estado de carregamento
+
+      // Tenta enviar o email de redefinição de senha
       await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Email de redefinição de senha enviado!')),
+            content: Text(
+              'Um email foi enviado para o endereço fornecido. '
+              'Se o email estiver cadastrado, você receberá instruções para redefinir sua senha.',
+            ),
+          ),
         );
       }
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
-        case 'user-not-found':
-          errorMessage = 'Email não cadastrado.';
-          break;
         case 'invalid-email':
           errorMessage = 'Email inválido.';
           break;
@@ -52,14 +68,20 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
           SnackBar(content: Text(errorMessage)),
         );
       }
+    } finally {
+      setState(() =>
+          _isLoading = false); // Sempre desabilita o estado de carregamento
     }
   }
 
   void _handleSubmit() {
     _closeKeyboard();
-    Future.delayed(const Duration(milliseconds: 300), () {
+    setState(() => _isLoading = true); // Habilita o estado de carregamento
+    Future.delayed(const Duration(milliseconds: 300), () async {
       if (mounted) {
-        _resetPassword();
+        await _resetPassword();
+        setState(
+            () => _isLoading = false); // Desabilita o estado de carregamento
       }
     });
   }
@@ -68,7 +90,6 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
-
     double logoHeight = screenHeight * 0.14;
     double titleFontSize = screenHeight * 0.04;
 
@@ -91,9 +112,9 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: .9),
-                      Colors.black.withValues(alpha: .8),
-                      Colors.black.withValues(alpha: .2),
+                      Colors.black.withAlpha(230),
+                      Colors.black.withAlpha(180),
+                      Colors.black.withAlpha(50),
                     ],
                   ),
                 ),
@@ -146,7 +167,7 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                         child: SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
-                            onPressed: _handleSubmit,
+                            onPressed: _isLoading ? null : _handleSubmit,
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Colors.white),
                               padding: const EdgeInsets.symmetric(vertical: 15),
@@ -154,20 +175,21 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: const Text(
-                              'Enviar email de redefinição',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white)
+                                : const Text(
+                                    'Enviar email de redefinição',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      const SizedBox(height: 10),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
