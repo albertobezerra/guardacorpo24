@@ -13,7 +13,7 @@ class Acidente extends StatelessWidget {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Acidente de Trabalho'.toUpperCase(),
+            'Sobre Acidentes'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,

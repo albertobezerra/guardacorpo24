@@ -7,7 +7,6 @@ import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_02_relatorios/report_provider.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -96,7 +95,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ReportProvider()..loadReports()),
         ChangeNotifierProvider(create: (_) => InspecaoProvider()),
       ],
       child: MaterialApp(

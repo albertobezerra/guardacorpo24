@@ -3,7 +3,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente_raiz.
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
-import 'package:guarda_corpo_2024/matriz/05_anaergo/05_00_raiz/aet_raiz.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_raiz.dart';
 import '../../admob/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
 // import '../02_maissaude/clt.dart';
@@ -110,7 +110,7 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                       alignment: AlignmentDirectional.bottomStart,
                       margin: const EdgeInsets.only(left: 12, bottom: 8),
                       child: Text(
-                        'Acidente de Trabalho'.toUpperCase(),
+                        'Acidentes'.toUpperCase(),
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'Segoe Bold',
