@@ -30,7 +30,8 @@ class _CltState extends State<Clt> {
 
     _controller = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://meuca.com.br'));
+      ..loadRequest(Uri.parse(
+          'https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm'));
 
     if (_controller.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(true);
@@ -50,7 +51,7 @@ class _CltState extends State<Clt> {
           title: Text(
             'CLT'.toUpperCase(),
             style: const TextStyle(
-              fontFamily: 'Segoe',
+              fontFamily: 'Segoe Bold',
               color: Colors.white,
               fontSize: 16,
             ),
