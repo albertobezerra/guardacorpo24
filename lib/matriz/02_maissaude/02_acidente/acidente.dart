@@ -30,7 +30,7 @@ class Acidente extends StatelessWidget {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/acidente.jpg'),
+            image: AssetImage('assets/images/menu.jpg'),
             fit: BoxFit.cover,
           ),
         ),

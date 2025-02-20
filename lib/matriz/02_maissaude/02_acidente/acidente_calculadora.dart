@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_inspecoes.dart';
+import 'package:intl/intl.dart';
 
 class CalculadoraAcidente extends StatefulWidget {
   const CalculadoraAcidente({super.key});
@@ -17,15 +19,20 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
       TextEditingController();
 
   double totalPrejuizo = 0;
+  int diasAfastamento = 15; // Valor inicial do slider
 
-  // Função para calcular o prejuízo
   void calcularPrejuizo() {
     try {
-      double salario = double.tryParse(_salarioController.text) ?? 0;
+      double salario = double.tryParse(_salarioController.text
+              .replaceAll('.', '')
+              .replaceAll(',', '.')) ??
+          0;
       int horasPorDia = int.tryParse(_horasPorDiaController.text) ?? 0;
       int diasTrabalhados = int.tryParse(_diasTrabalhadosController.text) ?? 0;
-      double gastosAdicionais =
-          double.tryParse(_gastosAdicionaisController.text) ?? 0;
+      double gastosAdicionais = double.tryParse(_gastosAdicionaisController.text
+              .replaceAll('.', '')
+              .replaceAll(',', '.')) ??
+          0;
 
       if (salario == 0 || horasPorDia == 0 || diasTrabalhados == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -44,8 +51,8 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
       int horasTotaisMes = horasPorDia * diasTrabalhados;
       double valorHora = salario / horasTotaisMes;
 
-      // Cálculo do custo por 15 dias de afastamento
-      int horasPerdidas = horasPorDia * 15; // Horas perdidas em 15 dias
+      // Cálculo do custo por dias de afastamento selecionados
+      int horasPerdidas = horasPorDia * diasAfastamento; // Horas perdidas
       double custoAfastamento = horasPerdidas * valorHora;
 
       // Total de prejuízo
@@ -63,95 +70,156 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
 
   @override
   Widget build(BuildContext context) {
+    const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cálculo de Prejuízo Acidente de Trabalho'),
-        backgroundColor: Colors.blue, // Cor de fundo da AppBar
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _salarioController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Salário Mensal',
-                prefixText: 'R\$ ',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
+      appBar: PreferredSize(
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
+        child: AppBar(
+          toolbarHeight: 200,
+          title: Text(
+            'Cálculo de Prejuízo Acidente'.toUpperCase(),
+            style: const TextStyle(
+              fontFamily: 'Segoe Bold',
+              color: Colors.white,
+              fontSize: 16,
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _horasPorDiaController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Horas Trabalhadas por Dia',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _diasTrabalhadosController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Dias Trabalhados no Mês',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _gastosAdicionaisController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Gastos Adicionais (Médicos/Hospitalares)',
-                prefixText: 'R\$ ',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: calcularPrejuizo,
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.blue,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: const Text(
-                'Calcular Prejuízo',
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (totalPrejuizo > 0)
-              Card(
-                color: Colors.red[100],
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Total de Prejuízo: R\$ ${totalPrejuizo.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          flexibleSpace: const Image(
+            image: AssetImage('assets/images/acidente.jpg'),
+            fit: BoxFit.cover,
+          ),
         ),
+      ),
+      resizeToAvoidBottomInset: true,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Salário Mensal
+                  OutlinedTextField3(
+                    controller: _salarioController,
+                    labelText: 'Salário Mensal',
+                    obscureText: false,
+                    textCapitalization: TextCapitalization.none,
+                    onChanged: (value) {},
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Horas Trabalhadas por Dia
+                  OutlinedTextField3(
+                    controller: _horasPorDiaController,
+                    labelText: 'Horas Trabalhadas por Dia',
+                    obscureText: false,
+                    textCapitalization: TextCapitalization.none,
+                    onChanged: (value) {},
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Dias Trabalhados no Mês
+                  OutlinedTextField3(
+                    controller: _diasTrabalhadosController,
+                    labelText: 'Dias Trabalhados no Mês',
+                    obscureText: false,
+                    textCapitalization: TextCapitalization.none,
+                    onChanged: (value) {},
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Gastos Adicionais
+                  OutlinedTextField3(
+                    controller: _gastosAdicionaisController,
+                    labelText: 'Gastos Adicionais',
+                    obscureText: false,
+                    textCapitalization: TextCapitalization.none,
+                    onChanged: (value) {},
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Slider para Dias de Afastamento
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: diasAfastamento.toDouble(),
+                          min: 0,
+                          max: 15,
+                          divisions: 15,
+                          label: '$diasAfastamento dias',
+                          activeColor: buttonColor,
+                          inactiveColor: Colors.grey,
+                          onChanged: (value) {
+                            setState(() {
+                              diasAfastamento = value.toInt();
+                            });
+                          },
+                        ),
+                      ),
+                      Text(
+                        '$diasAfastamento dias',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Botão de Cálculo
+                  ElevatedButton(
+                    onPressed: calcularPrejuizo,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: buttonColor,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 24.0,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Segoe Bold',
+                      ),
+                    ),
+                    child: Text('Calcular Prejuízo'.toUpperCase()),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Resultado do Cálculo
+                  if (totalPrejuizo > 0)
+                    Card(
+                      color: buttonColor,
+                      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Total de Prejuízo: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(totalPrejuizo)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
