@@ -11,30 +11,43 @@ class CalculadoraAcidente extends StatefulWidget {
 
 class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
   // Controladores para os inputs
-  final TextEditingController _salarioController = TextEditingController();
-  final TextEditingController _horasPorDiaController = TextEditingController();
-  final TextEditingController _diasTrabalhadosController =
-      TextEditingController();
+  final TextEditingController _salarioController =
+      TextEditingController(text: '1518,00');
+  final TextEditingController _horasPorDiaController =
+      TextEditingController(text: '8');
+  final TextEditingController _inssPercentualController =
+      TextEditingController(text: '9');
+  final TextEditingController _fgtsPercentualController =
+      TextEditingController(text: '8');
   final TextEditingController _gastosAdicionaisController =
       TextEditingController();
 
   double totalPrejuizo = 0;
-  int diasAfastamento = 15; // Valor inicial do slider
+  int diasAfastamento = 1; // Inicia com 1 dia
+  double fgtsValor = 0;
+  double inssValor = 0;
+  double feriasValor = 0;
 
   void calcularPrejuizo() {
     try {
-      double salario = double.tryParse(_salarioController.text
-              .replaceAll('.', '')
-              .replaceAll(',', '.')) ??
+      NumberFormat numberFormat =
+          NumberFormat.currency(locale: 'pt_BR', symbol: '');
+      double salario = double.tryParse(numberFormat
+              .parse(_salarioController.text.replaceAll('R\$ ', ''))
+              .toString()) ??
           0;
       int horasPorDia = int.tryParse(_horasPorDiaController.text) ?? 0;
-      int diasTrabalhados = int.tryParse(_diasTrabalhadosController.text) ?? 0;
+      double inssPercentual =
+          double.tryParse(_inssPercentualController.text) ?? 9;
+      double fgtsPercentual =
+          double.tryParse(_fgtsPercentualController.text) ?? 8;
       double gastosAdicionais = double.tryParse(_gastosAdicionaisController.text
+              .replaceAll('R\$ ', '')
               .replaceAll('.', '')
               .replaceAll(',', '.')) ??
           0;
 
-      if (salario == 0 || horasPorDia == 0 || diasTrabalhados == 0) {
+      if (salario == 0 || horasPorDia == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Preencha todos os campos corretamente.')),
@@ -43,12 +56,12 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
       }
 
       // Cálculo dos encargos sociais
-      double fgts = salario * 0.08; // FGTS (8%)
-      double inss = salario * 0.09; // INSS (9%)
-      double ferias = salario / 12; // Férias (1/12 do salário anual)
+      fgtsValor = (salario * fgtsPercentual / 100); // FGTS (%)
+      inssValor = (salario * inssPercentual / 100); // INSS (%)
+      feriasValor = salario / 12; // Férias (1/12 do salário)
 
       // Valor da hora trabalhada
-      int horasTotaisMes = horasPorDia * diasTrabalhados;
+      int horasTotaisMes = horasPorDia * 30; // Considerando 30 dias no mês
       double valorHora = salario / horasTotaisMes;
 
       // Cálculo do custo por dias de afastamento selecionados
@@ -56,7 +69,11 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
       double custoAfastamento = horasPerdidas * valorHora;
 
       // Total de prejuízo
-      double total = custoAfastamento + fgts + inss + ferias + gastosAdicionais;
+      double total = custoAfastamento +
+          fgtsValor +
+          inssValor +
+          feriasValor +
+          gastosAdicionais;
 
       setState(() {
         totalPrejuizo = total;
@@ -66,6 +83,12 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
         const SnackBar(content: Text('Erro ao calcular prejuízo.')),
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    calcularPrejuizo(); // Realiza o cálculo inicial ao carregar a tela
   }
 
   @override
@@ -109,9 +132,10 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                   OutlinedTextField3(
                     controller: _salarioController,
                     labelText: 'Salário Mensal',
+                    prefixText: 'R\$ ',
                     obscureText: false,
                     textCapitalization: TextCapitalization.none,
-                    onChanged: (value) {},
+                    onChanged: (value) => calcularPrejuizo(),
                     maxLines: 1,
                   ),
                   const SizedBox(height: 16),
@@ -122,19 +146,87 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                     labelText: 'Horas Trabalhadas por Dia',
                     obscureText: false,
                     textCapitalization: TextCapitalization.none,
-                    onChanged: (value) {},
+                    onChanged: (value) => calcularPrejuizo(),
                     maxLines: 1,
                   ),
                   const SizedBox(height: 16),
 
-                  // Dias Trabalhados no Mês
-                  OutlinedTextField3(
-                    controller: _diasTrabalhadosController,
-                    labelText: 'Dias Trabalhados no Mês',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.none,
-                    onChanged: (value) {},
-                    maxLines: 1,
+                  // Percentual INSS
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: OutlinedTextField3(
+                          controller: _inssPercentualController,
+                          labelText: 'INSS (%)',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.none,
+                          onChanged: (value) => calcularPrejuizo(),
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Padrão: 9% (${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(inssValor)})',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Percentual FGTS
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: OutlinedTextField3(
+                          controller: _fgtsPercentualController,
+                          labelText: 'FGTS (%)',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.none,
+                          onChanged: (value) => calcularPrejuizo(),
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Padrão: 8% (${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(fgtsValor)})',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Férias (Fração)
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: OutlinedTextField3(
+                          controller: TextEditingController(
+                              text: '1/12'), // Fixo como fração
+                          labelText: 'Férias (1/12)',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.none,
+                          enabled: false, // Desabilita edição
+                          maxLines: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Valor: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(feriasValor)}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
 
@@ -142,9 +234,10 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                   OutlinedTextField3(
                     controller: _gastosAdicionaisController,
                     labelText: 'Gastos Adicionais',
+                    prefixText: 'R\$ ',
                     obscureText: false,
                     textCapitalization: TextCapitalization.none,
-                    onChanged: (value) {},
+                    onChanged: (value) => calcularPrejuizo(),
                     maxLines: 1,
                   ),
                   const SizedBox(height: 16),
@@ -155,15 +248,16 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                       Expanded(
                         child: Slider(
                           value: diasAfastamento.toDouble(),
-                          min: 0,
+                          min: 1, // Inicia com 1 dia
                           max: 15,
-                          divisions: 15,
+                          divisions: 14, // 14 divisões entre 1 e 15
                           label: '$diasAfastamento dias',
                           activeColor: buttonColor,
                           inactiveColor: Colors.grey,
                           onChanged: (value) {
                             setState(() {
                               diasAfastamento = value.toInt();
+                              calcularPrejuizo(); // Atualiza o cálculo automaticamente
                             });
                           },
                         ),
@@ -176,45 +270,46 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Botão de Cálculo
-                  ElevatedButton(
-                    onPressed: calcularPrejuizo,
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: buttonColor,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12.0,
-                        horizontal: 24.0,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'Segoe Bold',
-                      ),
-                    ),
-                    child: Text('Calcular Prejuízo'.toUpperCase()),
-                  ),
-                  const SizedBox(height: 24),
-
                   // Resultado do Cálculo
-                  if (totalPrejuizo > 0)
-                    Card(
-                      color: buttonColor,
-                      margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'Total de Prejuízo: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(totalPrejuizo)}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                  Card(
+                    color: buttonColor,
+                    margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total de Prejuízo: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(totalPrejuizo)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'FGTS: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(fgtsValor)}',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
+                          ),
+                          Text(
+                            'INSS: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(inssValor)}',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
+                          ),
+                          Text(
+                            'Férias: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(feriasValor)}',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
+                          ),
+                        ],
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
