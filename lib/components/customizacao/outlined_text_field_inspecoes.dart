@@ -5,11 +5,12 @@ class OutlinedTextField3 extends StatefulWidget {
   final String labelText;
   final String? prefixText; // Campo para prefixo (ex.: R$)
   final bool obscureText;
-  final bool enabled; // Novo parâmetro para habilitar/desabilitar o campo
+  final bool enabled; // Estado habilitado/desabilitado
+  final TextInputType keyboardType; // Tipo de teclado
   final Function(String)? onChanged; // Parâmetro onChanged
   final Function(String)? onSubmitted;
   final TextCapitalization textCapitalization;
-  final int? maxLines; // Novo parâmetro maxLines
+  final int? maxLines; // Número máximo de linhas
 
   const OutlinedTextField3({
     super.key,
@@ -18,6 +19,7 @@ class OutlinedTextField3 extends StatefulWidget {
     this.prefixText, // Adicionado o parâmetro prefixText
     this.obscureText = false,
     this.enabled = true, // Valor padrão é true (habilitado)
+    this.keyboardType = TextInputType.text, // Tipo de teclado padrão
     this.onChanged, // Parâmetro onChanged
     this.onSubmitted,
     required this.textCapitalization,
@@ -46,6 +48,7 @@ class OutlinedTextField3State extends State<OutlinedTextField3> {
           ? const Color.fromARGB(255, 0, 104, 55)
           : Colors.grey, // Cursor cinza quando desativado
       enabled: widget.enabled, // Define se o campo está habilitado
+      keyboardType: widget.keyboardType, // Aplica o tipo de teclado
       textCapitalization: widget.textCapitalization,
       decoration: InputDecoration(
         labelText: widget.labelText,

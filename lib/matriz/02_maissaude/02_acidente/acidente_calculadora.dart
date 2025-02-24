@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_inspecoes.dart';
 import 'package:intl/intl.dart';
+
+import '../../../components/customizacao/outlined_text_field_inspecoes.dart';
 
 class CalculadoraAcidente extends StatefulWidget {
   const CalculadoraAcidente({super.key});
@@ -11,41 +12,38 @@ class CalculadoraAcidente extends StatefulWidget {
 
 class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
   // Controladores para os inputs
-  final TextEditingController _salarioController =
-      TextEditingController(text: '1518,00');
+  final MoneyTextController _salarioController =
+      MoneyTextController(text: '1518');
   final TextEditingController _horasPorDiaController =
       TextEditingController(text: '8');
   final TextEditingController _inssPercentualController =
       TextEditingController(text: '9');
   final TextEditingController _fgtsPercentualController =
       TextEditingController(text: '8');
-  final TextEditingController _gastosAdicionaisController =
-      TextEditingController();
+  final MoneyTextController _gastosAdicionaisController = MoneyTextController();
 
   double totalPrejuizo = 0;
   int diasAfastamento = 1; // Inicia com 1 dia
-  double fgtsValor = 0;
-  double inssValor = 0;
-  double feriasValor = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    calcularPrejuizo(); // Realiza o cálculo inicial ao carregar a tela
+  }
 
   void calcularPrejuizo() {
     try {
-      NumberFormat numberFormat =
-          NumberFormat.currency(locale: 'pt_BR', symbol: '');
-      double salario = double.tryParse(numberFormat
-              .parse(_salarioController.text.replaceAll('R\$ ', ''))
-              .toString()) ??
-          0;
+      // Converte o salário para double, removendo formatação monetária
+      String salarioRaw =
+          _salarioController.text.replaceAll('.', '').replaceAll(',', '.');
+      double salario = double.tryParse(salarioRaw) ?? 0;
+
       int horasPorDia = int.tryParse(_horasPorDiaController.text) ?? 0;
       double inssPercentual =
           double.tryParse(_inssPercentualController.text) ?? 9;
       double fgtsPercentual =
           double.tryParse(_fgtsPercentualController.text) ?? 8;
-      double gastosAdicionais = double.tryParse(_gastosAdicionaisController.text
-              .replaceAll('R\$ ', '')
-              .replaceAll('.', '')
-              .replaceAll(',', '.')) ??
-          0;
+      double gastosAdicionais = _gastosAdicionaisController.getDoubleValue();
 
       if (salario == 0 || horasPorDia == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,9 +54,9 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
       }
 
       // Cálculo dos encargos sociais
-      fgtsValor = (salario * fgtsPercentual / 100); // FGTS (%)
-      inssValor = (salario * inssPercentual / 100); // INSS (%)
-      feriasValor = salario / 12; // Férias (1/12 do salário)
+      double fgts = (salario * fgtsPercentual / 100); // FGTS (%)
+      double inss = (salario * inssPercentual / 100); // INSS (%)
+      double ferias = salario / 12; // Férias (1/12 do salário)
 
       // Valor da hora trabalhada
       int horasTotaisMes = horasPorDia * 30; // Considerando 30 dias no mês
@@ -69,11 +67,7 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
       double custoAfastamento = horasPerdidas * valorHora;
 
       // Total de prejuízo
-      double total = custoAfastamento +
-          fgtsValor +
-          inssValor +
-          feriasValor +
-          gastosAdicionais;
+      double total = custoAfastamento + fgts + inss + ferias + gastosAdicionais;
 
       setState(() {
         totalPrejuizo = total;
@@ -83,12 +77,6 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
         const SnackBar(content: Text('Erro ao calcular prejuízo.')),
       );
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    calcularPrejuizo(); // Realiza o cálculo inicial ao carregar a tela
   }
 
   @override
@@ -135,6 +123,7 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                     prefixText: 'R\$ ',
                     obscureText: false,
                     textCapitalization: TextCapitalization.none,
+                    keyboardType: TextInputType.number, // Teclado numérico
                     onChanged: (value) => calcularPrejuizo(),
                     maxLines: 1,
                   ),
@@ -146,6 +135,7 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                     labelText: 'Horas Trabalhadas por Dia',
                     obscureText: false,
                     textCapitalization: TextCapitalization.none,
+                    keyboardType: TextInputType.number, // Teclado numérico
                     onChanged: (value) => calcularPrejuizo(),
                     maxLines: 1,
                   ),
@@ -161,16 +151,18 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                           labelText: 'INSS (%)',
                           obscureText: false,
                           textCapitalization: TextCapitalization.none,
+                          keyboardType:
+                              TextInputType.number, // Teclado numérico
                           onChanged: (value) => calcularPrejuizo(),
                           maxLines: 1,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
+                      const Expanded(
                         flex: 1,
                         child: Text(
-                          'Padrão: 9% (${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(inssValor)})',
-                          style: const TextStyle(fontSize: 14),
+                          'Padrão: 9%',
+                          style: TextStyle(fontSize: 14),
                         ),
                       ),
                     ],
@@ -187,43 +179,50 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                           labelText: 'FGTS (%)',
                           obscureText: false,
                           textCapitalization: TextCapitalization.none,
+                          keyboardType:
+                              TextInputType.number, // Teclado numérico
                           onChanged: (value) => calcularPrejuizo(),
                           maxLines: 1,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
+                      const Expanded(
                         flex: 1,
                         child: Text(
-                          'Padrão: 8% (${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(fgtsValor)})',
-                          style: const TextStyle(fontSize: 14),
+                          'Padrão: 8%',
+                          style: TextStyle(fontSize: 14),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // Férias (Fração)
+                  // Campo de Férias (somente leitura)
                   Row(
                     children: [
                       Expanded(
                         flex: 2,
                         child: OutlinedTextField3(
                           controller: TextEditingController(
-                              text: '1/12'), // Fixo como fração
+                              text: NumberFormat.currency(
+                                      locale: 'pt_BR', symbol: 'R\$ ')
+                                  .format(_salarioController.getDoubleValue() /
+                                      12)), // Calcula 1/12 do salário
                           labelText: 'Férias (1/12)',
                           obscureText: false,
                           textCapitalization: TextCapitalization.none,
-                          enabled: false, // Desabilita edição
+                          enabled: false, // Campo desativado (somente leitura)
+                          keyboardType:
+                              TextInputType.number, // Teclado numérico
                           maxLines: 1,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
+                      const Expanded(
                         flex: 1,
                         child: Text(
-                          'Valor: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(feriasValor)}',
-                          style: const TextStyle(fontSize: 14),
+                          'Valor Fixo: 1/12 do Salário',
+                          style: TextStyle(fontSize: 14),
                         ),
                       ),
                     ],
@@ -237,6 +236,7 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                     prefixText: 'R\$ ',
                     obscureText: false,
                     textCapitalization: TextCapitalization.none,
+                    keyboardType: TextInputType.number, // Teclado numérico
                     onChanged: (value) => calcularPrejuizo(),
                     maxLines: 1,
                   ),
@@ -279,34 +279,13 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total de Prejuízo: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(totalPrejuizo)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'FGTS: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(fgtsValor)}',
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
-                          ),
-                          Text(
-                            'INSS: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(inssValor)}',
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
-                          ),
-                          Text(
-                            'Férias: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(feriasValor)}',
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
-                          ),
-                        ],
+                      child: Text(
+                        'Total de Prejuízo: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(totalPrejuizo)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -317,5 +296,46 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
         ],
       ),
     );
+  }
+}
+
+// Classe para controlador de texto monetário
+class MoneyTextController extends TextEditingController {
+  MoneyTextController({String text = ''})
+      : super(text: formatCurrency(double.tryParse(text) ?? 0));
+
+  static String formatCurrency(double value) {
+    final formatter =
+        NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: 2);
+    return formatter.format(value);
+  }
+
+  double getDoubleValue() {
+    final text = this.text.replaceAll('.', '').replaceAll(',', '.');
+    return double.tryParse(text) ?? 0;
+  }
+
+  @override
+  set text(String newText) {
+    double? value =
+        double.tryParse(newText.replaceAll('.', '').replaceAll(',', '.'));
+    super.text = formatCurrency(value ?? 0);
+  }
+
+  void setValue(String value) {
+    double? newValue =
+        double.tryParse(value.replaceAll('.', '').replaceAll(',', '.'));
+    super.text = formatCurrency(newValue ?? 0);
+  }
+
+  void updateText(String? value) {
+    if (value != null) {
+      double? numericValue =
+          double.tryParse(value.replaceAll('.', '').replaceAll(',', '.'));
+      if (numericValue != null) {
+        super.text = formatCurrency(numericValue);
+        super.selection = TextSelection.collapsed(offset: super.text.length);
+      }
+    }
   }
 }
