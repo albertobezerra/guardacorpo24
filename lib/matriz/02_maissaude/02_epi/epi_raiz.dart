@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/admob/interstitial_ad_manager.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi_rela.dart';
-import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_reco.dart';
 
 class EpiRaiz extends StatelessWidget {
   const EpiRaiz({super.key});
