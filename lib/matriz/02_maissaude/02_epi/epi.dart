@@ -30,7 +30,7 @@ class Epi extends StatelessWidget {
             },
           ),
           flexibleSpace: const Image(
-            image: AssetImage('assets/images/epi.jpg'),
+            image: AssetImage('assets/images/os.jpg'),
             fit: BoxFit.cover,
           ),
         ),
