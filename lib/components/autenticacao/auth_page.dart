@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_login.dart';
-import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
@@ -37,9 +38,29 @@ class AuthPageState extends State<AuthPage> {
     if (isLoggedIn && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Raiz()),
+        MaterialPageRoute(builder: (context) => const NavBarPage()),
       );
     }
+  }
+
+  Future<Map<String, dynamic>> getUserSubscriptionInfo(String uid) async {
+    final DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (!snapshot.exists) return {'isPremium': false, 'planType': ''};
+
+    final data = snapshot.data() as Map<String, dynamic>;
+    final subscriptionStatus = data['subscriptionStatus'];
+    final expiryDate = data['expiryDate']?.toDate();
+    final planType = data['planType'];
+
+    if (subscriptionStatus == 'active' &&
+        expiryDate != null &&
+        expiryDate.isAfter(DateTime.now())) {
+      return {'isPremium': true, 'planType': planType};
+    }
+
+    return {'isPremium': false, 'planType': ''};
   }
 
   /// Validação de entrada dos campos
@@ -88,7 +109,29 @@ class AuthPageState extends State<AuthPage> {
       'name': name,
       'email': email,
       'createdAt': FieldValue.serverTimestamp(),
+      'subscriptionStatus': 'inactive', // Status inicial da assinatura
+      'expiryDate': null, // Data de expiração inicial (nula)
+      'planType': '', // Tipo de plano inicial (vazio)
     });
+  }
+
+  Future<bool> isUserPremium(String uid) async {
+    final DocumentSnapshot snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (!snapshot.exists) return false;
+
+    final data = snapshot.data() as Map<String, dynamic>;
+    final subscriptionStatus = data['subscriptionStatus'];
+    final expiryDate = data['expiryDate']?.toDate();
+
+    if (subscriptionStatus == 'active' &&
+        expiryDate != null &&
+        expiryDate.isAfter(DateTime.now())) {
+      return true;
+    }
+
+    return false;
   }
 
   Future _authenticate() async {
@@ -98,21 +141,34 @@ class AuthPageState extends State<AuthPage> {
 
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
+
       if (_isLogin) {
         // Lógica de login
         await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        await prefs.setBool('isLoggedIn', true);
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const Raiz()),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login bem-sucedido!')),
-          );
+
+        // Verificar o status da assinatura
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          final subscriptionService = SubscriptionService();
+          final subscriptionInfo =
+              await subscriptionService.getUserSubscriptionInfo(user.uid);
+
+          await prefs.setBool('isLoggedIn', true);
+          await prefs.setBool('isPremium', subscriptionInfo['isPremium']);
+          await prefs.setString('planType', subscriptionInfo['planType'] ?? '');
+
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const NavBarPage()),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Login bem-sucedido!')),
+            );
+          }
         }
       } else {
         // Lógica de cadastro
@@ -121,18 +177,26 @@ class AuthPageState extends State<AuthPage> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+
         await userCredential.user!
             .updateDisplayName(_nameController.text.trim());
+
+        // Salvar detalhes do usuário no Firestore
         await saveUserDetails(
           userCredential.user!.uid,
           _nameController.text.trim(),
           _emailController.text.trim(),
         );
+
+        // Novos usuários não são premium por padrão
         await prefs.setBool('isLoggedIn', true);
+        await prefs.setBool('isPremium', false);
+        await prefs.setString('planType', '');
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Raiz()),
+            MaterialPageRoute(builder: (context) => const NavBarPage()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registro bem-sucedido!')),
@@ -160,6 +224,7 @@ class AuthPageState extends State<AuthPage> {
         default:
           errorMessage = 'Ocorreu um erro. Tente novamente.';
       }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage)),
