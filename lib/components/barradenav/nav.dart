@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:guarda_corpo_2024/matriz/03_sua_area/03_00_suaconta.dart';
-import 'package:guarda_corpo_2024/matriz/04_premium/sub.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
 
 class NavBarPage extends StatefulWidget {
   const NavBarPage({super.key});

@@ -22,17 +22,32 @@ class _PremiumPageState extends State<PremiumPage> {
 
   Future<void> _loadProducts() async {
     await _subscriptionService.initialize();
+
+    // Consulta os produtos disponíveis (assinaturas)
     final ProductDetailsResponse response =
         await InAppPurchase.instance.queryProductDetails(
       {'monthly_ad_free', 'monthly_full'}.toSet(),
     );
 
     if (response.error != null) {
-      debugPrint('Erro ao carregar produtos: ${response.error?.message}');
+      debugPrint('Erro ao carregar assinaturas: ${response.error?.message}');
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Falha ao carregar planos. Tente novamente.')),
+      );
+      return;
     }
 
     if (response.notFoundIDs.isNotEmpty) {
-      debugPrint('Produtos não encontrados: ${response.notFoundIDs}');
+      debugPrint('Assinaturas não encontradas: ${response.notFoundIDs}');
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nenhum plano disponível no momento.')),
+      );
+      return;
     }
 
     setState(() {
@@ -44,17 +59,18 @@ class _PremiumPageState extends State<PremiumPage> {
   void _handlePurchase(BuildContext context, ProductDetails product) async {
     if (!await InAppPurchase.instance.isAvailable()) {
       if (!context.mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Compras não estão disponíveis.')),
       );
       return;
     }
 
-    // Inicia a compra do produto selecionado
+    // Inicia a compra da assinatura
     _subscriptionService.purchaseProduct(product);
 
     if (!context.mounted) return;
-    // Exibe uma mensagem informando que a compra está sendo processada
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Processando sua compra...')),
     );
@@ -110,7 +126,7 @@ class _PremiumPageState extends State<PremiumPage> {
 class PlanCard extends StatelessWidget {
   final String title;
   final String description;
-  final String price; // Preço do produto
+  final String price;
   final VoidCallback onPressed;
 
   const PlanCard({
@@ -141,7 +157,7 @@ class PlanCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(description, style: const TextStyle(fontSize: 14)),
           const SizedBox(height: 8),
-          Text(price, // Exibe o preço corretamente
+          Text(price,
               style: const TextStyle(fontSize: 16, color: Colors.green)),
         ],
       ),
