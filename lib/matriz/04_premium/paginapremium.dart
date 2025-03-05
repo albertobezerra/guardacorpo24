@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
+import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -20,10 +22,18 @@ class _PremiumPageState extends State<PremiumPage> {
     _loadProducts();
   }
 
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
   Future<void> _loadProducts() async {
     await _subscriptionService.initialize();
 
-    // Consulta os produtos disponíveis (assinaturas)
+    debugPrint('Carregando produtos...');
     final ProductDetailsResponse response =
         await InAppPurchase.instance.queryProductDetails(
       {'monthly_ad_free', 'monthly_full'}.toSet(),
@@ -31,25 +41,24 @@ class _PremiumPageState extends State<PremiumPage> {
 
     if (response.error != null) {
       debugPrint('Erro ao carregar assinaturas: ${response.error?.message}');
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Falha ao carregar planos. Tente novamente.')),
-      );
+      _showSnackBar('Falha ao carregar planos: ${response.error?.message}');
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
     if (response.notFoundIDs.isNotEmpty) {
       debugPrint('Assinaturas não encontradas: ${response.notFoundIDs}');
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nenhum plano disponível no momento.')),
-      );
+      _showSnackBar('Nenhum plano disponível no momento.');
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
+    debugPrint(
+        'Produtos encontrados: ${response.productDetails.map((p) => p.id)}');
     setState(() {
       products = response.productDetails;
       isLoading = false;
@@ -58,22 +67,14 @@ class _PremiumPageState extends State<PremiumPage> {
 
   void _handlePurchase(BuildContext context, ProductDetails product) async {
     if (!await InAppPurchase.instance.isAvailable()) {
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Compras não estão disponíveis.')),
-      );
+      _showSnackBar('Compras não estão disponíveis.');
       return;
     }
 
-    // Inicia a compra da assinatura
+    debugPrint('Iniciando compra para produto: ${product.id}');
     _subscriptionService.purchaseProduct(product);
 
-    if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Processando sua compra...')),
-    );
+    _showSnackBar('Processando sua compra...');
   }
 
   @override
@@ -86,14 +87,37 @@ class _PremiumPageState extends State<PremiumPage> {
 
     if (products.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Planos Premium')),
-        body: const Center(child: Text('Nenhum plano disponível no momento.')),
+        appBar: const CustomAppBar(
+          title: 'Oremos',
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Nenhum plano disponível no momento.',
+                style: TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    isLoading = true; // Reinicia o loading
+                  });
+                  _loadProducts(); // Tenta carregar novamente
+                },
+                child: const Text('Tentar Novamente'),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Planos Premium'),
+      appBar: const CustomAppBar(
+        title: 'Planos Premium',
+        backgroundImageAsset: 'assets/images/menu.jpg',
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -106,14 +130,14 @@ class _PremiumPageState extends State<PremiumPage> {
             ),
             const SizedBox(height: 20),
             for (final product in products)
-              PlanCard(
+              CustomPlanCard(
                 title: product.id == 'monthly_ad_free'
                     ? 'Plano Básico'
                     : 'Plano Full',
                 description: product.id == 'monthly_ad_free'
                     ? 'Remova apenas a publicidade.'
                     : 'Desbloqueie todo o conteúdo premium e remova a publicidade.',
-                price: product.price, // Corrigido aqui
+                price: product.price,
                 onPressed: () => _handlePurchase(context, product),
               ),
           ],

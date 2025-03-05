@@ -8,10 +8,12 @@ class SubscriptionService {
 
   /// Inicializa o serviço de compras dentro do aplicativo
   Future<void> initialize() async {
-    if (!await InAppPurchase.instance.isAvailable()) {
-      debugPrint('In-app purchases não estão disponíveis');
+    final bool available = await InAppPurchase.instance.isAvailable();
+    if (!available) {
+      debugPrint('In-app purchases NÃO estão disponíveis no dispositivo');
       return;
     }
+    debugPrint('In-app purchases DISPONÍVEL!');
   }
 
   /// Compra um produto
