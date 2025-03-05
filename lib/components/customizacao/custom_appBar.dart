@@ -13,14 +13,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(200);
+  Size get preferredSize => const Size.fromHeight(160);
 
   @override
   Widget build(BuildContext context) {
     return PreferredSize(
       preferredSize: preferredSize,
       child: AppBar(
-        toolbarHeight: 200,
+        toolbarHeight: 160,
         title: Text(
           title.toUpperCase(),
           style: const TextStyle(

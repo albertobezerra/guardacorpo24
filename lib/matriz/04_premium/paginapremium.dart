@@ -88,7 +88,7 @@ class _PremiumPageState extends State<PremiumPage> {
     if (products.isEmpty) {
       return Scaffold(
         appBar: const CustomAppBar(
-          title: 'Oremos',
+          title: 'Planos',
         ),
         body: Center(
           child: Column(
@@ -119,29 +119,21 @@ class _PremiumPageState extends State<PremiumPage> {
         title: 'Planos Premium',
         backgroundImageAsset: 'assets/images/menu.jpg',
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Escolha seu plano:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final product in products)
+            CustomPlanCard(
+              title: product.id == 'monthly_ad_free'
+                  ? 'Plano Básico'
+                  : 'Plano Full',
+              description: product.id == 'monthly_ad_free'
+                  ? 'Remove a publicidade.'
+                  : 'Desbloqueie todo o conteúdo exclusivo e remova a publicidade.',
+              price: product.price,
+              onPressed: () => _handlePurchase(context, product),
             ),
-            const SizedBox(height: 20),
-            for (final product in products)
-              CustomPlanCard(
-                title: product.id == 'monthly_ad_free'
-                    ? 'Plano Básico'
-                    : 'Plano Full',
-                description: product.id == 'monthly_ad_free'
-                    ? 'Remova apenas a publicidade.'
-                    : 'Desbloqueie todo o conteúdo premium e remova a publicidade.',
-                price: product.price,
-                onPressed: () => _handlePurchase(context, product),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }

@@ -33,15 +33,6 @@ class CustomPlanCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withAlpha(200), // Fundo mais escuro no topo
-                Colors.black
-                    .withAlpha(100), // Fundo mais claro na parte inferior
-              ],
-            ),
             border: Border.all(
               color: const Color.fromARGB(255, 0, 104, 55), // Borda verde
               width: 2,
@@ -54,7 +45,7 @@ class CustomPlanCard extends StatelessWidget {
               Text(
                 title.toUpperCase(),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 0, 104, 55),
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -63,7 +54,7 @@ class CustomPlanCard extends StatelessWidget {
               Text(
                 description,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 0, 104, 55),
                   fontSize: 14,
                 ),
               ),
@@ -74,26 +65,31 @@ class CustomPlanCard extends StatelessWidget {
                   Text(
                     price,
                     style: const TextStyle(
-                      color: Colors.green,
+                      color: Color.fromARGB(255, 0, 104, 55),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: onPressed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('ASSINAR'),
-                  ),
+                  // ElevatedButton(
+                  //   onPressed: onPressed,
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: Colors.transparent,
+                  //     elevation: 0,
+                  //     foregroundColor: const Color.fromARGB(255, 0, 104, 55),
+                  //     padding: const EdgeInsets.symmetric(
+                  //       vertical: 10,
+                  //       horizontal: 16,
+                  //     ),
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(8),
+                  //       side: const BorderSide(
+                  //         color: Color.fromARGB(255, 0, 104, 55),
+                  //         width: 2,
+                  //       ),
+                  //     ),
+                  //   ),
+                  //   child: const Text('ASSINAR'),
+                  // ),
                 ],
               ),
             ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
 import 'package:intl/intl.dart';
 
 import '../../../components/customizacao/outlined_text_field_inspecoes.dart';
@@ -293,6 +294,7 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
               ),
             ),
           ),
+          const BannerAdWidget(),
         ],
       ),
     );
