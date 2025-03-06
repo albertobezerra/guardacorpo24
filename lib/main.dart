@@ -7,6 +7,7 @@ import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -20,6 +21,9 @@ void main() async {
   );
   FirebaseMessagingService messagingService = FirebaseMessagingService();
   await messagingService.initialize();
+
+  final subscriptionService = SubscriptionService();
+  await subscriptionService.initialize();
 
   MobileAds.instance.initialize();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(

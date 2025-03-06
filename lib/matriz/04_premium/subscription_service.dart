@@ -31,24 +31,42 @@ class SubscriptionService {
   /// Processa o resultado da compra
   Future<void> handlePurchase(PurchaseDetails purchase) async {
     if (purchase.status == PurchaseStatus.purchased) {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
+      try {
+        final userId = FirebaseAuth.instance.currentUser!.uid;
 
-      // Atualiza Firestore
-      await _firestore.collection('users').doc(userId).update({
-        'subscriptionStatus': 'active',
-        'expiryDate': FieldValue.serverTimestamp(), // Use timestamp do servidor
-        'planType': purchase.productID,
-      });
+        // Atualiza Firestore
+        await _firestore.collection('users').doc(userId).update({
+          'subscriptionStatus': 'active',
+          'expiryDate': FieldValue.serverTimestamp(),
+          'planType': purchase.productID,
+        });
 
-      // Atualiza SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isPremium', true);
-      await prefs.setString('planType', purchase.productID);
-
-      // Notifica o app sobre a mudança (ex.: usando Provider ou setState)
+        // Atualiza SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isPremium', true);
+        await prefs.setString('planType', purchase.productID);
+      } catch (e) {
+        debugPrint('Erro ao atualizar assinatura: $e');
+      }
     } else if (purchase.status == PurchaseStatus.error) {
       debugPrint('Erro na compra: ${purchase.error?.message}');
     }
+  }
+
+  Future<bool> isUserPremium() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    if (!doc.exists) return false;
+
+    final data = doc.data()!;
+    final subscriptionStatus = data['subscriptionStatus'];
+    final expiryDate = data['expiryDate']?.toDate(); // Adicione '?'
+
+    return subscriptionStatus == 'active' &&
+        expiryDate != null &&
+        expiryDate.isAfter(DateTime.now());
   }
 
   /// Verifica o status da assinatura
@@ -59,7 +77,7 @@ class SubscriptionService {
 
     final data = snapshot.data() as Map<String, dynamic>;
     final subscriptionStatus = data['subscriptionStatus'];
-    final expiryDate = data['expiryDate']?.toDate();
+    final expiryDate = data['expiryDate']?.toDate(); // Adicione '?'
     final planType = data['planType'];
 
     if (subscriptionStatus == 'active' &&
