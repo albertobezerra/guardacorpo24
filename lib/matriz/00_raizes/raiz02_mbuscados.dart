@@ -3,7 +3,7 @@ import 'package:guarda_corpo_2024/matriz/01_maisbuscados/02_consultaCa/consulta_
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/04_dds/00_dds_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/03_treinamentos/00_treinamento_raiz.dart';
 
-import '../../admob/interstitial_ad_manager.dart';
+import '../../services/admob/conf/interstitial_ad_manager.dart';
 import '../01_maisbuscados/01_nrs/00_raizdasnrs.dart';
 
 class Raiz02Mbuscados extends StatefulWidget {
@@ -17,7 +17,8 @@ class _Raiz02MbuscadosState extends State<Raiz02Mbuscados> {
   @override
   void initState() {
     super.initState();
-    InterstitialAdManager.loadInterstitialAd();
+    InterstitialAdManager
+        .loadInterstitialAd(); // se não tiver isso não abre os interstitial
   }
 
   @override
@@ -74,10 +75,10 @@ class _Raiz02MbuscadosState extends State<Raiz02Mbuscados> {
                         MaterialButton(
                           padding: const EdgeInsets.only(left: 0, right: 12),
                           onPressed: () async {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const NrsRaiz()));
+                            InterstitialAdManager.showInterstitialAd(
+                              context,
+                              const NrsRaiz(),
+                            );
                           },
                           child: Container(
                             width: imagemBotao,
@@ -143,11 +144,8 @@ class _Raiz02MbuscadosState extends State<Raiz02Mbuscados> {
                         MaterialButton(
                           padding: const EdgeInsets.only(left: 0, right: 8),
                           onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const TreinamentoRaiz()));
+                            InterstitialAdManager.showInterstitialAd(
+                                context, const TreinamentoRaiz());
                           },
                           child: Container(
                             width: imagemBotao,
@@ -179,10 +177,8 @@ class _Raiz02MbuscadosState extends State<Raiz02Mbuscados> {
                         MaterialButton(
                           padding: const EdgeInsets.only(left: 0, right: 0),
                           onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const DdsRaiz()));
+                            InterstitialAdManager.showInterstitialAd(
+                                context, const DdsRaiz());
                           },
                           child: Container(
                             width: imagemBotao,

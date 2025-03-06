@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -79,7 +79,7 @@ class _CltState extends State<Clt> {
           ),
           const Flexible(
             flex: 1,
-            child: BannerAdWidget(),
+            child: ConditionalBannerAdWidget(),
           ),
         ],
       ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/primeiros_soc_base.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 
-import '../../admob/banner_ad_widget.dart';
-import '../../admob/interstitial_ad_manager.dart';
+import '../../services/admob/conf/interstitial_ad_manager.dart';
 
 class PrimeirosSocRz extends StatefulWidget {
   const PrimeirosSocRz({super.key});
@@ -135,7 +135,7 @@ class _PrimeirosSocRzState extends State<PrimeirosSocRz> {
               ),
             ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_form.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -346,6 +347,7 @@ class InspecaoDetailScreenState extends State<InspecaoDetailScreen> {
               ),
             ),
           ),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

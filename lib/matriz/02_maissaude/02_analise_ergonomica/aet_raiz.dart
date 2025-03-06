@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_conteudo.dart';
 
 class AETModule extends StatefulWidget {

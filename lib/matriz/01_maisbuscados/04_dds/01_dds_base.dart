@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 
 class DdsBase extends StatefulWidget {
   final String title;
@@ -68,7 +68,7 @@ class DdsBaseState extends State<DdsBase> {
               ),
             ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );

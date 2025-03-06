@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:guarda_corpo_2024/components/carregamento/barradecarregamento.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
@@ -68,7 +68,7 @@ class _EpiRelaState extends State<EpiRela> {
                     key: _pdfViewerKey,
                   ),
           ),
-          const BannerAdWidget(),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

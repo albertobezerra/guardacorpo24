@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_exemplo.dart';
 

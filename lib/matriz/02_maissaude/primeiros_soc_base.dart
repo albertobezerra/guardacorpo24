@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 
 class PrimeirosSocBase extends StatefulWidget {
   final String title;
@@ -68,7 +68,7 @@ class _PrimeirosSocBaseState extends State<PrimeirosSocBase> {
               ),
             ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );

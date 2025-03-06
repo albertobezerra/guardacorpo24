@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/mapaexemplo.dart';
-import '../../admob/banner_ad_widget.dart';
-import '../../admob/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
+import '../../services/admob/conf/interstitial_ad_manager.dart';
 
 class MapaDaRisco extends StatelessWidget {
   const MapaDaRisco({super.key});
@@ -142,7 +142,7 @@ class MapaDaRisco extends StatelessWidget {
               ),
             ),
           ),
-          const BannerAdWidget(),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

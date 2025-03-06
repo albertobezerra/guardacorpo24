@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 
 class Sinalizacao extends StatelessWidget {
   const Sinalizacao({super.key});
@@ -205,7 +204,7 @@ class Sinalizacao extends StatelessWidget {
               ),
             ),
           ),
-          const BannerAdWidget(),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

@@ -5,7 +5,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_raiz.
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_raiz.dart';
-import '../../admob/interstitial_ad_manager.dart';
+import '../../services/admob/conf/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
 import '../02_maissaude/clt.dart';
 import '../02_maissaude/cnae.dart';
@@ -35,7 +35,6 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
   @override
   void initState() {
     super.initState();
-    InterstitialAdManager.loadInterstitialAd();
   }
 
   @override

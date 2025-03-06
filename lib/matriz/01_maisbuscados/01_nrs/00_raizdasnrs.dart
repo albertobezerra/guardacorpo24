@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../admob/banner_ad_widget.dart';
-import '../../../admob/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
+import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '01_nr_base.dart';
 
 class NrsRaiz extends StatefulWidget {
@@ -14,7 +14,6 @@ class _NrsRaizState extends State<NrsRaiz> {
   @override
   void initState() {
     super.initState();
-    InterstitialAdManager.loadInterstitialAd();
   }
 
   final List<Map<String, String>> nrs = [
@@ -253,7 +252,7 @@ class _NrsRaizState extends State<NrsRaiz> {
           ),
           const Flexible(
             flex: 1,
-            child: BannerAdWidget(),
+            child: ConditionalBannerAdWidget(),
           ),
         ],
       ),

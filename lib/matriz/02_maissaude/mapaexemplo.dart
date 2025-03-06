@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/carregamento/barradecarregamento.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import '../../admob/banner_ad_widget.dart';
+import '../../services/admob/conf/banner_ad_widget.dart';
 
 class Mapaexemplo extends StatefulWidget {
   const Mapaexemplo({super.key});

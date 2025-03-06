@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../admob/banner_ad_widget.dart';
-import '../../../admob/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
+import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '01_treinamento_base.dart';
 
 class TreinamentoRaiz extends StatefulWidget {
@@ -14,7 +14,6 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
   @override
   void initState() {
     super.initState();
-    InterstitialAdManager.loadInterstitialAd();
   }
 
   final List<Map<String, String>> treinamentos = [
@@ -164,7 +163,7 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
               ),
             ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );

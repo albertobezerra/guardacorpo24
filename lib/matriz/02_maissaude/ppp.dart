@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 
 class Ppp extends StatelessWidget {
   const Ppp({super.key});
@@ -138,7 +138,7 @@ class Ppp extends StatelessWidget {
               ),
             ),
           ),
-          const BannerAdWidget(),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

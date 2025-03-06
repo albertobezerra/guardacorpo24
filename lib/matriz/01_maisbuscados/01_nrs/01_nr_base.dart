@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
 
 import '../../../components/carregamento/barradecarregamento.dart';
 
@@ -78,7 +78,7 @@ class NrBaseState extends State<NrBase> {
                     key: _pdfViewerKey,
                   ),
           ),
-          const BannerAdWidget(),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

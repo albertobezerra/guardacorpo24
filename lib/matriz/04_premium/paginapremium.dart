@@ -117,7 +117,7 @@ class _PremiumPageState extends State<PremiumPage> {
     return Scaffold(
       appBar: const CustomAppBar(
         title: 'Planos Premium',
-        backgroundImageAsset: 'assets/images/menu.jpg',
+        backgroundImageAsset: 'assets/images/compras.jpg',
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

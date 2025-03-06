@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/banner_ad_widget.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
 class ConditionalBannerAdWidget extends StatelessWidget {

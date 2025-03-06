@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
-import 'package:guarda_corpo_2024/admob/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/nho_base.dart';
 
 class Nho extends StatefulWidget {
@@ -160,7 +160,7 @@ class _NhoState extends State<Nho> {
           ),
           const Flexible(
             flex: 1,
-            child: BannerAdWidget(),
+            child: ConditionalBannerAdWidget(),
           ),
         ],
       ),

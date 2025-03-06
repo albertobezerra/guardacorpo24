@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/admob/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 
 class Epi extends StatelessWidget {
   const Epi({super.key});
@@ -166,7 +166,7 @@ class Epi extends StatelessWidget {
               ),
             ),
           ),
-          const BannerAdWidget(),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

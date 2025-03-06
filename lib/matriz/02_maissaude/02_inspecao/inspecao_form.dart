@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -756,6 +757,7 @@ class InspecaoFormState extends State<InspecaoForm> {
                   : const Icon(Icons.check, color: Colors.white, size: 28),
             ),
           ),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

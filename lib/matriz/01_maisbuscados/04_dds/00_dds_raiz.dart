@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../admob/banner_ad_widget.dart';
-import '../../../admob/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
+import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '01_dds_base.dart';
 
 class DdsRaiz extends StatefulWidget {
@@ -14,7 +14,6 @@ class _DdsRaizState extends State<DdsRaiz> {
   @override
   void initState() {
     super.initState();
-    InterstitialAdManager.loadInterstitialAd();
   }
 
   final List<Map<String, String>> dds = [
@@ -170,7 +169,7 @@ class _DdsRaizState extends State<DdsRaiz> {
               ),
             ),
           ),
-          const BannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
         ],
       ),
     );
