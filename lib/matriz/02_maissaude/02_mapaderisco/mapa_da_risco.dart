@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/matriz/02_maissaude/mapaexemplo.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
-import '../../services/admob/conf/interstitial_ad_manager.dart';
 
 class MapaDaRisco extends StatelessWidget {
   const MapaDaRisco({super.key});
@@ -15,7 +13,7 @@ class MapaDaRisco extends StatelessWidget {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Mapa de Risco'.toUpperCase(),
+            'Sobre Mapa de Risco'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,
@@ -114,26 +112,6 @@ class MapaDaRisco extends StatelessWidget {
                                   'Para uma melhor compreensão, pode ser usada uma foto do local de trabalho. O Mapa de Risco reduz significativamente as doenças e os acidentes porque conscientiza todos os envolvidos dos perigos apresentados.',
                             ),
                           ],
-                        ),
-                      ),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: TextButton(
-                            onPressed: () {
-                              InterstitialAdManager.showInterstitialAd(
-                                  context, const Mapaexemplo());
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xff0C5422),
-                              foregroundColor: Colors.white,
-                              padding:
-                                  const EdgeInsets.only(left: 30, right: 30),
-                            ),
-                            child: const Text(
-                              'Exemplo',
-                            ),
-                          ),
                         ),
                       ),
                     ],

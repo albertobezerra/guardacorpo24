@@ -3,6 +3,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente_raiz.
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_mapaderisco/mapa_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_raiz.dart';
 import '../../services/admob/conf/interstitial_ad_manager.dart';
@@ -10,7 +11,6 @@ import '../02_maissaude/aso.dart';
 import '../02_maissaude/clt.dart';
 import '../02_maissaude/cnae.dart';
 import '../02_maissaude/cnpj.dart';
-import '../02_maissaude/mapa_da_risco.dart';
 import '../02_maissaude/nbrs.dart';
 import '../02_maissaude/nho_raiz.dart';
 import '../02_maissaude/ppp.dart';
@@ -545,7 +545,7 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   onPressed: () {
                     InterstitialAdManager.showInterstitialAd(
                       context,
-                      const MapaDaRisco(),
+                      const MapaRaiz(),
                     );
                   },
                   child: Container(
