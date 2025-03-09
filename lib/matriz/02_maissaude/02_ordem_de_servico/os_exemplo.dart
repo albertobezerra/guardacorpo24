@@ -36,7 +36,7 @@ class OrdemExemploState extends State<OrdemExemplo> {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Exemplo de ordem de Serviço'.toUpperCase(),
+            'Modelo de Ordem de Serviço'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,

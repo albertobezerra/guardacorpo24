@@ -36,7 +36,7 @@ class _IncendioRelaState extends State<IncendioRela> {
         child: AppBar(
           toolbarHeight: 200,
           title: Text(
-            'Relatório de Incêndio'.toUpperCase(),
+            'Relatório Técnico de Incêndio'.toUpperCase(),
             style: const TextStyle(
               fontFamily: 'Segoe Bold',
               color: Colors.white,
