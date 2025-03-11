@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/carregamento/barradecarregamento.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -22,7 +23,7 @@ class PremiumButton extends StatelessWidget {
       future: SubscriptionService().isUserPremium(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return const CustomLoadingIndicator(); // Loading personalizado
         }
 
         final isPremium = snapshot.data ?? false;
@@ -37,7 +38,7 @@ class PremiumButton extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => destinationScreen),
               );
             } else {
-              // Exibe alert dialog para não premium
+              // Exibe alert dialog personalizado para não premium
               _showPremiumAlertDialog(context);
             }
           },
@@ -105,27 +106,71 @@ class PremiumButton extends StatelessWidget {
   void _showPremiumAlertDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
+        // Contexto específico do diálogo
         return AlertDialog(
-          title: const Text('Conteúdo Exclusivo'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          titlePadding:
+              const EdgeInsets.all(0), // Remove padding padrão do título
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          title: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 16), // Espaço vazio à esquerda
+                  Image.asset(
+                    'assets/images/crown.png', // Ícone ou imagem
+                    width: 64,
+                    height: 64,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.black),
+                    onPressed: () {
+                      Navigator.pop(dialogContext); // Fecha o diálogo
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Conteúdo Exclusivo',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
           content: const Text(
-            'Este conteúdo é exclusivo para assinantes premium.\nDeseja adquirir o plano Premium agora?',
+            'Este conteúdo é exclusivo para assinantes premium.\nDeseja adquirir o plano "Premium" agora?',
             textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.black),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Fecha o diálogo
-              },
-              child: const Text('Cancelar'),
-            ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.pop(context); // Fecha o diálogo
-                // Redireciona para a compra do plano "monthly_full"
-                await _handlePurchase(context, 'monthly_full');
+                Navigator.pop(dialogContext); // Fecha o diálogo
+                await _handlePurchase(context, 'monthly_full'); // Inicia compra
               },
-              child: const Text('Comprar Plano'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    const Color.fromARGB(255, 0, 104, 55), // Cor personalizada
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Comprar Plano',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
             ),
           ],
         );
@@ -148,6 +193,7 @@ class PremiumButton extends StatelessWidget {
 
       final product = products.productDetails.first;
       await subscriptionService.purchaseProduct(product);
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Compra iniciada com sucesso!')),
