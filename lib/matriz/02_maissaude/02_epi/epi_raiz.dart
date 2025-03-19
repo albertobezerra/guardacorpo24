@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi_rela.dart';
+import 'package:guarda_corpo_2024/services/premium/premium_button.dart';
 
 class EpiRaiz extends StatelessWidget {
   const EpiRaiz({super.key});
@@ -92,41 +93,12 @@ class EpiRaiz extends StatelessWidget {
                     ),
                   ),
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const EpiRela(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/os2.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Relatório Técnico de E.P.I'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                PremiumButton(
+                  buttonText: 'Relatório Técnico de E.P.I',
+                  imagePath: 'assets/images/os2.jpg',
+                  destinationScreen: const EpiRela(),
+                  buttonHeight: tamanhoBotaoLista,
+                )
               ],
             ),
           ),
