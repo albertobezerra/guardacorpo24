@@ -122,12 +122,7 @@ class PremiumButton extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(width: 16), // Espaço vazio à esquerda
-                  Image.asset(
-                    'assets/images/crown.png', // Ícone ou imagem
-                    width: 64,
-                    height: 64,
-                  ),
+                  const SizedBox(width: 30), // Espaço à esquerda
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.black),
                     onPressed: () {
@@ -135,6 +130,13 @@ class PremiumButton extends StatelessWidget {
                     },
                   ),
                 ],
+              ),
+              Center(
+                child: Image.asset(
+                  'assets/images/crown.png', // Ícone da coroa
+                  width: 64,
+                  height: 64,
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -148,28 +150,31 @@ class PremiumButton extends StatelessWidget {
             ],
           ),
           content: const Text(
-            'Este conteúdo é exclusivo para assinantes premium.\nDeseja adquirir o plano "Premium" agora?',
+            '\nEste conteúdo é exclusivo para assinantes premium.\n\nDeseja adquirir o plano "Premium" agora?\n',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16, color: Colors.black),
           ),
           actions: [
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(dialogContext); // Fecha o diálogo
-                await _handlePurchase(context, 'monthly_full'); // Inicia compra
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color.fromARGB(255, 0, 104, 55), // Cor personalizada
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(dialogContext); // Fecha o diálogo
+                  await _handlePurchase(
+                      context, 'monthly_full'); // Inicia compra
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(
+                      255, 0, 104, 55), // Cor personalizada
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Comprar Plano',
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                child: const Text(
+                  'SIM, quero ser premium!',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
             ),
           ],
