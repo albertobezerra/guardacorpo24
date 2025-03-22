@@ -197,13 +197,17 @@ class PremiumButton extends StatelessWidget {
       }
 
       final product = products.productDetails.first;
+
+      // Inicia a compra
       await subscriptionService.purchaseProduct(product);
 
+      // Após a compra, verifique se o widget ainda está montado antes de exibir feedback
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Compra iniciada com sucesso!')),
       );
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao iniciar compra: $e')),
       );

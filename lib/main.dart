@@ -7,6 +7,7 @@ import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -125,9 +126,11 @@ class _MyAppState extends State<MyApp> {
             final hasCompletedOnboarding = snapshot.data![0];
             final hasShownSplash = snapshot.data![1];
 
-            return hasCompletedOnboarding
-                ? (hasShownSplash ? const AuthPage() : const SplashScreen())
-                : const OnboardingPage();
+            return UserStatusWrapper(
+              child: hasCompletedOnboarding
+                  ? (hasShownSplash ? const AuthPage() : const SplashScreen())
+                  : const OnboardingPage(),
+            );
           },
         ),
       ),

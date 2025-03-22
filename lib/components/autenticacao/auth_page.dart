@@ -137,11 +137,9 @@ class AuthPageState extends State<AuthPage> {
   Future _authenticate() async {
     if (!_validateInputs()) return;
 
-    setState(() => _isLoading = true); // Ativa o estado de carregamento
+    setState(() => _isLoading = true);
 
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-
       if (_isLogin) {
         // Lógica de login
         await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -149,16 +147,24 @@ class AuthPageState extends State<AuthPage> {
           password: _passwordController.text.trim(),
         );
 
-        // Verificar o status da assinatura
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           final subscriptionService = SubscriptionService();
           final subscriptionInfo =
               await subscriptionService.getUserSubscriptionInfo(user.uid);
 
-          await prefs.setBool('isLoggedIn', true);
-          await prefs.setBool('isPremium', subscriptionInfo['isPremium']);
-          await prefs.setString('planType', subscriptionInfo['planType'] ?? '');
+          if (subscriptionInfo['isPremium']) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Você agora é premium!')),
+            );
+          } else if (subscriptionInfo['planType'] == 'ad_free') {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Você agora está livre de publicidade!')),
+            );
+          }
 
           if (mounted) {
             Navigator.pushReplacement(
@@ -187,11 +193,6 @@ class AuthPageState extends State<AuthPage> {
           _nameController.text.trim(),
           _emailController.text.trim(),
         );
-
-        // Novos usuários não são premium por padrão
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setBool('isPremium', false);
-        await prefs.setString('planType', '');
 
         if (mounted) {
           Navigator.pushReplacement(
@@ -231,7 +232,7 @@ class AuthPageState extends State<AuthPage> {
         );
       }
     } finally {
-      setState(() => _isLoading = false); // Desativa o estado de carregamento
+      setState(() => _isLoading = false);
     }
   }
 

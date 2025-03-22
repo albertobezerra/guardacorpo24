@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SubscriptionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -29,7 +28,9 @@ class SubscriptionService {
       _inAppPurchase.purchaseStream;
 
   /// Processa o resultado da compra
-  Future<void> handlePurchase(PurchaseDetails purchase) async {
+  Future<void> handlePurchase(
+      PurchaseDetails purchase, BuildContext context) async {
+    // Adiciona BuildContext como parâmetro
     if (purchase.status == PurchaseStatus.purchased) {
       try {
         final userId = FirebaseAuth.instance.currentUser!.uid;
@@ -41,15 +42,34 @@ class SubscriptionService {
           'planType': purchase.productID,
         });
 
-        // Atualiza SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isPremium', true);
-        await prefs.setString('planType', purchase.productID);
+        // Exibe feedback visual dependendo do tipo de plano
+        if (purchase.productID == 'monthly_full') {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Parabéns! Você agora é premium!')),
+          );
+        } else if (purchase.productID == 'ad_free_plan') {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text('Parabéns! Você agora está livre de publicidade!')),
+          );
+        }
       } catch (e) {
         debugPrint('Erro ao atualizar assinatura: $e');
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao atualizar sua assinatura: $e')),
+        );
       }
     } else if (purchase.status == PurchaseStatus.error) {
       debugPrint('Erro na compra: ${purchase.error?.message}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Erro ao realizar a compra: ${purchase.error?.message}')),
+      );
     }
   }
 
@@ -62,7 +82,7 @@ class SubscriptionService {
 
     final data = doc.data()!;
     final subscriptionStatus = data['subscriptionStatus'];
-    final expiryDate = data['expiryDate']?.toDate(); // Adicione '?'
+    final expiryDate = data['expiryDate']?.toDate();
 
     return subscriptionStatus == 'active' &&
         expiryDate != null &&
@@ -77,7 +97,7 @@ class SubscriptionService {
 
     final data = snapshot.data() as Map<String, dynamic>;
     final subscriptionStatus = data['subscriptionStatus'];
-    final expiryDate = data['expiryDate']?.toDate(); // Adicione '?'
+    final expiryDate = data['expiryDate']?.toDate();
     final planType = data['planType'];
 
     if (subscriptionStatus == 'active' &&
