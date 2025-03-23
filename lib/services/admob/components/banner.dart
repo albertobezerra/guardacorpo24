@@ -3,33 +3,55 @@ import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/services/admob/conf/banner_ad_widget.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
-class ConditionalBannerAdWidget extends StatelessWidget {
+class ConditionalBannerAdWidget extends StatefulWidget {
   const ConditionalBannerAdWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
+  State<ConditionalBannerAdWidget> createState() =>
+      _ConditionalBannerAdWidgetState();
+}
 
+class _ConditionalBannerAdWidgetState extends State<ConditionalBannerAdWidget> {
+  bool _isPremium = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserStatus();
+
+    // Adiciona um listener para detectar mudanças no status do usuário
+    FirebaseAuth.instance.authStateChanges().listen((_) {
+      if (mounted) {
+        _checkUserStatus();
+      }
+    });
+  }
+
+  Future<void> _checkUserStatus() async {
+    final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      // Usuário não logado, exibe o banner
-      return const BannerAdWidget();
+      setState(() {
+        _isPremium = false; // Usuário não logado, não é premium
+      });
+      return;
     }
 
-    return FutureBuilder<Map<String, dynamic>>(
-      future: SubscriptionService().getUserSubscriptionInfo(user.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink(); // Não exibe nada enquanto carrega
-        }
+    final subscriptionInfo =
+        await SubscriptionService().getUserSubscriptionInfo(user.uid);
 
-        if (snapshot.hasData && snapshot.data!['isPremium']) {
-          // Usuário premium ou ad-free, não exibe o banner
-          return const SizedBox.shrink();
-        }
+    setState(() {
+      _isPremium = subscriptionInfo['isPremium'] ?? false;
+    });
+  }
 
-        // Exibe o banner para usuários gratuitos
-        return const BannerAdWidget();
-      },
-    );
+  @override
+  Widget build(BuildContext context) {
+    if (_isPremium) {
+      // Usuário premium, não exibe o banner
+      return const SizedBox.shrink();
+    }
+
+    // Exibe o banner para usuários gratuitos
+    return const BannerAdWidget();
   }
 }

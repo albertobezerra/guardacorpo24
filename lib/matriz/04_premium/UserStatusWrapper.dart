@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
-import 'package:guarda_corpo_2024/components/carregamento/barradecarregamento.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
 class UserStatusWrapper extends StatefulWidget {
@@ -40,6 +39,7 @@ class UserStatusWrapperState extends State<UserStatusWrapper> {
     // Verifica a assinatura premium
     final subscriptionInfo =
         await SubscriptionService().getUserSubscriptionInfo(user.uid);
+
     setState(() {
       _isLogged = true;
       _isPremium = subscriptionInfo['isPremium'] ?? false;
@@ -57,13 +57,13 @@ class UserStatusWrapperState extends State<UserStatusWrapper> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CustomLoadingIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (!_isLogged) {
       return const AuthPage();
     }
 
-    return widget.child;
+    return widget.child; // Exibe o conteúdo principal
   }
 }

@@ -10,6 +10,7 @@ import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/premium_nav.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,9 +81,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final SubscriptionService _subscriptionService = SubscriptionService();
+
   @override
   void initState() {
     super.initState();
+
+    // Inicia o listener de compras
+    _subscriptionService.startPurchaseListener(context, const NavBarPage());
+
     checkForUpdate(); // Verifica se há atualizações disponíveis
   }
 
@@ -140,11 +147,9 @@ class _MyAppState extends State<MyApp> {
             final hasShownSplash = snapshot.data![1];
 
             if (!hasCompletedOnboarding) {
-              // Usuário não viu o onboarding, exibe-o
               return const OnboardingPage();
             }
 
-            // Verifica se o usuário está logado
             return StreamBuilder<User?>(
               stream: FirebaseAuth.instance.authStateChanges(),
               builder: (context, userSnapshot) {
@@ -153,55 +158,55 @@ class _MyAppState extends State<MyApp> {
                 }
 
                 if (userSnapshot.hasData) {
-                  // Usuário logado, verifica o status da assinatura
-                  final User? user = userSnapshot.data;
-                  if (user != null) {
-                    return FutureBuilder<Map<String, dynamic>>(
-                      future: SubscriptionService()
-                          .getUserSubscriptionInfo(user.uid),
-                      builder: (context, subscriptionSnapshot) {
-                        if (subscriptionSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const SplashScreen(); // Continua na tela de carregamento
+                  final user = userSnapshot.data!;
+                  return FutureBuilder<Map<String, dynamic>>(
+                    future:
+                        SubscriptionService().getUserSubscriptionInfo(user.uid),
+                    builder: (context, subscriptionSnapshot) {
+                      if (subscriptionSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const SplashScreen(); // Carregamento do status premium
+                      }
+
+                      if (subscriptionSnapshot.hasError) {
+                        debugPrint(
+                            'Erro ao carregar informações de assinatura: ${subscriptionSnapshot.error}');
+                        return const AuthPage(); // Redireciona para login em caso de erro
+                      }
+
+                      final isPremium =
+                          subscriptionSnapshot.data?['isPremium'] ?? false;
+
+                      // Feedback visual sobre o plano
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (isPremium) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Você é premium!')),
+                          );
+                        } else if (subscriptionSnapshot.data?['planType'] ==
+                            'ad_free') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Você está livre de publicidade!')),
+                          );
                         }
+                      });
 
-                        if (subscriptionSnapshot.hasError) {
-                          return const AuthPage(); // Redireciona para login em caso de erro
-                        }
-
-                        final isPremium =
-                            subscriptionSnapshot.data!['isPremium'] ?? false;
-                        final planType =
-                            subscriptionSnapshot.data!['planType'] ?? '';
-
-                        // Feedback visual sobre o plano
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (isPremium) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Você é premium!')),
-                            );
-                          } else if (planType == 'ad_free') {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Você está livre de publicidade!')),
-                            );
-                          }
-                        });
-
-                        // Redireciona para a tela principal
-                        return const UserStatusWrapper(child: NavBarPage());
-                      },
-                    );
-                  }
+                      // Redireciona para a tela principal
+                      return UserStatusWrapper(
+                        child: isPremium
+                            ? const PremiumNavBarPage()
+                            : const NavBarPage(), // Altere conforme necessário
+                      );
+                    },
+                  );
                 }
 
-                // Usuário não logado e splash já foi mostrado
                 if (hasShownSplash) {
                   return const AuthPage();
                 }
 
-                // Splash ainda não foi mostrado
                 return const SplashScreen();
               },
             );
@@ -209,16 +214,5 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
-  }
-}
-
-extension PreferencesCheck on Preferences {
-  static Future<List<bool>> checkOnboardingAndSplash() async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool hasCompletedOnboarding =
-        prefs.getBool('hasCompletedOnboarding') ?? false;
-    final bool hasShownSplash = prefs.getBool('hasShownSplash') ?? false;
-
-    return [hasCompletedOnboarding, hasShownSplash];
   }
 }

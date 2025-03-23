@@ -23,21 +23,26 @@ class PremiumButton extends StatelessWidget {
       future: SubscriptionService().isUserPremium(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          debugPrint('Aguardando verificação do status premium...');
           return const CustomLoadingIndicator(); // Loading personalizado
         }
 
         final isPremium = snapshot.data ?? false;
+        debugPrint('Status premium: $isPremium');
 
         return MaterialButton(
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
           onPressed: () {
             if (isPremium) {
+              debugPrint('Usuário premium, navegando para tela premium...');
+
               // Usuário premium navega diretamente para o destino
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => destinationScreen),
               );
             } else {
+              debugPrint('Usuário não premium, exibindo diálogo...');
               // Exibe alert dialog personalizado para não premium
               _showPremiumAlertDialog(context);
             }
