@@ -32,9 +32,20 @@ class SubscriptionService {
   }
 
   /// Compra um produto
-  Future<void> purchaseProduct(ProductDetails product) async {
-    final purchaseParam = PurchaseParam(productDetails: product);
-    await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+  Future<bool> purchaseProduct(ProductDetails product) async {
+    final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
+    bool purchaseSuccess = false;
+
+    try {
+      await InAppPurchase.instance
+          .buyNonConsumable(purchaseParam: purchaseParam);
+      purchaseSuccess = true; // Marca a compra como bem-sucedida
+    } catch (error) {
+      debugPrint('Erro ao processar compra: $error');
+      purchaseSuccess = false; // Marca a compra como falha
+    }
+
+    return purchaseSuccess;
   }
 
   /// Lida com a stream de compras

@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/sucessPage.dart';
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:provider/provider.dart';
 
 class PremiumPage extends StatefulWidget {
   const PremiumPage({super.key});
@@ -72,9 +77,106 @@ class _PremiumPageState extends State<PremiumPage> {
     }
 
     debugPrint('Iniciando compra para produto: ${product.id}');
-    _subscriptionService.purchaseProduct(product);
+    final purchaseResult = await _subscriptionService.purchaseProduct(product);
 
-    _showSnackBar('Processando sua compra...');
+    if (purchaseResult == true) {
+      // Compra bem-sucedida
+      if (!context.mounted) return; // Verifica se o widget ainda está montado
+      if (product.id == 'monthly_ad_free') {
+        _showSnackBar(
+            'Compra realizada com sucesso! Você agora está livre de publicidade.');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const SuccessPage(planType: 'ad_free')),
+        );
+      } else if (product.id == 'monthly_full') {
+        _showSnackBar(
+            'Compra realizada com sucesso! Você agora tem acesso ao conteúdo premium.');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const SuccessPage(planType: 'premium')),
+        );
+      }
+      _updateUserSubscription(product.id); // Atualiza o estado do usuário
+    } else {
+      // Falha na compra
+      _showSnackBar('Falha ao processar sua compra.');
+    }
+  }
+
+  Future<void> loadUserSubscription(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final subscriptionData = userDoc.data()?['subscription'];
+
+      if (subscriptionData != null) {
+        final type = subscriptionData['type'];
+        final expiresAt = DateTime.parse(subscriptionData['expiresAt']);
+
+        if (!context.mounted) return; // Verifica se o widget ainda está montado
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.updateSubscription(
+          isLoggedIn: true,
+          isPremium: type == 'premium',
+          planType: type,
+          expiryDate: expiresAt,
+        );
+
+        if (expiresAt.isBefore(DateTime.now())) {
+          _showSnackBar('Sua assinatura expirou.');
+          userProvider.resetSubscription(); // Reseta se a assinatura expirou
+        }
+      }
+    } catch (e) {
+      _showSnackBar('Erro ao carregar assinatura: $e');
+    }
+  }
+
+  Future<void> _updateUserSubscription(String productId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _showSnackBar('Usuário não autenticado.');
+      return;
+    }
+
+    final subscriptionType =
+        productId == 'monthly_ad_free' ? 'no_ads' : 'premium';
+    final subscriptionExpiresAt =
+        DateTime.now().add(const Duration(days: 30)); // Exemplo: 30 dias
+
+    if (!mounted) return; // Verifica se o widget ainda está montado
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.updateSubscription(
+      isLoggedIn: true,
+      isPremium: subscriptionType == 'premium',
+      planType: subscriptionType,
+      expiryDate: subscriptionExpiresAt,
+    );
+
+    // Salva no Firestore
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+        {
+          'subscription': {
+            'type': subscriptionType,
+            'expiresAt': subscriptionExpiresAt.toIso8601String(),
+          },
+        },
+        SetOptions(merge: true),
+      );
+
+      _showSnackBar('Assinatura ativada com sucesso!');
+    } catch (e) {
+      _showSnackBar('Erro ao salvar assinatura: $e');
+    }
   }
 
   @override
@@ -133,48 +235,6 @@ class _PremiumPageState extends State<PremiumPage> {
               price: product.price,
               onPressed: () => _handlePurchase(context, product),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class PlanCard extends StatelessWidget {
-  final String title;
-  final String description;
-  final String price;
-  final VoidCallback onPressed;
-
-  const PlanCard({
-    super.key,
-    required this.title,
-    required this.description,
-    required this.price,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(description, style: const TextStyle(fontSize: 14)),
-          const SizedBox(height: 8),
-          Text(price,
-              style: const TextStyle(fontSize: 16, color: Colors.green)),
         ],
       ),
     );

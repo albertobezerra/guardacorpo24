@@ -20,7 +20,7 @@ class AuthPageState extends State<AuthPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLogin = true;
-  bool _isLoading = false; // Estado para indicador de progresso
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -33,7 +33,6 @@ class AuthPageState extends State<AuthPage> {
     FocusScope.of(context).unfocus();
   }
 
-  /// Verifica se o usuário já está logado
   void checkLoggedInStatus() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -43,7 +42,6 @@ class AuthPageState extends State<AuthPage> {
           .collection('users')
           .doc(user.uid)
           .get();
-
       if (!snapshot.exists) {
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -58,13 +56,12 @@ class AuthPageState extends State<AuthPage> {
           data['expiryDate']?.toDate().isAfter(DateTime.now());
       final planType = data['planType'] ?? '';
 
-      // Salva o status do usuário no SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await saveSharedPreferences(
         isLoggedIn: true,
         isPremium: isPremium,
         planType: planType,
-        hasShownSplash: true, // Define que o splash já foi mostrado
+        hasShownSplash: true,
       );
 
       debugPrint('isLoggedIn: ${prefs.getBool('isLoggedIn') ?? false}');
@@ -72,7 +69,6 @@ class AuthPageState extends State<AuthPage> {
       debugPrint('planType: ${prefs.getString('planType') ?? ''}');
       debugPrint('hasShownSplash: ${prefs.getBool('hasShownSplash') ?? false}');
 
-      // Redireciona para NavBarPage
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -92,7 +88,6 @@ class AuthPageState extends State<AuthPage> {
     }
   }
 
-  /// Função auxiliar para salvar dados no SharedPreferences
   Future<void> saveSharedPreferences({
     required bool isLoggedIn,
     required bool isPremium,
@@ -106,7 +101,6 @@ class AuthPageState extends State<AuthPage> {
     await prefs.setBool('hasShownSplash', hasShownSplash);
   }
 
-  /// Obtém informações da assinatura do usuário
   Future<Map<String, dynamic>> getUserSubscriptionInfo(String uid) async {
     final DocumentSnapshot snapshot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -125,44 +119,27 @@ class AuthPageState extends State<AuthPage> {
     return {'isPremium': false, 'planType': ''};
   }
 
-  /// Validação de entrada dos campos
   bool _validateInputs() {
     if (_nameController.text.isEmpty && !_isLogin) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira seu nome.')),
-      );
+      _showSnackBar('Por favor, insira seu nome.');
       return false;
     }
-
     if (_emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira seu email.')),
-      );
+      _showSnackBar('Por favor, insira seu email.');
       return false;
     }
-
     if (!_isValidEmail(_emailController.text.trim())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira um email válido.')),
-      );
+      _showSnackBar('Por favor, insira um email válido.');
       return false;
     }
-
     if (_passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira sua senha.')),
-      );
+      _showSnackBar('Por favor, insira sua senha.');
       return false;
     }
-
     if (_passwordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('A senha deve ter pelo menos 6 caracteres.')),
-      );
+      _showSnackBar('A senha deve ter pelo menos 6 caracteres.');
       return false;
     }
-
     return true;
   }
 
@@ -171,28 +148,24 @@ class AuthPageState extends State<AuthPage> {
     return emailRegex.hasMatch(email);
   }
 
-  /// Salva detalhes do usuário no Firestore
   Future<void> saveUserDetails(String uid, String name, String email) async {
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'name': name,
       'email': email,
       'createdAt': FieldValue.serverTimestamp(),
-      'subscriptionStatus': 'inactive', // Status inicial da assinatura
-      'expiryDate': null, // Data de expiração inicial (nula)
-      'planType': '', // Tipo de plano inicial (vazio)
+      'subscriptionStatus': 'inactive',
+      'expiryDate': null,
+      'planType': '',
     });
   }
 
-  /// Autenticação (login ou cadastro)
   Future<void> _authenticate() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-
     if (!_validateInputs()) return;
-    setState(() => _isLoading = true);
 
+    setState(() => _isLoading = true);
     try {
       if (_isLogin) {
-        // Lógica de login
         await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -205,27 +178,19 @@ class AuthPageState extends State<AuthPage> {
           final subscriptionInfo =
               await subscriptionService.getUserSubscriptionInfo(user.uid);
 
-          // Mostrar mensagens sobre o plano
           if (subscriptionInfo['isPremium'] && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Você agora é premium!')),
-            );
+            _showSnackBar('Você agora é premium!');
           } else if (subscriptionInfo['planType'] == 'ad_free' && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Você agora está livre de publicidade!')),
-            );
+            _showSnackBar('Você agora está livre de publicidade!');
           }
 
-          // Salvar status localmente
           await saveSharedPreferences(
             isLoggedIn: true,
             isPremium: subscriptionInfo['isPremium'],
             planType: subscriptionInfo['planType'] ?? '',
-            hasShownSplash: true, // Define que o splash já foi mostrado
+            hasShownSplash: true,
           );
 
-          // Redirecionar para NavBarPage via UserStatusWrapper
           if (mounted) {
             Navigator.pushReplacement(
               context,
@@ -237,28 +202,24 @@ class AuthPageState extends State<AuthPage> {
           }
         }
       } else {
-        // Lógica de cadastro
         UserCredential userCredential =
             await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-
         await userCredential.user!
             .updateDisplayName(_nameController.text.trim());
-
         await saveUserDetails(
           userCredential.user!.uid,
           _nameController.text.trim(),
           _emailController.text.trim(),
         );
 
-        // Novos usuários não são premium por padrão
         await saveSharedPreferences(
           isLoggedIn: true,
           isPremium: false,
           planType: '',
-          hasShownSplash: true, // Define que o splash já foi mostrado
+          hasShownSplash: true,
         );
 
         if (mounted) {
@@ -292,21 +253,26 @@ class AuthPageState extends State<AuthPage> {
         default:
           errorMessage = 'Ocorreu um erro. Tente novamente.';
       }
-
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+        _showSnackBar(errorMessage);
       }
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
   void _handleSubmit() {
     _closeKeyboard();
     if (mounted) {
-      _authenticate(); // Chama o método de autenticação
+      _authenticate();
     }
   }
 

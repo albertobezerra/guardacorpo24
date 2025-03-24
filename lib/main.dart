@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,6 +14,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provi
 import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/premium_nav.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -98,14 +101,29 @@ class _MyAppState extends State<MyApp> {
       final info = await InAppUpdate.checkForUpdate();
 
       if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Atualização disponível. Baixando...')),
+          );
+        }
+
         if (info.immediateUpdateAllowed) {
           await InAppUpdate.performImmediateUpdate();
         } else if (info.flexibleUpdateAllowed) {
           await InAppUpdate.startFlexibleUpdate();
           InAppUpdate.completeFlexibleUpdate().then((_) {
-            debugPrint("Atualização concluída!");
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Atualização concluída!')),
+              );
+            }
           }).catchError((e) {
-            debugPrint("Erro ao finalizar atualização flexível: $e");
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Erro ao finalizar atualização: $e')),
+              );
+            }
           });
         }
       }
@@ -118,18 +136,40 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Widget getHomePageBasedOnPlan(String planType) {
+    switch (planType) {
+      case 'premium':
+        return const PremiumNavBarPage();
+      case 'ad_free':
+        return const NavBarPage();
+      default:
+        return const NavBarPage();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => InspecaoProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(fontFamily: 'Segoe'),
+        theme: ThemeData(
+          fontFamily: 'Segoe',
+          brightness: Brightness.light,
+          primarySwatch: Colors.blue,
+        ),
+        darkTheme: ThemeData(
+          fontFamily: 'Segoe',
+          brightness: Brightness.dark,
+          primarySwatch: Colors.blue,
+        ),
+        themeMode: ThemeMode.system,
         supportedLocales: const [
-          Locale('en', 'US'), // Inglês
-          Locale('pt', 'BR'), // Português do Brasil
+          Locale('en', 'US'),
+          Locale('pt', 'BR'),
         ],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -171,7 +211,23 @@ class _MyAppState extends State<MyApp> {
                       if (subscriptionSnapshot.hasError) {
                         debugPrint(
                             'Erro ao carregar informações de assinatura: ${subscriptionSnapshot.error}');
-                        return const AuthPage(); // Redireciona para login em caso de erro
+                        return Scaffold(
+                          body: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                    'Ocorreu um erro ao carregar suas informações.'),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {}); // Tenta novamente
+                                  },
+                                  child: const Text('Tentar Novamente'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
                       }
 
                       final isPremium =
@@ -179,25 +235,26 @@ class _MyAppState extends State<MyApp> {
 
                       // Feedback visual sobre o plano
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (isPremium) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Você é premium!')),
-                          );
-                        } else if (subscriptionSnapshot.data?['planType'] ==
-                            'ad_free') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Você está livre de publicidade!')),
-                          );
+                        if (context.mounted) {
+                          if (isPremium) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Você é premium!')),
+                            );
+                          } else if (subscriptionSnapshot.data?['planType'] ==
+                              'ad_free') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Você está livre de publicidade!')),
+                            );
+                          }
                         }
                       });
 
                       // Redireciona para a tela principal
                       return UserStatusWrapper(
-                        child: isPremium
-                            ? const PremiumNavBarPage()
-                            : const NavBarPage(), // Altere conforme necessário
+                        child: getHomePageBasedOnPlan(
+                            subscriptionSnapshot.data?['planType'] ?? ''),
                       );
                     },
                   );
