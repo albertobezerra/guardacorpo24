@@ -6,6 +6,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_mapaderisco/mapa_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_raiz.dart';
+import 'package:guarda_corpo_2024/services/premium/premium_button.dart';
 import '../../services/admob/conf/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
 import '../02_maissaude/clt.dart';
@@ -504,40 +505,12 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                     ),
                   ),
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const ViewInspecoes(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/inspecao.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Insperção'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                PremiumButton(
+                  buttonText: 'Insperção',
+                  imagePath:
+                      'assets/images/inspecao.jpg', // Caminho da imagem do botão
+                  destinationScreen: const ViewInspecoes(), // Tela premium
+                  buttonHeight: tamanhoBotaoLista,
                 ),
                 MaterialButton(
                   padding:

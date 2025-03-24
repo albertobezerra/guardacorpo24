@@ -10,6 +10,19 @@ class SplashScreen extends StatefulWidget {
   SplashScreenState createState() => SplashScreenState();
 }
 
+Future<void> saveSharedPreferences({
+  required bool isLoggedIn,
+  required bool isPremium,
+  required String planType,
+  required bool hasShownSplash,
+}) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', isLoggedIn);
+  await prefs.setBool('isPremium', isPremium);
+  await prefs.setString('planType', planType);
+  await prefs.setBool('hasShownSplash', hasShownSplash);
+}
+
 class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
@@ -19,17 +32,21 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> _startSplashScreenTimer() async {
     await Future.delayed(const Duration(seconds: 3));
-    await _setSplashShown();
+
+    // Define que o splash já foi mostrado
+    await saveSharedPreferences(
+      isLoggedIn: false, // O usuário ainda pode não estar logado
+      isPremium: false,
+      planType: '',
+      hasShownSplash: true,
+    );
+
     if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const AuthPage()),
     );
-  }
-
-  Future<void> _setSplashShown() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasShownSplash', true);
   }
 
   @override

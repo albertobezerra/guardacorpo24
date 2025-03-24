@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_login.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,21 +33,83 @@ class AuthPageState extends State<AuthPage> {
     FocusScope.of(context).unfocus();
   }
 
+  /// Verifica se o usuário já está logado
   void checkLoggedInStatus() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    if (isLoggedIn && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const NavBarPage()),
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!snapshot.exists) {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthPage()),
+        );
+        return;
+      }
+
+      final data = snapshot.data()! as Map<String, dynamic>;
+      final isPremium = data['subscriptionStatus'] == 'active' &&
+          data['expiryDate']?.toDate().isAfter(DateTime.now());
+      final planType = data['planType'] ?? '';
+
+      // Salva o status do usuário no SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await saveSharedPreferences(
+        isLoggedIn: true,
+        isPremium: isPremium,
+        planType: planType,
+        hasShownSplash: true, // Define que o splash já foi mostrado
       );
+
+      debugPrint('isLoggedIn: ${prefs.getBool('isLoggedIn') ?? false}');
+      debugPrint('isPremium: ${prefs.getBool('isPremium') ?? false}');
+      debugPrint('planType: ${prefs.getString('planType') ?? ''}');
+      debugPrint('hasShownSplash: ${prefs.getBool('hasShownSplash') ?? false}');
+
+      // Redireciona para NavBarPage
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const UserStatusWrapper(child: NavBarPage()),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Erro ao verificar status de login: $e');
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthPage()),
+        );
+      }
     }
   }
 
+  /// Função auxiliar para salvar dados no SharedPreferences
+  Future<void> saveSharedPreferences({
+    required bool isLoggedIn,
+    required bool isPremium,
+    required String planType,
+    required bool hasShownSplash,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', isLoggedIn);
+    await prefs.setBool('isPremium', isPremium);
+    await prefs.setString('planType', planType);
+    await prefs.setBool('hasShownSplash', hasShownSplash);
+  }
+
+  /// Obtém informações da assinatura do usuário
   Future<Map<String, dynamic>> getUserSubscriptionInfo(String uid) async {
     final DocumentSnapshot snapshot =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
     if (!snapshot.exists) return {'isPremium': false, 'planType': ''};
 
     final data = snapshot.data() as Map<String, dynamic>;
@@ -59,7 +122,6 @@ class AuthPageState extends State<AuthPage> {
         expiryDate.isAfter(DateTime.now())) {
       return {'isPremium': true, 'planType': planType};
     }
-
     return {'isPremium': false, 'planType': ''};
   }
 
@@ -71,24 +133,28 @@ class AuthPageState extends State<AuthPage> {
       );
       return false;
     }
+
     if (_emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, insira seu email.')),
       );
       return false;
     }
+
     if (!_isValidEmail(_emailController.text.trim())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, insira um email válido.')),
       );
       return false;
     }
+
     if (_passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, insira sua senha.')),
       );
       return false;
     }
+
     if (_passwordController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -96,6 +162,7 @@ class AuthPageState extends State<AuthPage> {
       );
       return false;
     }
+
     return true;
   }
 
@@ -104,7 +171,8 @@ class AuthPageState extends State<AuthPage> {
     return emailRegex.hasMatch(email);
   }
 
-  Future saveUserDetails(String uid, String name, String email) async {
+  /// Salva detalhes do usuário no Firestore
+  Future<void> saveUserDetails(String uid, String name, String email) async {
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'name': name,
       'email': email,
@@ -115,58 +183,56 @@ class AuthPageState extends State<AuthPage> {
     });
   }
 
-  Future<bool> isUserPremium(String uid) async {
-    final DocumentSnapshot snapshot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+  /// Autenticação (login ou cadastro)
+  Future<void> _authenticate() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    if (!snapshot.exists) return false;
-
-    final data = snapshot.data() as Map<String, dynamic>;
-    final subscriptionStatus = data['subscriptionStatus'];
-    final expiryDate = data['expiryDate']?.toDate();
-
-    if (subscriptionStatus == 'active' &&
-        expiryDate != null &&
-        expiryDate.isAfter(DateTime.now())) {
-      return true;
-    }
-
-    return false;
-  }
-
-  Future _authenticate() async {
     if (!_validateInputs()) return;
-
-    setState(() => _isLoading = true); // Ativa o estado de carregamento
+    setState(() => _isLoading = true);
 
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-
       if (_isLogin) {
         // Lógica de login
         await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        await prefs.setBool('isLoggedIn', true);
 
-        // Verificar o status da assinatura
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           final subscriptionService = SubscriptionService();
           final subscriptionInfo =
               await subscriptionService.getUserSubscriptionInfo(user.uid);
 
-          await prefs.setBool('isLoggedIn', true);
-          await prefs.setBool('isPremium', subscriptionInfo['isPremium']);
-          await prefs.setString('planType', subscriptionInfo['planType'] ?? '');
+          // Mostrar mensagens sobre o plano
+          if (subscriptionInfo['isPremium'] && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Você agora é premium!')),
+            );
+          } else if (subscriptionInfo['planType'] == 'ad_free' && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Você agora está livre de publicidade!')),
+            );
+          }
 
+          // Salvar status localmente
+          await saveSharedPreferences(
+            isLoggedIn: true,
+            isPremium: subscriptionInfo['isPremium'],
+            planType: subscriptionInfo['planType'] ?? '',
+            hasShownSplash: true, // Define que o splash já foi mostrado
+          );
+
+          // Redirecionar para NavBarPage via UserStatusWrapper
           if (mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const NavBarPage()),
-            );
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Login bem-sucedido!')),
+              MaterialPageRoute(
+                builder: (context) =>
+                    const UserStatusWrapper(child: NavBarPage()),
+              ),
             );
           }
         }
@@ -181,7 +247,6 @@ class AuthPageState extends State<AuthPage> {
         await userCredential.user!
             .updateDisplayName(_nameController.text.trim());
 
-        // Salvar detalhes do usuário no Firestore
         await saveUserDetails(
           userCredential.user!.uid,
           _nameController.text.trim(),
@@ -189,17 +254,20 @@ class AuthPageState extends State<AuthPage> {
         );
 
         // Novos usuários não são premium por padrão
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setBool('isPremium', false);
-        await prefs.setString('planType', '');
+        await saveSharedPreferences(
+          isLoggedIn: true,
+          isPremium: false,
+          planType: '',
+          hasShownSplash: true, // Define que o splash já foi mostrado
+        );
 
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const NavBarPage()),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registro bem-sucedido!')),
+            MaterialPageRoute(
+              builder: (context) =>
+                  const UserStatusWrapper(child: NavBarPage()),
+            ),
           );
         }
       }
@@ -231,7 +299,7 @@ class AuthPageState extends State<AuthPage> {
         );
       }
     } finally {
-      setState(() => _isLoading = false); // Desativa o estado de carregamento
+      setState(() => _isLoading = false);
     }
   }
 

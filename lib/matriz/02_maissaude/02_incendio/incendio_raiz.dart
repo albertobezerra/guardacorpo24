@@ -3,6 +3,7 @@ import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.da
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_reco.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_rela.dart';
+import 'package:guarda_corpo_2024/services/premium/premium_button.dart';
 
 class IncendioRaiz extends StatelessWidget {
   const IncendioRaiz({super.key});
@@ -93,40 +94,12 @@ class IncendioRaiz extends StatelessWidget {
                     ),
                   ),
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const IncendioRela(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/incendio3.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Relatório Técnico de Incêndio'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                PremiumButton(
+                  buttonText: 'Relatório Técnico de Incêndio',
+                  imagePath:
+                      'assets/images/incendio3.jpg', // Caminho da imagem do botão
+                  destinationScreen: const IncendioRela(), // Tela premium
+                  buttonHeight: tamanhoBotaoLista,
                 ),
                 MaterialButton(
                   padding:
