@@ -8,7 +8,6 @@ import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -43,12 +42,14 @@ class AuthPageState extends State<AuthPage> {
       final subscriptionService = SubscriptionService();
       final subscriptionInfo =
           await subscriptionService.getUserSubscriptionInfo(user.uid);
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setBool('isPremium', subscriptionInfo['isPremium']);
-      await prefs.setString('planType', subscriptionInfo['planType'] ?? '');
-      await prefs.setBool('hasShownSplash', true);
+      if (!mounted) return;
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.updateSubscription(
+        isLoggedIn: true,
+        isPremium: subscriptionInfo['isPremium'] ?? false,
+        planType: subscriptionInfo['planType'] ?? '',
+        expiryDate: subscriptionInfo['expiryDate']?.toDate(),
+      );
 
       if (mounted) {
         Navigator.pushReplacement(

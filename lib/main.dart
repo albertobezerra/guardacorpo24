@@ -89,9 +89,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    Provider.of<UserProvider>(context, listen: false)
-        .startFirebaseListener(context);
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<UserProvider>(context, listen: false)
+            .startFirebaseListener(context);
+      }
+    });
     _subscriptionService.startPurchaseListener(context, const NavBarPage());
     checkForUpdate(); // Verifica se há atualizações disponíveis
   }

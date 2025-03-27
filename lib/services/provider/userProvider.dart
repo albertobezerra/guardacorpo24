@@ -33,7 +33,7 @@ class UserProvider with ChangeNotifier {
     _isPremium = isPremium;
     _planType = planType;
     _expiryDate = expiryDate;
-    _error = ''; // Limpa qualquer erro anterior
+    saveToCache(); // Salva automaticamente no cache
     notifyListeners();
   }
 

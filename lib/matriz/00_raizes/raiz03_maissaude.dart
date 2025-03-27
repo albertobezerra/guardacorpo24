@@ -105,12 +105,6 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   tamanhoBotaoLista,
                   itemFontSize,
                 ),
-                PremiumButton(
-                  buttonText: 'Inspeção',
-                  imagePath: 'assets/images/inspecao.jpg',
-                  destinationScreen: const ViewInspecoes(),
-                  buttonHeight: tamanhoBotaoLista,
-                ),
                 _buildMaterialButton(
                   context,
                   'assets/images/cid.jpg',
@@ -182,6 +176,12 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
                   const IncendioRaiz(),
                   tamanhoBotaoLista,
                   itemFontSize,
+                ),
+                PremiumButton(
+                  buttonText: 'Inspeção',
+                  imagePath: 'assets/images/inspecao.jpg',
+                  destinationScreen: const ViewInspecoes(),
+                  buttonHeight: tamanhoBotaoLista,
                 ),
                 _buildMaterialButton(
                   context,
