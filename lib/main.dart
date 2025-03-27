@@ -23,6 +23,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  final userProvider = UserProvider();
+  await userProvider.loadFromCache(); // Carrega dados do cache
+
   // Inicializa serviços adicionais
   final messagingService = FirebaseMessagingService();
   await messagingService.initialize();
@@ -86,6 +89,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    Provider.of<UserProvider>(context, listen: false)
+        .startFirebaseListener(context);
+
     _subscriptionService.startPurchaseListener(context, const NavBarPage());
     checkForUpdate(); // Verifica se há atualizações disponíveis
   }

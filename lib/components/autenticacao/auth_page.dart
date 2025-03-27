@@ -6,6 +6,8 @@ import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_login.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
@@ -109,8 +111,8 @@ class AuthPageState extends State<AuthPage> {
 
   Future<void> _authenticate() async {
     if (!_validateInputs()) return;
-
     setState(() => _isLoading = true);
+
     try {
       if (_isLogin) {
         await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -132,27 +134,22 @@ class AuthPageState extends State<AuthPage> {
         );
       }
 
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final subscriptionService = SubscriptionService();
-        final subscriptionInfo =
-            await subscriptionService.getUserSubscriptionInfo(user.uid);
+      final user = FirebaseAuth.instance.currentUser!;
+      final subscriptionInfo =
+          await SubscriptionService().getUserSubscriptionInfo(user.uid);
+      if (!mounted) return;
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setBool('isPremium', subscriptionInfo['isPremium']);
-        await prefs.setString('planType', subscriptionInfo['planType'] ?? '');
-        await prefs.setBool('hasShownSplash', true);
+      Provider.of<UserProvider>(context, listen: false).updateSubscription(
+        isLoggedIn: true,
+        isPremium: subscriptionInfo['isPremium'] ?? false,
+        planType: subscriptionInfo['planType'] ?? '',
+        expiryDate: subscriptionInfo['expiryDate']?.toDate(),
+      );
 
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    const UserStatusWrapper(child: NavBarPage())),
-          );
-        }
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const NavBarPage()),
+      );
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
@@ -165,18 +162,16 @@ class AuthPageState extends State<AuthPage> {
         case 'email-already-in-use':
           errorMessage = 'Email já está em uso.';
           break;
-        case 'invalid-email':
-          errorMessage = 'Email inválido.';
-          break;
-        case 'weak-password':
-          errorMessage = 'A senha é muito fraca.';
-          break;
         default:
-          errorMessage = 'Ocorreu um erro. Tente novamente.';
+          errorMessage = 'Erro desconhecido. Por favor, tente novamente.';
       }
-      if (mounted) {
-        _showSnackBar(errorMessage);
-      }
+      Provider.of<UserProvider>(context, listen: false).setError(errorMessage);
+      _showSnackBar(errorMessage);
+    } catch (e) {
+      debugPrint('Erro ao autenticar: $e');
+      Provider.of<UserProvider>(context, listen: false)
+          .setError('Erro ao conectar ao servidor.');
+      _showSnackBar('Erro ao conectar ao servidor.');
     } finally {
       setState(() => _isLoading = false);
     }

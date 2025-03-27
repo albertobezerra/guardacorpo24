@@ -19,7 +19,7 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
 
   final List<Widget> _pages = [
     const Raiz(),
-    const Suaconta(),
+    const SuaConta(),
     const PremiumPage(),
   ];
 
