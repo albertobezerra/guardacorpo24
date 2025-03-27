@@ -15,7 +15,6 @@ class UserStatusWrapper extends StatefulWidget {
 class UserStatusWrapperState extends State<UserStatusWrapper> {
   bool _isLoading = true;
   bool _isPremium = false;
-  bool _isLogged = false;
 
   @override
   void initState() {
@@ -24,33 +23,27 @@ class UserStatusWrapperState extends State<UserStatusWrapper> {
   }
 
   void _checkUserStatus() async {
-    final User? user = FirebaseAuth.instance.currentUser;
-
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      // Redireciona para login se não estiver logado
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AuthPage()),
-        );
-      }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const AuthPage()),
+      );
       return;
     }
 
-    // Verifica a assinatura premium
-    final subscriptionInfo =
-        await SubscriptionService().getUserSubscriptionInfo(user.uid);
-
+    final isPremium = await SubscriptionService().isUserPremium(user.uid);
     setState(() {
-      _isLogged = true;
-      _isPremium = subscriptionInfo['isPremium'] ?? false;
+      _isPremium = isPremium;
       _isLoading = false;
     });
 
-    if (mounted && _isPremium) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Você é premium! Aproveite sem anúncios.')),
-      );
+    if (_isPremium) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Você é premium! Aproveite sem anúncios.')),
+        );
+      }
     }
   }
 
@@ -60,10 +53,6 @@ class UserStatusWrapperState extends State<UserStatusWrapper> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (!_isLogged) {
-      return const AuthPage();
-    }
-
-    return widget.child; // Exibe o conteúdo principal
+    return widget.child;
   }
 }

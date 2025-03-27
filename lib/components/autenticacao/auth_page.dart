@@ -33,48 +33,27 @@ class AuthPageState extends State<AuthPage> {
     FocusScope.of(context).unfocus();
   }
 
-  void checkLoggedInStatus() async {
+  Future<void> checkLoggedInStatus() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
     try {
-      final DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (!snapshot.exists) {
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AuthPage()),
-        );
-        return;
-      }
-
-      final data = snapshot.data()! as Map<String, dynamic>;
-      final isPremium = data['subscriptionStatus'] == 'active' &&
-          data['expiryDate']?.toDate().isAfter(DateTime.now());
-      final planType = data['planType'] ?? '';
+      final subscriptionService = SubscriptionService();
+      final subscriptionInfo =
+          await subscriptionService.getUserSubscriptionInfo(user.uid);
 
       final prefs = await SharedPreferences.getInstance();
-      await saveSharedPreferences(
-        isLoggedIn: true,
-        isPremium: isPremium,
-        planType: planType,
-        hasShownSplash: true,
-      );
-
-      debugPrint('isLoggedIn: ${prefs.getBool('isLoggedIn') ?? false}');
-      debugPrint('isPremium: ${prefs.getBool('isPremium') ?? false}');
-      debugPrint('planType: ${prefs.getString('planType') ?? ''}');
-      debugPrint('hasShownSplash: ${prefs.getBool('hasShownSplash') ?? false}');
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setBool('isPremium', subscriptionInfo['isPremium']);
+      await prefs.setString('planType', subscriptionInfo['planType'] ?? '');
+      await prefs.setBool('hasShownSplash', true);
 
       if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const UserStatusWrapper(child: NavBarPage()),
-          ),
+              builder: (context) =>
+                  const UserStatusWrapper(child: NavBarPage())),
         );
       }
     } catch (e) {
@@ -88,39 +67,8 @@ class AuthPageState extends State<AuthPage> {
     }
   }
 
-  Future<void> saveSharedPreferences({
-    required bool isLoggedIn,
-    required bool isPremium,
-    required String planType,
-    required bool hasShownSplash,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', isLoggedIn);
-    await prefs.setBool('isPremium', isPremium);
-    await prefs.setString('planType', planType);
-    await prefs.setBool('hasShownSplash', hasShownSplash);
-  }
-
-  Future<Map<String, dynamic>> getUserSubscriptionInfo(String uid) async {
-    final DocumentSnapshot snapshot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (!snapshot.exists) return {'isPremium': false, 'planType': ''};
-
-    final data = snapshot.data() as Map<String, dynamic>;
-    final subscriptionStatus = data['subscriptionStatus'];
-    final expiryDate = data['expiryDate']?.toDate();
-    final planType = data['planType'];
-
-    if (subscriptionStatus == 'active' &&
-        expiryDate != null &&
-        expiryDate.isAfter(DateTime.now())) {
-      return {'isPremium': true, 'planType': planType};
-    }
-    return {'isPremium': false, 'planType': ''};
-  }
-
   bool _validateInputs() {
-    if (_nameController.text.isEmpty && !_isLogin) {
+    if (!_isLogin && _nameController.text.isEmpty) {
       _showSnackBar('Por favor, insira seu nome.');
       return false;
     }
@@ -160,7 +108,6 @@ class AuthPageState extends State<AuthPage> {
   }
 
   Future<void> _authenticate() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
     if (!_validateInputs()) return;
 
     setState(() => _isLoading = true);
@@ -170,37 +117,6 @@ class AuthPageState extends State<AuthPage> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        await prefs.setBool('isLoggedIn', true);
-
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          final subscriptionService = SubscriptionService();
-          final subscriptionInfo =
-              await subscriptionService.getUserSubscriptionInfo(user.uid);
-
-          if (subscriptionInfo['isPremium'] && mounted) {
-            _showSnackBar('Você agora é premium!');
-          } else if (subscriptionInfo['planType'] == 'ad_free' && mounted) {
-            _showSnackBar('Você agora está livre de publicidade!');
-          }
-
-          await saveSharedPreferences(
-            isLoggedIn: true,
-            isPremium: subscriptionInfo['isPremium'],
-            planType: subscriptionInfo['planType'] ?? '',
-            hasShownSplash: true,
-          );
-
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    const UserStatusWrapper(child: NavBarPage()),
-              ),
-            );
-          }
-        }
       } else {
         UserCredential userCredential =
             await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -214,21 +130,26 @@ class AuthPageState extends State<AuthPage> {
           _nameController.text.trim(),
           _emailController.text.trim(),
         );
+      }
 
-        await saveSharedPreferences(
-          isLoggedIn: true,
-          isPremium: false,
-          planType: '',
-          hasShownSplash: true,
-        );
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final subscriptionService = SubscriptionService();
+        final subscriptionInfo =
+            await subscriptionService.getUserSubscriptionInfo(user.uid);
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setBool('isPremium', subscriptionInfo['isPremium']);
+        await prefs.setString('planType', subscriptionInfo['planType'] ?? '');
+        await prefs.setBool('hasShownSplash', true);
 
         if (mounted) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  const UserStatusWrapper(child: NavBarPage()),
-            ),
+                builder: (context) =>
+                    const UserStatusWrapper(child: NavBarPage())),
           );
         }
       }
@@ -318,8 +239,7 @@ class AuthPageState extends State<AuthPage> {
                 constraints: BoxConstraints(minHeight: screenHeight),
                 child: Padding(
                   padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
+                      bottom: MediaQuery.of(context).viewInsets.bottom),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -366,9 +286,7 @@ class AuthPageState extends State<AuthPage> {
                         ),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 10.0,
-                        ),
+                            horizontal: 20.0, vertical: 10.0),
                         child: SizedBox(
                           width: double.infinity,
                           child: OutlinedTextField(
@@ -380,9 +298,7 @@ class AuthPageState extends State<AuthPage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 10.0,
-                        ),
+                            horizontal: 20.0, vertical: 10.0),
                         child: SizedBox(
                           width: double.infinity,
                           child: OutlinedTextField(
@@ -409,15 +325,13 @@ class AuthPageState extends State<AuthPage> {
                             ),
                             child: _isLoading
                                 ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
+                                    color: Colors.white)
                                 : Text(
                                     _isLogin ? 'Entrar' : 'Registrar',
                                     style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
                                   ),
                           ),
                         ),
@@ -434,9 +348,7 @@ class AuthPageState extends State<AuthPage> {
                               ? 'Não tem uma conta? Registre-se aqui'
                               : 'Já tem uma conta? Faça login aqui',
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
+                              color: Colors.white, fontSize: 16),
                         ),
                       ),
                       TextButton(
@@ -444,15 +356,13 @@ class AuthPageState extends State<AuthPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ResetPasswordPage(),
-                            ),
+                                builder: (context) =>
+                                    const ResetPasswordPage()),
                           );
                         },
                         child: const Text(
                           'Esqueci a senha',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ],

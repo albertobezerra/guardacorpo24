@@ -1,5 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,7 +11,6 @@ import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
-import 'package:guarda_corpo_2024/matriz/04_premium/premium_nav.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:guarda_corpo_2024/splash.dart';
@@ -23,18 +21,17 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Inicializa serviços adicionais
-  FirebaseMessagingService messagingService = FirebaseMessagingService();
+  final messagingService = FirebaseMessagingService();
   await messagingService.initialize();
 
   final subscriptionService = SubscriptionService();
   await subscriptionService.initialize();
 
   MobileAds.instance.initialize(); // Inicializa anúncios
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -59,10 +56,10 @@ class Preferences {
 
   static Future<List<bool>> checkOnboardingAndSplash() async {
     final prefs = await SharedPreferences.getInstance();
-    final bool hasCompletedOnboarding =
-        prefs.getBool('hasCompletedOnboarding') ?? false;
-    final bool hasShownSplash = prefs.getBool('hasShownSplash') ?? false;
-    return [hasCompletedOnboarding, hasShownSplash];
+    return [
+      prefs.getBool('hasCompletedOnboarding') ?? false,
+      prefs.getBool('hasShownSplash') ?? false,
+    ];
   }
 
   static Future<void> setHasCompletedOnboarding(bool value) async {
@@ -89,17 +86,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
-    // Inicia o listener de compras
     _subscriptionService.startPurchaseListener(context, const NavBarPage());
-
     checkForUpdate(); // Verifica se há atualizações disponíveis
   }
 
   Future<void> checkForUpdate() async {
     try {
       final info = await InAppUpdate.checkForUpdate();
-
       if (info.updateAvailability == UpdateAvailability.updateAvailable) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +100,6 @@ class _MyAppState extends State<MyApp> {
                 content: Text('Atualização disponível. Baixando...')),
           );
         }
-
         if (info.immediateUpdateAllowed) {
           await InAppUpdate.performImmediateUpdate();
         } else if (info.flexibleUpdateAllowed) {
@@ -127,7 +119,6 @@ class _MyAppState extends State<MyApp> {
           });
         }
       }
-
       // Define que o splash já foi mostrado após a atualização
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('hasShownSplash', true);
@@ -137,14 +128,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget getHomePageBasedOnPlan(String planType) {
-    switch (planType) {
-      case 'premium':
-        return const PremiumNavBarPage();
-      case 'ad_free':
-        return const NavBarPage();
-      default:
-        return const NavBarPage();
-    }
+    // Todos os usuários começam no NavBarPage
+    return const NavBarPage();
   }
 
   @override
@@ -182,32 +167,27 @@ class _MyAppState extends State<MyApp> {
             if (!snapshot.hasData) {
               return const SplashScreen(); // Loader temporário
             }
-
             final hasCompletedOnboarding = snapshot.data![0];
             final hasShownSplash = snapshot.data![1];
-
             if (!hasCompletedOnboarding) {
               return const OnboardingPage();
             }
-
             return StreamBuilder<User?>(
               stream: FirebaseAuth.instance.authStateChanges(),
               builder: (context, userSnapshot) {
                 if (userSnapshot.connectionState == ConnectionState.waiting) {
                   return const SplashScreen(); // Carregamento inicial
                 }
-
                 if (userSnapshot.hasData) {
                   final user = userSnapshot.data!;
                   return FutureBuilder<Map<String, dynamic>>(
                     future:
-                        SubscriptionService().getUserSubscriptionInfo(user.uid),
+                        _subscriptionService.getUserSubscriptionInfo(user.uid),
                     builder: (context, subscriptionSnapshot) {
                       if (subscriptionSnapshot.connectionState ==
                           ConnectionState.waiting) {
                         return const SplashScreen(); // Carregamento do status premium
                       }
-
                       if (subscriptionSnapshot.hasError) {
                         debugPrint(
                             'Erro ao carregar informações de assinatura: ${subscriptionSnapshot.error}');
@@ -229,19 +209,20 @@ class _MyAppState extends State<MyApp> {
                           ),
                         );
                       }
-
                       final isPremium =
                           subscriptionSnapshot.data?['isPremium'] ?? false;
-
+                      final planType =
+                          subscriptionSnapshot.data?['planType'] ?? '';
                       // Feedback visual sobre o plano
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (context.mounted) {
                           if (isPremium) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Você é premium!')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Você é premium! Aproveite o acesso total.')),
                             );
-                          } else if (subscriptionSnapshot.data?['planType'] ==
-                              'ad_free') {
+                          } else if (planType == 'ad_free') {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content:
@@ -250,20 +231,16 @@ class _MyAppState extends State<MyApp> {
                           }
                         }
                       });
-
                       // Redireciona para a tela principal
                       return UserStatusWrapper(
-                        child: getHomePageBasedOnPlan(
-                            subscriptionSnapshot.data?['planType'] ?? ''),
+                        child: getHomePageBasedOnPlan(planType),
                       );
                     },
                   );
                 }
-
                 if (hasShownSplash) {
                   return const AuthPage();
                 }
-
                 return const SplashScreen();
               },
             );

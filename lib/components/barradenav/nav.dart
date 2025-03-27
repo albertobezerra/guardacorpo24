@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:guarda_corpo_2024/matriz/03_sua_area/03_00_suaconta.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
 class NavBarPage extends StatefulWidget {
   const NavBarPage({super.key});
@@ -21,7 +23,23 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
     const PremiumPage(),
   ];
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async {
+    if (index == 2) {
+      // Verifica se o usuário já é premium antes de navegar para a página premium
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final subscriptionInfo =
+            await SubscriptionService().getUserSubscriptionInfo(user.uid);
+        if (subscriptionInfo['isPremium']) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Você já é premium!')),
+            );
+          }
+          return;
+        }
+      }
+    }
     setState(() {
       _selectedIndex = index;
     });
@@ -38,7 +56,6 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    // Certifique-se de liberar os recursos corretamente
     _animationController.dispose();
     super.dispose();
   }
@@ -79,9 +96,8 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
             ),
             SpeedDialChild(
               labelWidget: _buildLabelWidget(Icons.star_rounded, 'Premium',
-                  const Color.fromARGB(255, 216, 27, 96)), // Cor chamativa
-              backgroundColor:
-                  const Color.fromARGB(255, 216, 27, 96), // Cor chamativa
+                  const Color.fromARGB(255, 216, 27, 96)),
+              backgroundColor: const Color.fromARGB(255, 216, 27, 96),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18.0),
               ),

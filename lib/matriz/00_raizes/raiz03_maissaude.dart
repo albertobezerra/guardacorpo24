@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi_raiz.dart';
@@ -6,6 +7,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_mapaderisco/mapa_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_raiz.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/premium/premium_button.dart';
 import '../../services/admob/conf/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
@@ -33,11 +35,6 @@ class Raiz03Maissaude extends StatefulWidget {
 }
 
 class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -84,789 +81,255 @@ class _Raiz03MaissaudeState extends State<Raiz03Maissaude> {
             child: ListView(
               padding: const EdgeInsets.only(top: 9),
               children: [
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const AcidenteRaiz(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/acidente.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Acidentes'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/acidente.jpg',
+                  'Acidentes',
+                  const AcidenteRaiz(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const AETModule(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cid.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Análise Ergonômica do Trabalho'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/cid.jpg',
+                  'Análise Ergonômica do Trabalho',
+                  const AETModule(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Aso(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/aso.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'A.S.O'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Cid(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cid.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'C.I.D'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Clt(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/clt.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'C.L.T'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Cipa(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image:
-                            ExactAssetImage('assets/images/treinamentos.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Cipa'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Cnae(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cnae.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Consulta de Cnae'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Cnpj(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/menu.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Consulta de CNPJ'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Datas(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/datas.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Datas Importantes'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Esocial(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/esocial.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'E-Social'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Historia(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/historia.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'História da Segurança do Trabalho'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const IncendioRaiz(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/incendio4.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Incêndio'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/aso.jpg',
+                  'A.S.O',
+                  const Aso(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
                 PremiumButton(
-                  buttonText: 'Insperção',
-                  imagePath:
-                      'assets/images/inspecao.jpg', // Caminho da imagem do botão
-                  destinationScreen: const ViewInspecoes(), // Tela premium
+                  buttonText: 'Inspeção',
+                  imagePath: 'assets/images/inspecao.jpg',
+                  destinationScreen: const ViewInspecoes(),
                   buttonHeight: tamanhoBotaoLista,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const MapaRaiz(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/mapa.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Mapa de Risco'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/cid.jpg',
+                  'C.I.D',
+                  const Cid(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Nbrs(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/nbr.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'NBrs Relevantes'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/clt.jpg',
+                  'C.L.T',
+                  const Clt(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Nho(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/normas.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Normas de Higiene Ocupacional'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/treinamentos.jpg',
+                  'Cipa',
+                  const Cipa(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const OrdemRaiz(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/os.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'O.s'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/cnae.jpg',
+                  'Consulta de Cnae',
+                  const Cnae(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Ppp(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/ppp.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'P.P.P'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/menu.jpg',
+                  'Consulta de CNPJ',
+                  const Cnpj(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const PrimeirosSocRz(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/cid.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Primeiros Socorros'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/datas.jpg',
+                  'Datas Importantes',
+                  const Datas(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Riscoamb(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/riscos.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Riscos Ambientais'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/esocial.jpg',
+                  'E-Social',
+                  const Esocial(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Sinalizacao(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/sinalizacao.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Sinalização de Segurança'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/historia.jpg',
+                  'História da Segurança do Trabalho',
+                  const Historia(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Tecnico(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/tecnico.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Técnico em tst'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/incendio4.jpg',
+                  'Incêndio',
+                  const IncendioRaiz(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const EpiRaiz(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/epi.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'E.P.I'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/mapa.jpg',
+                  'Mapa de Risco',
+                  const MapaRaiz(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/nbr.jpg',
+                  'NBrs Relevantes',
+                  const Nbrs(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/normas.jpg',
+                  'Normas de Higiene Ocupacional',
+                  const Nho(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/os.jpg',
+                  'O.s',
+                  const OrdemRaiz(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/ppp.jpg',
+                  'P.P.P',
+                  const Ppp(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/cid.jpg',
+                  'Primeiros Socorros',
+                  const PrimeirosSocRz(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/riscos.jpg',
+                  'Riscos Ambientais',
+                  const Riscoamb(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/sinalizacao.jpg',
+                  'Sinalização de Segurança',
+                  const Sinalizacao(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/tecnico.jpg',
+                  'Técnico em tst',
+                  const Tecnico(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
+                ),
+                _buildMaterialButton(
+                  context,
+                  'assets/images/epi.jpg',
+                  'E.P.I',
+                  const EpiRaiz(),
+                  tamanhoBotaoLista,
+                  itemFontSize,
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMaterialButton(
+    BuildContext context,
+    String imagePath,
+    String label,
+    Widget destinationScreen,
+    double height,
+    double fontSize,
+  ) {
+    final user = FirebaseAuth.instance.currentUser;
+    final subscriptionService = SubscriptionService();
+
+    return FutureBuilder<Map<String, dynamic>>(
+      future: user != null
+          ? subscriptionService.getUserSubscriptionInfo(user.uid)
+          : Future.value({'isPremium': false, 'planType': ''}),
+      builder: (context, snapshot) {
+        final isPremium = snapshot.data?['isPremium'] ?? false;
+        final planType = snapshot.data?['planType'] ?? '';
+
+        return MaterialButton(
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+          onPressed: () async {
+            if (!isPremium && planType != 'ad_free') {
+              InterstitialAdManager.showInterstitialAd(
+                context,
+                destinationScreen,
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => destinationScreen),
+              );
+            }
+          },
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              image: DecorationImage(
+                image: ExactAssetImage(imagePath),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              alignment: AlignmentDirectional.bottomStart,
+              margin: const EdgeInsets.only(left: 12, bottom: 8),
+              child: Text(
+                label.toUpperCase(),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Segoe Bold',
+                  fontSize: fontSize,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

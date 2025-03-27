@@ -1,57 +1,47 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/services/admob/conf/banner_ad_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/banner_ad_widget.dart';
 
-class ConditionalBannerAdWidget extends StatefulWidget {
+class ConditionalBannerAdWidget extends StatelessWidget {
   const ConditionalBannerAdWidget({super.key});
 
   @override
-  State<ConditionalBannerAdWidget> createState() =>
-      _ConditionalBannerAdWidgetState();
-}
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _checkUserStatus(),
+      builder: (context, snapshot) {
+        // Se ainda está carregando, exibe um espaço vazio temporário
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(height: 50); // Altura fixa enquanto carrega
+        }
 
-class _ConditionalBannerAdWidgetState extends State<ConditionalBannerAdWidget> {
-  bool _isPremium = false;
+        // Verifica o status do usuário
+        final isPremium = snapshot.data?['isPremium'] ?? false;
+        final planType = snapshot.data?['planType'] ?? '';
 
-  @override
-  void initState() {
-    super.initState();
-    _checkUserStatus();
+        // Exibe o banner apenas se o usuário não for premium nem "ad_free"
+        if (!isPremium && planType != 'ad_free') {
+          return const BannerAdWidget(); // Widget do banner de anúncio
+        }
 
-    // Adiciona um listener para detectar mudanças no status do usuário
-    FirebaseAuth.instance.authStateChanges().listen((_) {
-      if (mounted) {
-        _checkUserStatus();
-      }
-    });
+        // Caso contrário, retorna um espaço vazio
+        return const SizedBox.shrink();
+      },
+    );
   }
 
-  Future<void> _checkUserStatus() async {
-    final User? user = FirebaseAuth.instance.currentUser;
+  Future<Map<String, dynamic>> _checkUserStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      setState(() {
-        _isPremium = false; // Usuário não logado, não é premium
-      });
-      return;
+      return {'isPremium': false, 'planType': ''};
     }
 
     final subscriptionInfo =
         await SubscriptionService().getUserSubscriptionInfo(user.uid);
-
-    setState(() {
-      _isPremium = subscriptionInfo['isPremium'] ?? false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isPremium) {
-      // Usuário premium, não exibe o banner
-      return const SizedBox.shrink();
-    }
-
-    // Exibe o banner para usuários gratuitos
-    return const BannerAdWidget();
+    return {
+      'isPremium': subscriptionInfo['isPremium'] ?? false,
+      'planType': subscriptionInfo['planType'] ?? '',
+    };
   }
 }
