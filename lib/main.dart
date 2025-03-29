@@ -218,28 +218,10 @@ class _MyAppState extends State<MyApp> {
                           ),
                         );
                       }
-                      final isPremium =
-                          subscriptionSnapshot.data?['isPremium'] ?? false;
+                      subscriptionSnapshot.data?['isPremium'] ?? false;
                       final planType =
                           subscriptionSnapshot.data?['planType'] ?? '';
-                      // Feedback visual sobre o plano
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (context.mounted) {
-                          if (isPremium) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Você é premium! Aproveite o acesso total.')),
-                            );
-                          } else if (planType == 'ad_free') {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Você está livre de publicidade!')),
-                            );
-                          }
-                        }
-                      });
+
                       // Redireciona para a tela principal
                       return UserStatusWrapper(
                         child: getHomePageBasedOnPlan(planType),

@@ -13,44 +13,35 @@ class SuaConta extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Sua Conta'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Status da Conta',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 10),
-            ListTile(
-              leading: Icon(
-                  userProvider.isLoggedIn ? Icons.check_circle : Icons.cancel),
-              title: Text(userProvider.isLoggedIn ? 'Logado' : 'Não Logado'),
-            ),
-            ListTile(
-              leading: Icon(
-                  userProvider.hasNoAds ? Icons.check_circle : Icons.cancel),
-              title: Text(userProvider.hasNoAds
-                  ? 'Sem Publicidade'
-                  : 'Com Publicidade'),
-            ),
-            ListTile(
-              leading: Icon(userProvider.hasPremiumAccess
-                  ? Icons.check_circle
-                  : Icons.cancel),
-              title: Text(userProvider.hasPremiumAccess
-                  ? 'Acesso Premium'
-                  : 'Sem Acesso Premium'),
-            ),
-            if (userProvider.expiryDate != null)
-              ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: Text(
-                    'Expira em: ${userProvider.expiryDate!.toString().split(' ')[0]}'),
-              ),
-          ],
-        ),
+      body: Column(
+        children: [
+          ListTile(
+            title: const Text('Status de Login'),
+            subtitle: Text(userProvider.isLoggedIn ? 'Logado' : 'Não Logado'),
+          ),
+          ListTile(
+            title: const Text('Assinatura'),
+            subtitle: userProvider.hasPremiumPlan()
+                ? const Text('Premium Ativo')
+                : userProvider.hasAdFreePlan()
+                    ? const Text('Sem Publicidade Ativa')
+                    : const Text('Nenhuma Assinatura Ativa'),
+          ),
+          ListTile(
+            title: const Text('Validade da Assinatura'),
+            subtitle: Text(userProvider.expiryDate?.toString() ?? 'N/A'),
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text('Sair'),
+            leading: const Icon(Icons.logout, color: Colors.red),
+            onTap: () {
+              final userProvider =
+                  Provider.of<UserProvider>(context, listen: false);
+              userProvider.logout(context); // Chama o método de logout
+            },
+          ),
+        ],
       ),
     );
   }

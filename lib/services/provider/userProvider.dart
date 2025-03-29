@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,8 +35,15 @@ class UserProvider with ChangeNotifier {
     _isPremium = isPremium;
     _planType = planType;
     _expiryDate = expiryDate;
-    saveToCache(); // Salva automaticamente no cache
     notifyListeners();
+  }
+
+  void checkSubscriptionStatus() {
+    if (_expiryDate != null && _expiryDate!.isBefore(DateTime.now())) {
+      _isPremium = false;
+      _planType = '';
+      notifyListeners();
+    }
   }
 
   // Reseta o estado do usuário
@@ -65,6 +74,29 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void logout(BuildContext context) {
+    FirebaseAuth.instance.signOut();
+    resetSubscription();
+    saveToCache();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const AuthPage()),
+    );
+  }
+
+  Future<void> loadUserData(String uid) async {
+    final snapshot =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (snapshot.exists) {
+      final data = snapshot.data() as Map<String, dynamic>;
+      _isLoggedIn = true;
+      _isPremium = data['subscriptionStatus'] == 'active' &&
+          data['expiryDate']?.toDate().isAfter(DateTime.now());
+      _planType = data['planType'] ?? '';
+      notifyListeners();
+    }
+  }
+
   Future<void> saveToCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', _isLoggedIn);
@@ -89,5 +121,17 @@ class UserProvider with ChangeNotifier {
       }
       saveToCache(); // Salva alterações no cache
     });
+  }
+
+  bool hasActiveSubscription() {
+    return _expiryDate != null && _expiryDate!.isAfter(DateTime.now());
+  }
+
+  bool hasAdFreePlan() {
+    return _planType == 'ad_free' && hasActiveSubscription();
+  }
+
+  bool hasPremiumPlan() {
+    return _planType == 'premium' && hasActiveSubscription();
   }
 }

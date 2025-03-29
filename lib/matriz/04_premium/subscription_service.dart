@@ -103,24 +103,20 @@ class SubscriptionService {
   }
 
   Future<Map<String, dynamic>> getUserSubscriptionInfo(String uid) async {
-    final DocumentSnapshot snapshot =
-        await _firestore.collection('users').doc(uid).get();
-
-    if (!snapshot.exists) {
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (!snapshot.exists) return {'isPremium': false, 'planType': ''};
+      final data = snapshot.data() as Map<String, dynamic>;
+      return {
+        'isPremium': data['subscriptionStatus'] == 'active' &&
+            data['expiryDate']?.toDate().isAfter(DateTime.now()),
+        'planType': data['planType'] ?? '',
+        'expiryDate': data['expiryDate'],
+      };
+    } catch (e) {
+      debugPrint('Erro ao carregar informações de assinatura: $e');
       return {'isPremium': false, 'planType': ''};
     }
-
-    final data = snapshot.data() as Map<String, dynamic>;
-    final subscriptionStatus = data['subscriptionStatus'];
-    final expiryDate = data['expiryDate']?.toDate();
-    final planType = data['planType'];
-
-    if (subscriptionStatus == 'active' &&
-        expiryDate != null &&
-        expiryDate.isAfter(DateTime.now())) {
-      return {'isPremium': true, 'planType': planType};
-    }
-
-    return {'isPremium': false, 'planType': ''};
   }
 }
