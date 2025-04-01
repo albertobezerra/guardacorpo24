@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:guarda_corpo_2024/utils/utils.dart';
 
 class SuaConta extends StatelessWidget {
   const SuaConta({super.key});
@@ -29,7 +30,11 @@ class SuaConta extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Validade da Assinatura'),
-            subtitle: Text(userProvider.expiryDate?.toString() ?? 'N/A'),
+            subtitle: Text(
+              userProvider.expiryDate != null
+                  ? 'Válido até ${formatDate(userProvider.expiryDate)}'
+                  : 'Nenhuma assinatura ativa',
+            ),
           ),
           const Divider(),
           ListTile(

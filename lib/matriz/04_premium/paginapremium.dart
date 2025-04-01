@@ -1,9 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/GenericMessagePage.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:provider/provider.dart';
 
 class PremiumPage extends StatefulWidget {
   const PremiumPage({super.key});
@@ -23,47 +27,145 @@ class _PremiumPageState extends State<PremiumPage> {
     _loadProducts();
   }
 
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
   Future<void> _loadProducts() async {
     await _subscriptionService.initialize();
 
+    debugPrint('Carregando produtos...');
     final ProductDetailsResponse response =
         await InAppPurchase.instance.queryProductDetails(
       {'monthly_ad_free', 'monthly_full'}.toSet(),
     );
 
-    if (response.error != null || response.notFoundIDs.isNotEmpty) {
+    if (response.error != null) {
+      debugPrint('Erro ao carregar assinaturas: ${response.error?.message}');
+      _showSnackBar('Falha ao carregar planos: ${response.error?.message}');
       setState(() {
         isLoading = false;
       });
       return;
     }
 
+    if (response.notFoundIDs.isNotEmpty) {
+      debugPrint('Assinaturas não encontradas: ${response.notFoundIDs}');
+      _showSnackBar('Nenhum plano disponível no momento.');
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
+    debugPrint(
+        'Produtos encontrados: ${response.productDetails.map((p) => "${p.id}: ${p.price}")}');
     setState(() {
       products = response.productDetails;
       isLoading = false;
     });
   }
 
-  void _handlePurchase(BuildContext context, ProductDetails product) async {
-    try {
-      await _subscriptionService.purchaseProduct(product);
-      if (!context.mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => GenericMessagePage(
-            title: 'Compra Concluída',
-            message: product.id == 'monthly_ad_free'
-                ? 'Você agora está livre de publicidade!'
-                : 'Você agora tem acesso ao conteúdo premium!',
-          ),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao processar compra: $e')),
-      );
+  Future<void> _handlePurchase(
+      BuildContext context, ProductDetails product) async {
+    if (!await InAppPurchase.instance.isAvailable()) {
+      _showSnackBar('Compras não estão disponíveis.');
+      return;
     }
+
+    debugPrint('Iniciando compra para produto: ${product.id}');
+    try {
+      final purchase = await _subscriptionService.purchaseProduct(product);
+      if (purchase != null && purchase.status == PurchaseStatus.purchased) {
+        if (!context.mounted) return;
+        if (product.id == 'monthly_ad_free') {
+          _showSnackBar(
+              'Compra realizada com sucesso! Você agora está livre de publicidade.');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const GenericMessagePage(
+                title: 'Compra Concluída',
+                message: 'Você agora está livre de publicidade!',
+              ),
+            ),
+          );
+        } else if (product.id == 'monthly_full') {
+          _showSnackBar(
+              'Compra realizada com sucesso! Você agora tem acesso ao conteúdo premium.');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const GenericMessagePage(
+                title: 'Compra Concluída',
+                message: 'Você agora tem acesso ao conteúdo premium!',
+              ),
+            ),
+          );
+        }
+        await _updateUserSubscription(product.id, purchase);
+      } else {
+        _showSnackBar('Compra não concluída.');
+      }
+    } catch (e) {
+      _showSnackBar('Erro ao processar compra: $e');
+    }
+  }
+
+  Future<void> _updateUserSubscription(
+      String productId, PurchaseDetails purchase) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _showSnackBar('Usuário não autenticado.');
+      return;
+    }
+
+    final subscriptionType =
+        productId == 'monthly_ad_free' ? 'no_ads' : 'premium';
+    DateTime? transactionDate = purchase.transactionDate != null
+        ? DateTime.fromMillisecondsSinceEpoch(
+            int.parse(purchase.transactionDate!))
+        : DateTime.now();
+    DateTime subscriptionExpiresAt =
+        transactionDate.add(const Duration(days: 30));
+
+    if (!mounted) return;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.updateSubscription(
+      isLoggedIn: true,
+      isPremium: subscriptionType == 'premium',
+      planType: productId,
+      expiryDate: subscriptionExpiresAt,
+    );
+
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+        {
+          'planType': productId,
+          'expiryDate': Timestamp.fromDate(subscriptionExpiresAt),
+          'subscriptionStatus': 'active',
+        },
+        SetOptions(merge: true),
+      );
+      _showSnackBar('Assinatura ativada com sucesso!');
+    } catch (e) {
+      _showSnackBar('Erro ao salvar assinatura: $e');
+    }
+  }
+
+  bool _isPlanActive(String productId) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    return userProvider.planType == productId &&
+        userProvider.hasActiveSubscription();
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   @override
@@ -74,12 +176,17 @@ class _PremiumPageState extends State<PremiumPage> {
 
     if (products.isEmpty) {
       return Scaffold(
-        appBar: const CustomAppBar(title: 'Planos'),
+        appBar: const CustomAppBar(
+          title: 'Planos',
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Nenhum plano disponível no momento.'),
+              const Text(
+                'Não foi possível carregar os planos no momento.',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadProducts,
@@ -96,21 +203,29 @@ class _PremiumPageState extends State<PremiumPage> {
         title: 'Planos Premium',
         backgroundImageAsset: 'assets/images/compras.jpg',
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final product in products)
-            CustomPlanCard(
-              title: product.id == 'monthly_ad_free'
-                  ? 'Plano Básico'
-                  : 'Plano Full',
-              description: product.id == 'monthly_ad_free'
-                  ? 'Remove a publicidade.'
-                  : 'Desbloqueie todo o conteúdo exclusivo.',
-              price: product.price,
-              onPressed: () => _handlePurchase(context, product),
-            ),
-        ],
+      body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final product in products)
+                CustomPlanCard(
+                  title: product.id == 'monthly_ad_free'
+                      ? 'PLANO BÁSICO'
+                      : 'PLANO FULL',
+                  description: product.id == 'monthly_ad_free'
+                      ? 'Remove a publicidade.'
+                      : 'Desbloqueie todo o conteúdo exclusivo e remova a publicidade.',
+                  price: product.price,
+                  isEnabled: !_isPlanActive(product.id),
+                  infoText: _isPlanActive(product.id)
+                      ? 'Assinatura ativa até ${_formatDate(userProvider.expiryDate)}'
+                      : null,
+                  onPressed: () => _handlePurchase(context, product),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

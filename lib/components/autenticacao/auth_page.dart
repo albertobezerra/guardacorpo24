@@ -42,21 +42,29 @@ class AuthPageState extends State<AuthPage> {
       final subscriptionService = SubscriptionService();
       final subscriptionInfo =
           await subscriptionService.getUserSubscriptionInfo(user.uid);
-      if (!mounted) return;
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      userProvider.updateSubscription(
-        isLoggedIn: true,
-        isPremium: subscriptionInfo['isPremium'] ?? false,
-        planType: subscriptionInfo['planType'] ?? '',
-        expiryDate: subscriptionInfo['expiryDate']?.toDate(),
-      );
+
+      // Atualiza o estado no UserProvider
+      if (mounted) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.updateSubscription(
+          isLoggedIn: true,
+          isPremium: subscriptionInfo['isPremium'] ?? false,
+          planType: subscriptionInfo['planType'] ?? '',
+          expiryDate: subscriptionInfo['expiryDate']?.toDate(),
+        );
+        debugPrint('Status do usuário após login:');
+        debugPrint('isLoggedIn: ${userProvider.isLoggedIn}');
+        debugPrint('isPremium: ${userProvider.isPremium}');
+        debugPrint('planType: ${userProvider.planType}');
+        debugPrint('expiryDate: ${userProvider.expiryDate}');
+      }
 
       if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  const UserStatusWrapper(child: NavBarPage())),
+            builder: (context) => const UserStatusWrapper(child: NavBarPage()),
+          ),
         );
       }
     } catch (e) {
@@ -113,7 +121,6 @@ class AuthPageState extends State<AuthPage> {
   Future<void> _authenticate() async {
     if (!_validateInputs()) return;
     setState(() => _isLoading = true);
-
     try {
       if (_isLogin) {
         await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -128,29 +135,27 @@ class AuthPageState extends State<AuthPage> {
         );
         await userCredential.user!
             .updateDisplayName(_nameController.text.trim());
-        await saveUserDetails(
-          userCredential.user!.uid,
-          _nameController.text.trim(),
-          _emailController.text.trim(),
-        );
+        await saveUserDetails(userCredential.user!.uid,
+            _nameController.text.trim(), _emailController.text.trim());
       }
-
       final user = FirebaseAuth.instance.currentUser!;
       final subscriptionInfo =
           await SubscriptionService().getUserSubscriptionInfo(user.uid);
-      if (!mounted) return;
-
-      Provider.of<UserProvider>(context, listen: false).updateSubscription(
-        isLoggedIn: true,
-        isPremium: subscriptionInfo['isPremium'] ?? false,
-        planType: subscriptionInfo['planType'] ?? '',
-        expiryDate: subscriptionInfo['expiryDate']?.toDate(),
-      );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const NavBarPage()),
-      );
+      if (mounted) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.updateSubscription(
+          isLoggedIn: true,
+          isPremium: subscriptionInfo['isPremium'] ?? false,
+          planType: subscriptionInfo['planType'] ?? '',
+          expiryDate: subscriptionInfo['expiryDate']?.toDate(),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  const UserStatusWrapper(child: NavBarPage())),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
@@ -166,13 +171,18 @@ class AuthPageState extends State<AuthPage> {
         default:
           errorMessage = 'Erro desconhecido. Por favor, tente novamente.';
       }
-      Provider.of<UserProvider>(context, listen: false).setError(errorMessage);
-      _showSnackBar(errorMessage);
+      if (mounted) {
+        Provider.of<UserProvider>(context, listen: false)
+            .setError(errorMessage);
+        _showSnackBar(errorMessage);
+      }
     } catch (e) {
       debugPrint('Erro ao autenticar: $e');
-      Provider.of<UserProvider>(context, listen: false)
-          .setError('Erro ao conectar ao servidor.');
-      _showSnackBar('Erro ao conectar ao servidor.');
+      if (mounted) {
+        Provider.of<UserProvider>(context, listen: false)
+            .setError('Erro desconhecido. Por favor, tente novamente.');
+        _showSnackBar('Erro desconhecido. Por favor, tente novamente.');
+      }
     } finally {
       setState(() => _isLoading = false);
     }

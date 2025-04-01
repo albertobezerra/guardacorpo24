@@ -31,11 +31,17 @@ class SubscriptionService {
         purchase.status == PurchaseStatus.restored) {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        DateTime? transactionDate = purchase.transactionDate != null
+            ? DateTime.fromMillisecondsSinceEpoch(
+                int.parse(purchase.transactionDate!))
+            : DateTime.now();
+        DateTime expiryDate = transactionDate.add(const Duration(days: 30));
+
         await _firestore.collection('users').doc(user.uid).set(
           {
-            'subscriptionStatus': 'active',
-            'expiryDate': DateTime.now().add(const Duration(days: 30)),
             'planType': purchase.productID,
+            'expiryDate': Timestamp.fromDate(expiryDate),
+            'subscriptionStatus': 'active',
           },
           SetOptions(merge: true),
         );
@@ -61,45 +67,50 @@ class SubscriptionService {
     }
   }
 
-  Future<void> purchaseProduct(ProductDetails product) async {
+  Future<PurchaseDetails?> purchaseProduct(ProductDetails product) async {
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
 
-    final Stream<List<PurchaseDetails>> purchaseUpdatedStream =
-        _inAppPurchase.purchaseStream;
-
     await for (final List<PurchaseDetails> purchaseDetailsList
-        in purchaseUpdatedStream) {
+        in _inAppPurchase.purchaseStream) {
       for (final PurchaseDetails purchase in purchaseDetailsList) {
         if (purchase.status == PurchaseStatus.purchased ||
             purchase.status == PurchaseStatus.restored) {
           final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
+            DateTime? transactionDate = purchase.transactionDate != null
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    int.parse(purchase.transactionDate!))
+                : DateTime.now();
+            DateTime expiryDate = transactionDate.add(const Duration(days: 30));
+
             await _firestore.collection('users').doc(user.uid).set(
               {
-                'subscriptionStatus': 'active',
-                'expiryDate': DateTime.now().add(const Duration(days: 30)),
                 'planType': product.id,
+                'expiryDate': Timestamp.fromDate(expiryDate),
+                'subscriptionStatus': 'active',
               },
               SetOptions(merge: true),
             );
           }
-          return;
+          return purchase;
         } else if (purchase.status == PurchaseStatus.error) {
           throw Exception(
               'Erro ao processar compra: ${purchase.error?.message}');
         }
       }
     }
+    return null;
   }
 
   Future<bool> isUserPremium(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     if (!doc.exists) return false;
-
     final data = doc.data()!;
     final expiryDate = data['expiryDate']?.toDate();
-    return expiryDate != null && expiryDate.isAfter(DateTime.now());
+    return data['subscriptionStatus'] == 'active' &&
+        expiryDate != null &&
+        expiryDate.isAfter(DateTime.now());
   }
 
   Future<Map<String, dynamic>> getUserSubscriptionInfo(String uid) async {

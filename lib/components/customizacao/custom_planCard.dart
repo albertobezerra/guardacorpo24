@@ -18,38 +18,67 @@ class CustomPlanCard extends StatelessWidget {
     required this.onPressed,
   });
 
+  static const Color borderAndTextColor = Color.fromARGB(255, 0, 104, 55);
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(8),
+    return GestureDetector(
+      onTap: isEnabled ? onPressed : null, // Card inteiro é clicável
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(description),
-            const SizedBox(height: 8),
-            Text(price,
-                style: const TextStyle(fontSize: 16, color: Colors.green)),
-            if (infoText != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child:
-                    Text(infoText!, style: const TextStyle(color: Colors.blue)),
-              ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: isEnabled ? onPressed : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isEnabled ? Colors.blue : Colors.grey,
-              ),
-              child: Text(isEnabled ? 'Assinar' : 'Já Ativo'),
+        padding: const EdgeInsets.only(left: 12, right: 12),
+        child: Card(
+          elevation: 0, // Remove sombra para um visual mais limpo
+          color: Colors.transparent, // Sem cor de fundo
+          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(
+              color: borderAndTextColor, // Borda verde escura
+              width: 2,
             ),
-          ],
+          ),
+          child: Container(
+            width: double.infinity, // Ocupa toda a largura da tela
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: borderAndTextColor, // Verde escuro
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    color: borderAndTextColor, // Verde escuro
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  price,
+                  style: const TextStyle(
+                    color: borderAndTextColor, // Verde escuro
+                    fontSize: 16,
+                  ),
+                ),
+                if (infoText != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      infoText!,
+                      style: const TextStyle(
+                        color: borderAndTextColor, // Verde escuro
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

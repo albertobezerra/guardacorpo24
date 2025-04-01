@@ -1,30 +1,45 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
-import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProvider with ChangeNotifier {
-  // Estados iniciais
   bool _isLoggedIn = false;
   bool _isPremium = false;
   String _planType = '';
   DateTime? _expiryDate;
-  String _error = ''; // Mensagem de erro
+  String? _errorMessage;
 
-  // Getters
   bool get isLoggedIn => _isLoggedIn;
   bool get isPremium => _isPremium;
   String get planType => _planType;
   DateTime? get expiryDate => _expiryDate;
-  String get error => _error;
+  String? get errorMessage => _errorMessage;
 
-  bool get hasNoAds => _planType == 'ad_free' || _planType == 'premium';
-  bool get hasPremiumAccess =>
-      _isPremium && _expiryDate?.isAfter(DateTime.now()) == true;
+  Future<void> loadFromCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    _isPremium = prefs.getBool('isPremium') ?? false;
+    _planType = prefs.getString('planType') ?? '';
+    final expiryMillis = prefs.getInt('expiryDate');
+    _expiryDate = expiryMillis != null
+        ? DateTime.fromMillisecondsSinceEpoch(expiryMillis)
+        : null;
+    notifyListeners();
+  }
 
-  // Atualiza o estado do usuário
+  Future<void> saveToCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', _isLoggedIn);
+    await prefs.setBool('isPremium', _isPremium);
+    await prefs.setString('planType', _planType);
+    if (_expiryDate != null) {
+      await prefs.setInt('expiryDate', _expiryDate!.millisecondsSinceEpoch);
+    } else {
+      await prefs.remove('expiryDate');
+    }
+  }
+
   void updateSubscription({
     required bool isLoggedIn,
     required bool isPremium,
@@ -35,103 +50,87 @@ class UserProvider with ChangeNotifier {
     _isPremium = isPremium;
     _planType = planType;
     _expiryDate = expiryDate;
+    _errorMessage = null;
     notifyListeners();
   }
 
-  void checkSubscriptionStatus() {
-    if (_expiryDate != null && _expiryDate!.isBefore(DateTime.now())) {
-      _isPremium = false;
-      _planType = '';
-      notifyListeners();
-    }
-  }
-
-  // Reseta o estado do usuário
   void resetSubscription() {
     _isLoggedIn = false;
     _isPremium = false;
     _planType = '';
     _expiryDate = null;
-    _error = '';
+    _errorMessage = null;
     notifyListeners();
   }
 
-  // Trata erros
-  void setError(String errorMessage) {
-    _error = errorMessage;
+  bool hasActiveSubscription() {
+    if (_expiryDate == null) return false;
+    return _expiryDate!.isAfter(DateTime.now());
+  }
+
+  bool hasPremiumPlan() {
+    return hasActiveSubscription() && _planType == 'monthly_full';
+  }
+
+  bool hasAdFreePlan() {
+    return hasActiveSubscription() && _planType == 'monthly_ad_free';
+  }
+
+  void setError(String error) {
+    _errorMessage = error;
     notifyListeners();
   }
 
-  Future<void> loadFromCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    _isPremium = prefs.getBool('isPremium') ?? false;
-    _planType = prefs.getString('planType') ?? '';
-    final expiryTimestamp = prefs.getInt('expiryDate');
-    _expiryDate = expiryTimestamp != null
-        ? DateTime.fromMillisecondsSinceEpoch(expiryTimestamp)
-        : null;
-    notifyListeners();
-  }
-
-  void logout(BuildContext context) {
-    FirebaseAuth.instance.signOut();
+  void logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
     resetSubscription();
-    saveToCache();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const AuthPage()),
-    );
-  }
-
-  Future<void> loadUserData(String uid) async {
-    final snapshot =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (snapshot.exists) {
-      final data = snapshot.data() as Map<String, dynamic>;
-      _isLoggedIn = true;
-      _isPremium = data['subscriptionStatus'] == 'active' &&
-          data['expiryDate']?.toDate().isAfter(DateTime.now());
-      _planType = data['planType'] ?? '';
-      notifyListeners();
+    await saveToCache();
+    if (context.mounted) {
+      Navigator.pushReplacementNamed(
+          context, '/auth'); // Ajuste a rota conforme seu app
     }
-  }
-
-  Future<void> saveToCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', _isLoggedIn);
-    await prefs.setBool('isPremium', _isPremium);
-    await prefs.setString('planType', _planType);
-    await prefs.setInt('expiryDate', _expiryDate?.millisecondsSinceEpoch ?? 0);
   }
 
   void startFirebaseListener(BuildContext context) {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
         resetSubscription();
+        await saveToCache();
       } else {
-        final subscriptionInfo =
-            await SubscriptionService().getUserSubscriptionInfo(user.uid);
-        updateSubscription(
-          isLoggedIn: true,
-          isPremium: subscriptionInfo['isPremium'] ?? false,
-          planType: subscriptionInfo['planType'] ?? '',
-          expiryDate: subscriptionInfo['expiryDate']?.toDate(),
-        );
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots()
+            .listen((snapshot) async {
+          if (snapshot.exists) {
+            final data = snapshot.data()!;
+            final expiryDate = (data['expiryDate'] as Timestamp?)?.toDate();
+            final planType = data['planType'] ?? '';
+            final isPremium = planType == 'monthly_full' &&
+                expiryDate != null &&
+                expiryDate.isAfter(DateTime.now());
+
+            updateSubscription(
+              isLoggedIn: true,
+              isPremium: isPremium,
+              planType: planType,
+              expiryDate: expiryDate,
+            );
+
+            // Atualiza o status no Firestore se expirado
+            if (expiryDate != null && !expiryDate.isAfter(DateTime.now())) {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .update({
+                'subscriptionStatus': 'inactive',
+              });
+            }
+
+            await saveToCache();
+          }
+        });
       }
-      saveToCache(); // Salva alterações no cache
     });
-  }
-
-  bool hasActiveSubscription() {
-    return _expiryDate != null && _expiryDate!.isAfter(DateTime.now());
-  }
-
-  bool hasAdFreePlan() {
-    return _planType == 'ad_free' && hasActiveSubscription();
-  }
-
-  bool hasPremiumPlan() {
-    return _planType == 'premium' && hasActiveSubscription();
   }
 }

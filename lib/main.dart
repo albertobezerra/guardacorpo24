@@ -89,14 +89,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Provider.of<UserProvider>(context, listen: false)
-            .startFirebaseListener(context);
-      }
-    });
     _subscriptionService.startPurchaseListener(context, const NavBarPage());
-    checkForUpdate(); // Verifica se há atualizações disponíveis
+    checkForUpdate();
   }
 
   Future<void> checkForUpdate() async {
@@ -128,7 +122,6 @@ class _MyAppState extends State<MyApp> {
           });
         }
       }
-      // Define que o splash já foi mostrado após a atualização
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('hasShownSplash', true);
     } catch (e) {
@@ -137,7 +130,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget getHomePageBasedOnPlan(String planType) {
-    // Todos os usuários começam no NavBarPage
     return const NavBarPage();
   }
 
@@ -148,95 +140,105 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => InspecaoProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          fontFamily: 'Segoe',
-          brightness: Brightness.light,
-          primarySwatch: Colors.blue,
-        ),
-        darkTheme: ThemeData(
-          fontFamily: 'Segoe',
-          brightness: Brightness.dark,
-          primarySwatch: Colors.blue,
-        ),
-        themeMode: ThemeMode.system,
-        supportedLocales: const [
-          Locale('en', 'US'),
-          Locale('pt', 'BR'),
-        ],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        home: FutureBuilder<List<bool>>(
-          future: Preferences.checkOnboardingAndSplash(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const SplashScreen(); // Loader temporário
+      child: Builder(
+        builder: (context) {
+          // Inicializa o listener do UserProvider após o MultiProvider
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Provider.of<UserProvider>(context, listen: false)
+                  .startFirebaseListener(context);
             }
-            final hasCompletedOnboarding = snapshot.data![0];
-            final hasShownSplash = snapshot.data![1];
-            if (!hasCompletedOnboarding) {
-              return const OnboardingPage();
-            }
-            return StreamBuilder<User?>(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, userSnapshot) {
-                if (userSnapshot.connectionState == ConnectionState.waiting) {
-                  return const SplashScreen(); // Carregamento inicial
+          });
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              fontFamily: 'Segoe',
+              brightness: Brightness.light,
+              primarySwatch: Colors.blue,
+            ),
+            darkTheme: ThemeData(
+              fontFamily: 'Segoe',
+              brightness: Brightness.dark,
+              primarySwatch: Colors.blue,
+            ),
+            themeMode: ThemeMode.system,
+            supportedLocales: const [
+              Locale('en', 'US'),
+              Locale('pt', 'BR'),
+            ],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: FutureBuilder<List<bool>>(
+              future: Preferences.checkOnboardingAndSplash(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const SplashScreen(); // Loader temporário
                 }
-                if (userSnapshot.hasData) {
-                  final user = userSnapshot.data!;
-                  return FutureBuilder<Map<String, dynamic>>(
-                    future:
-                        _subscriptionService.getUserSubscriptionInfo(user.uid),
-                    builder: (context, subscriptionSnapshot) {
-                      if (subscriptionSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const SplashScreen(); // Carregamento do status premium
-                      }
-                      if (subscriptionSnapshot.hasError) {
-                        debugPrint(
-                            'Erro ao carregar informações de assinatura: ${subscriptionSnapshot.error}');
-                        return Scaffold(
-                          body: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                    'Ocorreu um erro ao carregar suas informações.'),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {}); // Tenta novamente
-                                  },
-                                  child: const Text('Tentar Novamente'),
+                final hasCompletedOnboarding = snapshot.data![0];
+                final hasShownSplash = snapshot.data![1];
+                if (!hasCompletedOnboarding) {
+                  return const OnboardingPage();
+                }
+                return StreamBuilder<User?>(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (context, userSnapshot) {
+                    if (userSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const SplashScreen(); // Carregamento inicial
+                    }
+                    if (userSnapshot.hasData) {
+                      final user = userSnapshot.data!;
+                      return FutureBuilder<Map<String, dynamic>>(
+                        future: _subscriptionService
+                            .getUserSubscriptionInfo(user.uid),
+                        builder: (context, subscriptionSnapshot) {
+                          if (subscriptionSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SplashScreen(); // Carregamento do status premium
+                          }
+                          if (subscriptionSnapshot.hasError) {
+                            debugPrint(
+                                'Erro ao carregar informações de assinatura: ${subscriptionSnapshot.error}');
+                            return Scaffold(
+                              body: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                        'Ocorreu um erro ao carregar suas informações.'),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {}); // Tenta novamente
+                                      },
+                                      child: const Text('Tentar Novamente'),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                      subscriptionSnapshot.data?['isPremium'] ?? false;
-                      final planType =
-                          subscriptionSnapshot.data?['planType'] ?? '';
-
-                      // Redireciona para a tela principal
-                      return UserStatusWrapper(
-                        child: getHomePageBasedOnPlan(planType),
+                              ),
+                            );
+                          }
+                          subscriptionSnapshot.data?['isPremium'] ?? false;
+                          final planType =
+                              subscriptionSnapshot.data?['planType'] ?? '';
+                          return UserStatusWrapper(
+                            child: getHomePageBasedOnPlan(planType),
+                          );
+                        },
                       );
-                    },
-                  );
-                }
-                if (hasShownSplash) {
-                  return const AuthPage();
-                }
-                return const SplashScreen();
+                    }
+                    if (hasShownSplash) {
+                      return const AuthPage();
+                    }
+                    return const SplashScreen();
+                  },
+                );
               },
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
