@@ -9,7 +9,7 @@ class UserProvider with ChangeNotifier {
   String _planType = '';
   DateTime? _expiryDate;
   String? _errorMessage;
-  bool _hasEverSubscribedPremium = false; // Rastreia se já assinou monthly_full
+  bool _hasEverSubscribedPremium = false;
 
   bool get isLoggedIn => _isLoggedIn;
   bool get isPremium => _isPremium;
@@ -17,6 +17,10 @@ class UserProvider with ChangeNotifier {
   DateTime? get expiryDate => _expiryDate;
   String? get errorMessage => _errorMessage;
   bool get hasEverSubscribedPremium => _hasEverSubscribedPremium;
+
+  UserProvider() {
+    loadFromCache();
+  }
 
   Future<void> saveToCache() async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,6 +52,7 @@ class UserProvider with ChangeNotifier {
     _errorMessage = null;
     debugPrint(
         'Estado atualizado - isPremium: $_isPremium, planType: $_planType, hasEverSubscribedPremium: $_hasEverSubscribedPremium');
+    saveToCache();
     notifyListeners();
   }
 
@@ -57,23 +62,30 @@ class UserProvider with ChangeNotifier {
     _planType = '';
     _expiryDate = null;
     _errorMessage = null;
-    // Não reseta _hasEverSubscribedPremium, pois é histórico
     notifyListeners();
+    saveToCache();
+  }
+
+  // UserProvider (ajustado)
+  bool hasActiveSubscription() {
+    return _planType.isNotEmpty &&
+        _expiryDate != null &&
+        _expiryDate!.isAfter(DateTime.now()) &&
+        (_planType == 'monthly_full' || _planType == 'monthly_ad_free');
   }
 
   bool canAccessPremiumScreen() {
-    return hasActiveSubscription(); // Apenas assinatura ativa dá acesso ao conteúdo Premium
+    return hasActiveSubscription() &&
+        _planType ==
+            'monthly_full'; // Apenas monthly_full libera conteúdo Premium
+  }
+
+  bool isAdFree() {
+    return hasActiveSubscription(); // Ambos os planos desativam anúncios
   }
 
   bool canAccessPremiumSubscriptionPage() {
-    return true; // Todos podem acessar a tela de assinatura
-  }
-
-  bool hasActiveSubscription() {
-    return _isPremium &&
-        _planType.isNotEmpty &&
-        _expiryDate != null &&
-        _expiryDate!.isAfter(DateTime.now());
+    return true;
   }
 
   bool hasPremiumPlan() {
@@ -92,7 +104,6 @@ class UserProvider with ChangeNotifier {
   void logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     resetSubscription();
-    await saveToCache();
     if (context.mounted) {
       Navigator.pushReplacementNamed(context, '/auth');
     }
@@ -102,7 +113,6 @@ class UserProvider with ChangeNotifier {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
         resetSubscription();
-        await saveToCache();
       } else {
         FirebaseFirestore.instance
             .collection('users')
@@ -113,11 +123,14 @@ class UserProvider with ChangeNotifier {
             final data = snapshot.data()!;
             final expiryDate = (data['expiryDate'] as Timestamp?)?.toDate();
             final planType = data['planType'] ?? '';
-            final isPremium = planType == 'monthly_full' &&
+            final subscriptionStatus = data['subscriptionStatus'] ?? 'inactive';
+            final isPremium = subscriptionStatus == 'active' &&
                 expiryDate != null &&
                 expiryDate.isAfter(DateTime.now());
             final hasEverSubscribedPremium =
-                data['hasEverSubscribedPremium'] ?? false;
+                data['hasEverSubscribedPremium'] is bool
+                    ? data['hasEverSubscribedPremium']
+                    : false;
 
             debugPrint(
                 'Firestore - planType: $planType, expiryDate: $expiryDate, isPremium: $isPremium, hasEverSubscribedPremium: $hasEverSubscribedPremium');
@@ -138,8 +151,6 @@ class UserProvider with ChangeNotifier {
                 'subscriptionStatus': 'inactive',
               });
             }
-
-            await saveToCache(); // Garante que o cache seja atualizado
           }
         });
       }

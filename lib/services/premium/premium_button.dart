@@ -22,13 +22,13 @@ class PremiumButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
-        final hasActiveSubscription = userProvider.hasActiveSubscription();
+        final canAccessPremium = userProvider.canAccessPremiumScreen();
         debugPrint(
-            'PremiumButton - hasActiveSubscription: $hasActiveSubscription, planType: ${userProvider.planType}');
+            'PremiumButton - canAccessPremium: $canAccessPremium, planType: ${userProvider.planType}');
 
         return MaterialButton(
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-          onPressed: () => _handleButtonPress(context, hasActiveSubscription),
+          onPressed: () => _handleButtonPress(context, canAccessPremium),
           child: Stack(
             children: [
               Container(
@@ -38,7 +38,7 @@ class PremiumButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                   image: DecorationImage(
                     image: ExactAssetImage(imagePath),
-                    colorFilter: !hasActiveSubscription
+                    colorFilter: !canAccessPremium
                         ? const ColorFilter.mode(
                             Colors.grey, BlendMode.saturation)
                         : null,
@@ -52,13 +52,13 @@ class PremiumButton extends StatelessWidget {
                 child: Text(
                   buttonText.toUpperCase(),
                   style: TextStyle(
-                    color: !hasActiveSubscription ? Colors.grey : Colors.white,
+                    color: !canAccessPremium ? Colors.grey : Colors.white,
                     fontFamily: 'Segoe Bold',
                     fontSize: 16,
                   ),
                 ),
               ),
-              if (!hasActiveSubscription)
+              if (!canAccessPremium)
                 Positioned(
                   right: 8,
                   top: 8,
@@ -85,10 +85,9 @@ class PremiumButton extends StatelessWidget {
     );
   }
 
-  void _handleButtonPress(BuildContext context, bool hasActiveSubscription) {
-    debugPrint(
-        'handleButtonPress - hasActiveSubscription: $hasActiveSubscription');
-    if (hasActiveSubscription) {
+  void _handleButtonPress(BuildContext context, bool canAccessPremium) {
+    debugPrint('handleButtonPress - canAccessPremium: $canAccessPremium');
+    if (canAccessPremium) {
       debugPrint('Acessando tela premium...');
       Navigator.push(
         context,

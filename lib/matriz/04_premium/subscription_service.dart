@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:provider/provider.dart';
+import '../../services/provider/userProvider.dart';
 
 class SubscriptionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -14,19 +16,19 @@ class SubscriptionService {
     }
   }
 
-  void startPurchaseListener(BuildContext context, Widget child) {
+  void startPurchaseListener(BuildContext context, Widget homePage) {
     _inAppPurchase.purchaseStream.listen((purchaseDetailsList) {
       for (final purchase in purchaseDetailsList) {
         if (!context.mounted) return;
-        handlePurchase(purchase, context, child);
+        _handlePurchase(purchase, context, homePage);
       }
     }, onError: (error) {
       debugPrint('Erro ao ouvir stream de compras: $error');
     });
   }
 
-  Future<void> handlePurchase(
-      PurchaseDetails purchase, BuildContext context, Widget child) async {
+  Future<void> _handlePurchase(
+      PurchaseDetails purchase, BuildContext context, Widget homePage) async {
     if (purchase.status == PurchaseStatus.purchased ||
         purchase.status == PurchaseStatus.restored) {
       final user = FirebaseAuth.instance.currentUser;
@@ -37,24 +39,47 @@ class SubscriptionService {
             : DateTime.now();
         DateTime expiryDate = transactionDate.add(const Duration(days: 30));
 
+        final currentHasEverSubscribed =
+            await _getCurrentHasEverSubscribedPremium(user.uid);
+        final hasEverSubscribedPremium =
+            purchase.productID == 'monthly_full' || currentHasEverSubscribed;
+
         await _firestore.collection('users').doc(user.uid).set(
           {
             'planType': purchase.productID,
             'expiryDate': Timestamp.fromDate(expiryDate),
             'subscriptionStatus': 'active',
             'subscription': FieldValue.delete(),
-            'hasEverSubscribedPremium': purchase.productID == 'monthly_full'
-                ? true
-                : FieldValue.serverTimestamp(),
+            'hasEverSubscribedPremium': hasEverSubscribedPremium,
           },
           SetOptions(merge: true),
         );
 
         if (context.mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => child),
+          final userProvider =
+              Provider.of<UserProvider>(context, listen: false);
+          userProvider.updateSubscription(
+            isLoggedIn: true,
+            isPremium: purchase.productID == 'monthly_full',
+            planType: purchase.productID,
+            expiryDate: expiryDate,
+            hasEverSubscribedPremium: hasEverSubscribedPremium,
           );
+        }
+
+        if (purchase.pendingCompletePurchase) {
+          await _inAppPurchase.completePurchase(purchase);
+        }
+
+        if (context.mounted) {
+          await _showSuccessAlert(context, purchase.productID);
+          if (context.mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => homePage),
+              (route) => false,
+            );
+          }
         }
       }
     } else if (purchase.status == PurchaseStatus.error) {
@@ -66,6 +91,15 @@ class SubscriptionService {
         );
       }
     }
+  }
+
+  Future<bool> _getCurrentHasEverSubscribedPremium(String uid) async {
+    final snapshot = await _firestore.collection('users').doc(uid).get();
+    if (!snapshot.exists) return false;
+    final data = snapshot.data();
+    return data != null && data['hasEverSubscribedPremium'] is bool
+        ? data['hasEverSubscribedPremium']
+        : false;
   }
 
   Future<PurchaseDetails?> purchaseProduct(ProductDetails product) async {
@@ -86,6 +120,11 @@ class SubscriptionService {
                 : DateTime.now();
             DateTime expiryDate = transactionDate.add(const Duration(days: 30));
 
+            final currentHasEverSubscribed =
+                await _getCurrentHasEverSubscribedPremium(user.uid);
+            final hasEverSubscribedPremium =
+                product.id == 'monthly_full' || currentHasEverSubscribed;
+
             debugPrint(
                 'Compra confirmada - planType: ${product.id}, expiryDate: $expiryDate');
             await _firestore.collection('users').doc(user.uid).set(
@@ -94,12 +133,29 @@ class SubscriptionService {
                 'expiryDate': Timestamp.fromDate(expiryDate),
                 'subscriptionStatus': 'active',
                 'subscription': FieldValue.delete(),
-                'hasEverSubscribedPremium': product.id == 'monthly_full'
-                    ? true
-                    : FieldValue.serverTimestamp(),
+                'hasEverSubscribedPremium': hasEverSubscribedPremium,
               },
               SetOptions(merge: true),
             );
+
+            final context = navigatorKey.currentContext;
+            if (context != null && context.mounted) {
+              final userProvider =
+                  Provider.of<UserProvider>(context, listen: false);
+              userProvider.updateSubscription(
+                isLoggedIn: true,
+                isPremium: product.id == 'monthly_full',
+                planType: product.id,
+                expiryDate: expiryDate,
+                hasEverSubscribedPremium: hasEverSubscribedPremium,
+              );
+
+              await _showSuccessAlert(context, product.id);
+            }
+
+            if (purchase.pendingCompletePurchase) {
+              await _inAppPurchase.completePurchase(purchase);
+            }
           }
           return purchase;
         } else if (purchase.status == PurchaseStatus.error) {
@@ -110,6 +166,27 @@ class SubscriptionService {
       }
     }
     return null;
+  }
+
+  Future<void> _showSuccessAlert(BuildContext context, String productId) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Compra Concluída!'),
+        content: Text(
+          'Você adquiriu o plano "${productId == 'monthly_full' ? 'Premium' : 'Livre de Publicidade'}" com sucesso!',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool> isUserPremium(String uid) async {
@@ -124,8 +201,7 @@ class SubscriptionService {
 
   Future<Map<String, dynamic>> getUserSubscriptionInfo(String uid) async {
     try {
-      final snapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final snapshot = await _firestore.collection('users').doc(uid).get();
       if (!snapshot.exists) return {'isPremium': false, 'planType': ''};
       final data = snapshot.data() as Map<String, dynamic>;
       return {
@@ -140,3 +216,5 @@ class SubscriptionService {
     }
   }
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

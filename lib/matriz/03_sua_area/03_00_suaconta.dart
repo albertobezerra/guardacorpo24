@@ -43,7 +43,7 @@ class SuaConta extends StatelessWidget {
             onTap: () {
               final userProvider =
                   Provider.of<UserProvider>(context, listen: false);
-              userProvider.logout(context); // Chama o método de logout
+              userProvider.logout(context);
             },
           ),
         ],

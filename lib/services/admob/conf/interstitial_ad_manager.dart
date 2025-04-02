@@ -28,9 +28,9 @@ class InterstitialAdManager {
 
   static void showInterstitialAd(BuildContext context, Widget nextPage) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final showAds = !userProvider.hasActiveSubscription();
+    final showAds = !userProvider.isAdFree();
     debugPrint(
-        'InterstitialAdManager - showAds: $showAds, hasActiveSubscription: ${userProvider.hasActiveSubscription()}');
+        'InterstitialAdManager - showAds: $showAds, planType: ${userProvider.planType}');
 
     if (!showAds) {
       if (!context.mounted) return;
@@ -61,7 +61,6 @@ class InterstitialAdManager {
         },
       );
     } else {
-      debugPrint('Anúncio intersticial não está pronto');
       if (!context.mounted) return;
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => nextPage));
