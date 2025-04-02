@@ -83,9 +83,7 @@ class _PremiumPageState extends State<PremiumPage> {
       if (purchase != null && purchase.status == PurchaseStatus.purchased) {
         if (!context.mounted) return;
         if (product.id == 'monthly_ad_free') {
-          _showSnackBar(
-              'Compra realizada com sucesso! Você agora está livre de publicidade.');
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const GenericMessagePage(
@@ -95,9 +93,7 @@ class _PremiumPageState extends State<PremiumPage> {
             ),
           );
         } else if (product.id == 'monthly_full') {
-          _showSnackBar(
-              'Compra realizada com sucesso! Você agora tem acesso ao conteúdo premium.');
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const GenericMessagePage(
@@ -124,8 +120,6 @@ class _PremiumPageState extends State<PremiumPage> {
       return;
     }
 
-    final subscriptionType =
-        productId == 'monthly_ad_free' ? 'no_ads' : 'premium';
     DateTime? transactionDate = purchase.transactionDate != null
         ? DateTime.fromMillisecondsSinceEpoch(
             int.parse(purchase.transactionDate!))
@@ -137,9 +131,12 @@ class _PremiumPageState extends State<PremiumPage> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     userProvider.updateSubscription(
       isLoggedIn: true,
-      isPremium: subscriptionType == 'premium',
+      isPremium: productId == 'monthly_full',
       planType: productId,
       expiryDate: subscriptionExpiresAt,
+      hasEverSubscribedPremium: productId == 'monthly_full'
+          ? true
+          : userProvider.hasEverSubscribedPremium,
     );
 
     try {
@@ -148,6 +145,10 @@ class _PremiumPageState extends State<PremiumPage> {
           'planType': productId,
           'expiryDate': Timestamp.fromDate(subscriptionExpiresAt),
           'subscriptionStatus': 'active',
+          'subscription': FieldValue.delete(),
+          'hasEverSubscribedPremium': productId == 'monthly_full'
+              ? true
+              : FieldValue.serverTimestamp(), // Mantém se já existia
         },
         SetOptions(merge: true),
       );
@@ -161,6 +162,17 @@ class _PremiumPageState extends State<PremiumPage> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     return userProvider.planType == productId &&
         userProvider.hasActiveSubscription();
+  }
+
+  bool _isPlanEnabled(String productId) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.planType == 'monthly_full' &&
+        userProvider.hasActiveSubscription()) {
+      // Se monthly_full está ativo, desativa todos os outros planos
+      return false;
+    }
+    // Caso contrário, permite comprar qualquer plano não ativo
+    return !_isPlanActive(productId);
   }
 
   String _formatDate(DateTime? date) {
@@ -200,7 +212,7 @@ class _PremiumPageState extends State<PremiumPage> {
 
     return Scaffold(
       appBar: const CustomAppBar(
-        title: 'Planos Premium',
+        title: 'Planos de Assinatura',
         backgroundImageAsset: 'assets/images/compras.jpg',
       ),
       body: Consumer<UserProvider>(
@@ -217,7 +229,7 @@ class _PremiumPageState extends State<PremiumPage> {
                       ? 'Remove a publicidade.'
                       : 'Desbloqueie todo o conteúdo exclusivo e remova a publicidade.',
                   price: product.price,
-                  isEnabled: !_isPlanActive(product.id),
+                  isEnabled: _isPlanEnabled(product.id),
                   infoText: _isPlanActive(product.id)
                       ? 'Assinatura ativa até ${_formatDate(userProvider.expiryDate)}'
                       : null,

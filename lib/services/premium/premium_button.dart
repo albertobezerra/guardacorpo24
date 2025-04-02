@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/carregamento/barradecarregamento.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:provider/provider.dart';
 
 class PremiumButton extends StatelessWidget {
   final String buttonText;
   final String imagePath;
-  final Widget destinationScreen; // Tela premium
+  final Widget destinationScreen;
   final double buttonHeight;
 
   const PremiumButton({
@@ -20,27 +20,17 @@ class PremiumButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
-    return FutureBuilder<bool>(
-      future: user != null
-          ? SubscriptionService().isUserPremium(user.uid)
-          : Future.value(false),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          debugPrint('Aguardando verificação do status premium...');
-          return const CustomLoadingIndicator(); // Loading personalizado
-        }
-
-        final isPremium = snapshot.data ?? false;
-        debugPrint('Status premium: $isPremium');
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final hasActiveSubscription = userProvider.hasActiveSubscription();
+        debugPrint(
+            'PremiumButton - hasActiveSubscription: $hasActiveSubscription, planType: ${userProvider.planType}');
 
         return MaterialButton(
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-          onPressed: () => _handleButtonPress(context, isPremium),
+          onPressed: () => _handleButtonPress(context, hasActiveSubscription),
           child: Stack(
             children: [
-              // Imagem do botão (cinza para não premium)
               Container(
                 width: MediaQuery.of(context).size.width,
                 height: buttonHeight,
@@ -48,7 +38,7 @@ class PremiumButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                   image: DecorationImage(
                     image: ExactAssetImage(imagePath),
-                    colorFilter: !isPremium
+                    colorFilter: !hasActiveSubscription
                         ? const ColorFilter.mode(
                             Colors.grey, BlendMode.saturation)
                         : null,
@@ -56,23 +46,19 @@ class PremiumButton extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Texto do botão (cinza para não premium)
               Positioned(
                 left: 12,
                 bottom: 8,
                 child: Text(
                   buttonText.toUpperCase(),
                   style: TextStyle(
-                    color: !isPremium ? Colors.grey : Colors.white,
+                    color: !hasActiveSubscription ? Colors.grey : Colors.white,
                     fontFamily: 'Segoe Bold',
                     fontSize: 16,
                   ),
                 ),
               ),
-
-              // Ícone de coroa para não premium
-              if (!isPremium)
+              if (!hasActiveSubscription)
                 Positioned(
                   right: 8,
                   top: 8,
@@ -99,20 +85,23 @@ class PremiumButton extends StatelessWidget {
     );
   }
 
-  void _handleButtonPress(BuildContext context, bool isPremium) {
-    if (isPremium) {
-      debugPrint('Usuário premium, navegando para tela premium...');
+  void _handleButtonPress(BuildContext context, bool hasActiveSubscription) {
+    debugPrint(
+        'handleButtonPress - hasActiveSubscription: $hasActiveSubscription');
+    if (hasActiveSubscription) {
+      debugPrint('Acessando tela premium...');
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => destinationScreen),
       );
     } else {
-      debugPrint('Usuário não premium, exibindo diálogo...');
+      debugPrint('Exibindo diálogo para assinar premium...');
       _showPremiumAlertDialog(context);
     }
   }
 
   void _showPremiumAlertDialog(BuildContext context) {
+    debugPrint('Mostrando diálogo de assinatura');
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -159,6 +148,7 @@ class PremiumButton extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 onPressed: () async {
+                  debugPrint('Iniciando compra de monthly_full');
                   Navigator.pop(dialogContext);
                   await _handlePurchase(context, 'monthly_full');
                 },
@@ -198,11 +188,6 @@ class PremiumButton extends StatelessWidget {
 
       final product = products.productDetails.first;
       await subscriptionService.purchaseProduct(product);
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Compra iniciada com sucesso!')),
-      );
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

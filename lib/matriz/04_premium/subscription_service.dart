@@ -42,14 +42,15 @@ class SubscriptionService {
             'planType': purchase.productID,
             'expiryDate': Timestamp.fromDate(expiryDate),
             'subscriptionStatus': 'active',
+            'subscription': FieldValue.delete(),
+            'hasEverSubscribedPremium': purchase.productID == 'monthly_full'
+                ? true
+                : FieldValue.serverTimestamp(),
           },
           SetOptions(merge: true),
         );
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Compra concluída com sucesso!')),
-          );
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => child),
@@ -69,6 +70,7 @@ class SubscriptionService {
 
   Future<PurchaseDetails?> purchaseProduct(ProductDetails product) async {
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
+    debugPrint('Iniciando compra do produto: ${product.id}');
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
 
     await for (final List<PurchaseDetails> purchaseDetailsList
@@ -84,17 +86,24 @@ class SubscriptionService {
                 : DateTime.now();
             DateTime expiryDate = transactionDate.add(const Duration(days: 30));
 
+            debugPrint(
+                'Compra confirmada - planType: ${product.id}, expiryDate: $expiryDate');
             await _firestore.collection('users').doc(user.uid).set(
               {
                 'planType': product.id,
                 'expiryDate': Timestamp.fromDate(expiryDate),
                 'subscriptionStatus': 'active',
+                'subscription': FieldValue.delete(),
+                'hasEverSubscribedPremium': product.id == 'monthly_full'
+                    ? true
+                    : FieldValue.serverTimestamp(),
               },
               SetOptions(merge: true),
             );
           }
           return purchase;
         } else if (purchase.status == PurchaseStatus.error) {
+          debugPrint('Erro na compra: ${purchase.error?.message}');
           throw Exception(
               'Erro ao processar compra: ${purchase.error?.message}');
         }

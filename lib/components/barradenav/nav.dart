@@ -24,16 +24,11 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
   ];
 
   void _onItemTapped(int index) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     if (index == 2) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      if (userProvider.hasActiveSubscription()) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Você já é premium!')),
-          );
-        }
-        return;
-      }
+      debugPrint(
+          'Tentando acessar Premium - canAccessPremiumScreen: ${userProvider.canAccessPremiumScreen()}');
+      // Não bloqueia a navegação, apenas verifica o estado na PremiumPage ou PremiumButton
     }
     setState(() {
       _selectedIndex = index;

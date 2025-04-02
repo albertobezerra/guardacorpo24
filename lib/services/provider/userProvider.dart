@@ -9,24 +9,14 @@ class UserProvider with ChangeNotifier {
   String _planType = '';
   DateTime? _expiryDate;
   String? _errorMessage;
+  bool _hasEverSubscribedPremium = false; // Rastreia se já assinou monthly_full
 
   bool get isLoggedIn => _isLoggedIn;
   bool get isPremium => _isPremium;
   String get planType => _planType;
   DateTime? get expiryDate => _expiryDate;
   String? get errorMessage => _errorMessage;
-
-  Future<void> loadFromCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    _isPremium = prefs.getBool('isPremium') ?? false;
-    _planType = prefs.getString('planType') ?? '';
-    final expiryMillis = prefs.getInt('expiryDate');
-    _expiryDate = expiryMillis != null
-        ? DateTime.fromMillisecondsSinceEpoch(expiryMillis)
-        : null;
-    notifyListeners();
-  }
+  bool get hasEverSubscribedPremium => _hasEverSubscribedPremium;
 
   Future<void> saveToCache() async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,6 +28,7 @@ class UserProvider with ChangeNotifier {
     } else {
       await prefs.remove('expiryDate');
     }
+    await prefs.setBool('hasEverSubscribedPremium', _hasEverSubscribedPremium);
   }
 
   void updateSubscription({
@@ -45,12 +36,18 @@ class UserProvider with ChangeNotifier {
     required bool isPremium,
     required String planType,
     DateTime? expiryDate,
+    bool? hasEverSubscribedPremium,
   }) {
     _isLoggedIn = isLoggedIn;
     _isPremium = isPremium;
     _planType = planType;
     _expiryDate = expiryDate;
+    if (hasEverSubscribedPremium != null) {
+      _hasEverSubscribedPremium = hasEverSubscribedPremium;
+    }
     _errorMessage = null;
+    debugPrint(
+        'Estado atualizado - isPremium: $_isPremium, planType: $_planType, hasEverSubscribedPremium: $_hasEverSubscribedPremium');
     notifyListeners();
   }
 
@@ -60,12 +57,23 @@ class UserProvider with ChangeNotifier {
     _planType = '';
     _expiryDate = null;
     _errorMessage = null;
+    // Não reseta _hasEverSubscribedPremium, pois é histórico
     notifyListeners();
   }
 
+  bool canAccessPremiumScreen() {
+    return hasActiveSubscription(); // Apenas assinatura ativa dá acesso ao conteúdo Premium
+  }
+
+  bool canAccessPremiumSubscriptionPage() {
+    return true; // Todos podem acessar a tela de assinatura
+  }
+
   bool hasActiveSubscription() {
-    if (_expiryDate == null) return false;
-    return _expiryDate!.isAfter(DateTime.now());
+    return _isPremium &&
+        _planType.isNotEmpty &&
+        _expiryDate != null &&
+        _expiryDate!.isAfter(DateTime.now());
   }
 
   bool hasPremiumPlan() {
@@ -86,8 +94,7 @@ class UserProvider with ChangeNotifier {
     resetSubscription();
     await saveToCache();
     if (context.mounted) {
-      Navigator.pushReplacementNamed(
-          context, '/auth'); // Ajuste a rota conforme seu app
+      Navigator.pushReplacementNamed(context, '/auth');
     }
   }
 
@@ -109,16 +116,21 @@ class UserProvider with ChangeNotifier {
             final isPremium = planType == 'monthly_full' &&
                 expiryDate != null &&
                 expiryDate.isAfter(DateTime.now());
+            final hasEverSubscribedPremium =
+                data['hasEverSubscribedPremium'] ?? false;
 
+            debugPrint(
+                'Firestore - planType: $planType, expiryDate: $expiryDate, isPremium: $isPremium, hasEverSubscribedPremium: $hasEverSubscribedPremium');
             updateSubscription(
               isLoggedIn: true,
               isPremium: isPremium,
               planType: planType,
               expiryDate: expiryDate,
+              hasEverSubscribedPremium: hasEverSubscribedPremium,
             );
 
-            // Atualiza o status no Firestore se expirado
             if (expiryDate != null && !expiryDate.isAfter(DateTime.now())) {
+              debugPrint('Assinatura expirada, atualizando status');
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(user.uid)
@@ -127,10 +139,24 @@ class UserProvider with ChangeNotifier {
               });
             }
 
-            await saveToCache();
+            await saveToCache(); // Garante que o cache seja atualizado
           }
         });
       }
     });
+  }
+
+  Future<void> loadFromCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    _isPremium = prefs.getBool('isPremium') ?? false;
+    _planType = prefs.getString('planType') ?? '';
+    final expiryMillis = prefs.getInt('expiryDate');
+    _expiryDate = expiryMillis != null
+        ? DateTime.fromMillisecondsSinceEpoch(expiryMillis)
+        : null;
+    _hasEverSubscribedPremium =
+        prefs.getBool('hasEverSubscribedPremium') ?? false;
+    notifyListeners();
   }
 }

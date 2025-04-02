@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
+import 'package:provider/provider.dart';
 
 class InterstitialAdManager {
   static InterstitialAd? _interstitialAd;
@@ -9,14 +9,14 @@ class InterstitialAdManager {
 
   static void loadInterstitialAd() {
     InterstitialAd.load(
-      adUnitId:
-          'ca-app-pub-7979689703488774/6918601457', // Substitua pelo seu ID de unidade de anúncio
+      adUnitId: 'ca-app-pub-7979689703488774/6918601457',
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
           _interstitialAd = ad;
           _isInterstitialAdReady = true;
           _interstitialAd?.setImmersiveMode(true);
+          debugPrint('Anúncio intersticial carregado com sucesso');
         },
         onAdFailedToLoad: (LoadAdError error) {
           debugPrint('Erro ao carregar anúncio intersticial: $error');
@@ -26,53 +26,45 @@ class InterstitialAdManager {
     );
   }
 
-  static void showInterstitialAd(BuildContext context, Widget nextPage) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final subscriptionInfo =
-          await SubscriptionService().getUserSubscriptionInfo(user.uid);
-      final isPremium = subscriptionInfo['isPremium'] ?? false;
-      final planType = subscriptionInfo['planType'] ?? '';
+  static void showInterstitialAd(BuildContext context, Widget nextPage) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final showAds = !userProvider.hasActiveSubscription();
+    debugPrint(
+        'InterstitialAdManager - showAds: $showAds, hasActiveSubscription: ${userProvider.hasActiveSubscription()}');
 
-      if (isPremium || planType == 'ad_free') {
-        // Usuário premium ou sem publicidade, não exibe o anúncio
-        if (!context.mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => nextPage),
-        );
-        return;
-      }
+    if (!showAds) {
+      if (!context.mounted) return;
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => nextPage));
+      return;
     }
 
-    if (_isInterstitialAdReady) {
-      _interstitialAd?.show();
-      _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
+    if (_isInterstitialAdReady && _interstitialAd != null) {
+      _interstitialAd!.show();
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
           ad.dispose();
+          _interstitialAd = null;
           loadInterstitialAd();
+          if (!context.mounted) return;
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => nextPage),
-          );
+              context, MaterialPageRoute(builder: (context) => nextPage));
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           debugPrint('Erro ao exibir anúncio intersticial: $error');
           ad.dispose();
+          _interstitialAd = null;
           loadInterstitialAd();
+          if (!context.mounted) return;
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => nextPage),
-          );
+              context, MaterialPageRoute(builder: (context) => nextPage));
         },
       );
     } else {
+      debugPrint('Anúncio intersticial não está pronto');
       if (!context.mounted) return;
-
       Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => nextPage),
-      );
+          context, MaterialPageRoute(builder: (context) => nextPage));
     }
   }
 }
