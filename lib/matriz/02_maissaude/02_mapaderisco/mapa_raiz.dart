@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_mapaderisco/mapa_da_risco.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/02_mapaderisco/mapaexemplo.dart';
 import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
-import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_rela.dart';
 
 class MapaRaiz extends StatelessWidget {
   const MapaRaiz({super.key});
@@ -98,7 +98,7 @@ class MapaRaiz extends StatelessWidget {
                   onPressed: () {
                     InterstitialAdManager.showInterstitialAd(
                       context,
-                      const IncendioRela(),
+                      const Mapaexemplo(),
                     );
                   },
                   child: Container(
