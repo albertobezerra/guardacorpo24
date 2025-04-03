@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -186,7 +187,12 @@ class PremiumButton extends StatelessWidget {
       }
 
       final product = products.productDetails.first;
-      await subscriptionService.purchaseProduct(product);
+
+      // Define a página inicial (substitua `HomePage` pelo nome correto da sua página inicial)
+      const Widget homePage = NavBarPage();
+
+      // Passe o homePage como segundo argumento
+      await subscriptionService.purchaseProduct(product, homePage);
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

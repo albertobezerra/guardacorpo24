@@ -102,7 +102,8 @@ class SubscriptionService {
         : false;
   }
 
-  Future<PurchaseDetails?> purchaseProduct(ProductDetails product) async {
+  Future<PurchaseDetails?> purchaseProduct(
+      ProductDetails product, Widget homePage) async {
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
     debugPrint('Iniciando compra do produto: ${product.id}');
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
@@ -151,6 +152,15 @@ class SubscriptionService {
               );
 
               await _showSuccessAlert(context, product.id);
+
+              // Redirecionamento adicionado aqui
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => homePage),
+                  (route) => false,
+                );
+              }
             }
 
             if (purchase.pendingCompletePurchase) {

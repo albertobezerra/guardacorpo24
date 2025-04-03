@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
@@ -74,9 +75,14 @@ class _PremiumPageState extends State<PremiumPage> {
       return;
     }
 
+    // Defina a página inicial (homePage)
+    const Widget homePage = NavBarPage();
+    // Substitua `HomePage` pela sua página inicial
+
     debugPrint('Iniciando compra para produto: ${product.id}');
     try {
-      final purchase = await _subscriptionService.purchaseProduct(product);
+      final purchase =
+          await _subscriptionService.purchaseProduct(product, homePage);
       if (purchase == null || purchase.status != PurchaseStatus.purchased) {
         _showSnackBar('Compra não concluída.');
       }
