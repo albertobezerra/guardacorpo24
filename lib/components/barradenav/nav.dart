@@ -23,6 +23,12 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
     const PremiumPage(),
   ];
 
+  void setIndex(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   void _onItemTapped(int index) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     if (index == 2) {
