@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart'; // Para mudar senha
+import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
 
 class SuaConta extends StatefulWidget {
   const SuaConta({super.key});
@@ -78,6 +78,8 @@ class SuaContaState extends State<SuaConta>
     if (imagePath != null && File(imagePath).existsSync()) {
       setState(() {
         _profileImage = File(imagePath);
+        imageCache.clear();
+        imageCache.clearLiveImages();
       });
     }
   }
@@ -98,67 +100,73 @@ class SuaContaState extends State<SuaConta>
     _loadUserData();
   }
 
-  Future<void> _uploadProfilePhoto() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  Future<void> _handleProfilePhoto() async {
+    if (_profileImage == null) {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      try {
-        final user = FirebaseAuth.instance.currentUser;
-        final directory = await getApplicationDocumentsDirectory();
-        final imagePath =
-            '${directory.path}/profile_image_${user?.uid ?? 'default'}.jpg';
-        final newImage = await File(pickedFile.path).copy(imagePath);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('profile_image_path', imagePath);
+      if (pickedFile != null) {
+        try {
+          final user = FirebaseAuth.instance.currentUser;
+          final directory = await getApplicationDocumentsDirectory();
+          final imagePath =
+              '${directory.path}/profile_image_${user?.uid ?? 'default'}.jpg';
+          final newImage = await File(pickedFile.path).copy(imagePath);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('profile_image_path', imagePath);
 
-        setState(() {
-          _profileImage = newImage;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Foto de perfil atualizada com sucesso!')),
-          );
+          imageCache.clear();
+          imageCache.clearLiveImages();
+
+          setState(() {
+            _profileImage =
+                newImage; // Usando newImage em vez de File(imagePath)
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Foto de perfil atualizada com sucesso!')),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao atualizar a foto de perfil: $e')),
+            );
+          }
         }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao atualizar a foto de perfil: $e')),
-          );
-        }
+      }
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('profile_image_path');
+      imageCache.clear();
+      imageCache.clearLiveImages();
+
+      setState(() {
+        _profileImage = null;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil removida!')),
+        );
       }
     }
   }
 
-  Future<void> _deleteProfilePhoto() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('profile_image_path');
-    setState(() {
-      _profileImage = null;
-    });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto de perfil removida!')),
-      );
-    }
-  }
-
-  Future<void> _updateProfile(String field) async {
+  Future<void> _updateProfile() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
     try {
-      if (field == 'name') {
+      if (_nameController.text.trim().isNotEmpty &&
+          _nameController.text.trim() != user.displayName) {
         await user.updateDisplayName(_nameController.text.trim());
         await user.reload();
-        setState(() {});
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Nome atualizado com sucesso!')),
-          );
-        }
-      } else if (field == 'email') {
+      }
+      if (_emailController.text.trim().isNotEmpty &&
+          _emailController.text.trim() != user.email) {
         await user.verifyBeforeUpdateEmail(_emailController.text.trim());
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -171,10 +179,16 @@ class SuaContaState extends State<SuaConta>
           );
         }
       }
+      setState(() {});
+      if (mounted && _emailController.text.trim() == user.email) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perfil atualizado com sucesso!')),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar $field: $e')),
+          SnackBar(content: Text('Erro ao atualizar perfil: $e')),
         );
       }
     }
@@ -251,42 +265,29 @@ class SuaContaState extends State<SuaConta>
           Stack(
             alignment: Alignment.bottomRight,
             children: [
-              GestureDetector(
-                onTap: _uploadProfilePhoto,
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundImage: _profileImage != null
-                      ? FileImage(_profileImage!)
-                      : const AssetImage('assets/images/default-avatar.png')
-                          as ImageProvider,
-                ),
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: _profileImage != null
+                    ? FileImage(_profileImage!)
+                    : const AssetImage('assets/images/default-avatar.png')
+                        as ImageProvider,
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.edit,
-                        size: 20, color: Color.fromARGB(255, 0, 104, 55)),
+              GestureDetector(
+                onTap: _handleProfilePhoto,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: _deleteProfilePhoto,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child:
-                          const Icon(Icons.delete, size: 20, color: Colors.red),
-                    ),
+                  child: Icon(
+                    _profileImage == null ? Icons.add_a_photo : Icons.delete,
+                    size: 20,
+                    color: _profileImage == null
+                        ? const Color.fromARGB(255, 0, 104, 55)
+                        : Colors.red,
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -295,45 +296,39 @@ class SuaContaState extends State<SuaConta>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        user?.displayName?.toUpperCase() ?? 'USUÁRIO',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontFamily: 'Segoe',
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.white),
-                      onPressed: () => _showEditDialog(context, 'name'),
-                    ),
-                  ],
+                Text(
+                  user?.displayName?.toUpperCase() ?? 'USUÁRIO',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontFamily: 'Segoe',
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        user?.email ?? 'Sem e-mail',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                          fontFamily: 'Segoe',
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.white),
-                      onPressed: () => _showEditDialog(context, 'email'),
-                    ),
-                  ],
+                Text(
+                  user?.email ?? 'Sem e-mail',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white70,
+                    fontFamily: 'Segoe',
+                  ),
                 ),
               ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _showEditDialog(context),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.edit,
+                size: 20,
+                color: Color.fromARGB(255, 0, 104, 55),
+              ),
             ),
           ),
         ],
@@ -341,15 +336,24 @@ class SuaContaState extends State<SuaConta>
     );
   }
 
-  void _showEditDialog(BuildContext context, String field) {
+  void _showEditDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Editar ${field == 'name' ? 'Nome' : 'E-mail'}'),
-        content: TextField(
-          controller: field == 'name' ? _nameController : _emailController,
-          decoration: InputDecoration(
-              hintText: 'Novo ${field == 'name' ? 'nome' : 'e-mail'}'),
+        title: const Text('Editar Perfil'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(hintText: 'Novo nome'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(hintText: 'Novo e-mail'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -358,7 +362,7 @@ class SuaContaState extends State<SuaConta>
           ),
           TextButton(
             onPressed: () {
-              _updateProfile(field);
+              _updateProfile();
               Navigator.pop(context);
             },
             child: const Text('Salvar'),
@@ -384,9 +388,7 @@ class SuaContaState extends State<SuaConta>
         ),
         const SizedBox(height: 12),
         _buildInfoRow('Data de Criação:',
-            creationDate != null ? _formatDate(creationDate) : 'Indisponível'),
-        const SizedBox(height: 8),
-        _buildInfoRow('ID do Usuário:', user?.uid ?? 'N/A'),
+            creationDate != null ? _formatDate(creationDate) : 'N/A'),
         const SizedBox(height: 8),
         _buildInfoRow('Último Acesso:', _lastAccess ?? 'N/A'),
         const SizedBox(height: 8),
@@ -408,9 +410,10 @@ class SuaContaState extends State<SuaConta>
           child: const Text(
             'MUDAR SENHA',
             style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Segoe'),
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Segoe',
+            ),
           ),
         ),
       ],
@@ -454,8 +457,8 @@ class SuaContaState extends State<SuaConta>
         const SizedBox(height: 12),
         if (userProvider.hasActiveSubscription()) ...[
           _buildInfoRow(
-            'Plano:',
-            userProvider.planType == 'monthly_full' ? 'FULL' : 'BÁSICO',
+            'Assinatura:',
+            _getSubscriptionName(userProvider.planType),
           ),
           const SizedBox(height: 8),
           _buildInfoRow(
@@ -478,9 +481,9 @@ class SuaContaState extends State<SuaConta>
             scale: _buttonAnimation,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
                 Provider.of<NavBarPageState>(context, listen: false)
                     .setIndex(2);
+                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
@@ -513,6 +516,17 @@ class SuaContaState extends State<SuaConta>
         ],
       ],
     );
+  }
+
+  String _getSubscriptionName(String? planType) {
+    switch (planType) {
+      case 'monthly_full':
+        return 'Premium';
+      case 'monthly_ad_free':
+        return 'Sem Publicidade';
+      default:
+        return 'Desconhecida ($planType)';
+    }
   }
 
   Widget _buildLogoutButton(BuildContext context, UserProvider userProvider) {
