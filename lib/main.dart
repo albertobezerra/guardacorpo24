@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/components/firebase_messaging_service.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
@@ -24,16 +25,15 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final userProvider = UserProvider();
-  await userProvider.loadFromCache(); // Carrega dados do cache
+  await userProvider.loadFromCache();
 
-  // Inicializa serviços adicionais
   final messagingService = FirebaseMessagingService();
   await messagingService.initialize();
 
   final subscriptionService = SubscriptionService();
   await subscriptionService.initialize();
 
-  MobileAds.instance.initialize(); // Inicializa anúncios
+  MobileAds.instance.initialize();
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -139,11 +139,11 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (_) => InspecaoProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => NavBarPageState()),
+        ChangeNotifierProvider(
+            create: (_) => NavigationState()), // Usamos NavigationState
       ],
       child: Builder(
         builder: (context) {
-          // Inicializa o listener do UserProvider após o MultiProvider
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               Provider.of<UserProvider>(context, listen: false)
@@ -177,7 +177,7 @@ class _MyAppState extends State<MyApp> {
               future: Preferences.checkOnboardingAndSplash(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const SplashScreen(); // Loader temporário
+                  return const SplashScreen();
                 }
                 final hasCompletedOnboarding = snapshot.data![0];
                 final hasShownSplash = snapshot.data![1];
@@ -189,7 +189,7 @@ class _MyAppState extends State<MyApp> {
                   builder: (context, userSnapshot) {
                     if (userSnapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const SplashScreen(); // Carregamento inicial
+                      return const SplashScreen();
                     }
                     if (userSnapshot.hasData) {
                       final user = userSnapshot.data!;
@@ -199,7 +199,7 @@ class _MyAppState extends State<MyApp> {
                         builder: (context, subscriptionSnapshot) {
                           if (subscriptionSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const SplashScreen(); // Carregamento do status premium
+                            return const SplashScreen();
                           }
                           if (subscriptionSnapshot.hasError) {
                             debugPrint(
@@ -213,7 +213,7 @@ class _MyAppState extends State<MyApp> {
                                         'Ocorreu um erro ao carregar suas informações.'),
                                     ElevatedButton(
                                       onPressed: () {
-                                        setState(() {}); // Tenta novamente
+                                        setState(() {});
                                       },
                                       child: const Text('Tentar Novamente'),
                                     ),
@@ -245,3 +245,5 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

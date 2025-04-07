@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -119,8 +119,7 @@ class SuaContaState extends State<SuaConta>
           imageCache.clearLiveImages();
 
           setState(() {
-            _profileImage =
-                newImage; // Usando newImage em vez de File(imagePath)
+            _profileImage = newImage;
           });
 
           if (mounted) {
@@ -481,8 +480,8 @@ class SuaContaState extends State<SuaConta>
             scale: _buttonAnimation,
             child: ElevatedButton(
               onPressed: () {
-                Provider.of<NavBarPageState>(context, listen: false)
-                    .setIndex(2);
+                Provider.of<NavigationState>(context, listen: false)
+                    .setIndex(2); // Usa NavigationState
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:guarda_corpo_2024/matriz/03_sua_area/03_00_suaconta.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
@@ -10,11 +11,10 @@ class NavBarPage extends StatefulWidget {
   const NavBarPage({super.key});
 
   @override
-  NavBarPageState createState() => NavBarPageState();
+  State<NavBarPage> createState() => _NavBarPageState();
 }
 
-class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
-  int _selectedIndex = 0;
+class _NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
 
   final List<Widget> _pages = [
@@ -22,24 +22,6 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
     const SuaConta(),
     const PremiumPage(),
   ];
-
-  void setIndex(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  void _onItemTapped(int index) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    if (index == 2) {
-      debugPrint(
-          'Tentando acessar Premium - canAccessPremiumScreen: ${userProvider.canAccessPremiumScreen()}');
-      // Não bloqueia a navegação, apenas verifica o estado na PremiumPage ou PremiumButton
-    }
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   void initState() {
@@ -56,13 +38,24 @@ class NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  void _onItemTapped(int index) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (index == 2) {
+      debugPrint(
+          'Tentando acessar Premium - canAccessPremiumScreen: ${userProvider.canAccessPremiumScreen()}');
+    }
+    Provider.of<NavigationState>(context, listen: false).setIndex(index);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final navState = Provider.of<NavigationState>(context);
+
     return PopScope(
       canPop: true,
       child: Scaffold(
         body: IndexedStack(
-          index: _selectedIndex,
+          index: navState.selectedIndex,
           children: _pages,
         ),
         floatingActionButton: SpeedDial(
