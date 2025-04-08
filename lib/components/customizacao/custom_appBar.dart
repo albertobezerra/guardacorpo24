@@ -17,20 +17,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize {
-    // Não podemos usar MediaQuery aqui diretamente porque context não está disponível
-    // Vamos definir uma altura base e ajustá-la no build
-    return const Size.fromHeight(160); // Altura inicial fixa
-  }
+  Size get preferredSize => const Size.fromHeight(160); // Altura base
 
   @override
   Widget build(BuildContext context) {
-    // Calcula a altura responsiva (20% da altura da tela, entre 120 e 200)
     final double appBarHeight =
         (MediaQuery.of(context).size.height * 0.2).clamp(120.0, 200.0);
-    // Calcula o tamanho do texto baseado na largura da tela
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double fontSize = (screenWidth * 0.04).clamp(14.0, 18.0);
+    final double fontSize = (screenWidth * 0.12).clamp(14.0, 20.0);
 
     return AppBar(
       toolbarHeight: appBarHeight,
@@ -42,16 +36,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           fontSize: fontSize,
         ),
         textAlign: TextAlign.center,
-        maxLines: 2, // Permite quebra de linha
-        overflow: TextOverflow.ellipsis, // Adiciona "..." se cortar
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
       ),
-      //centerTitle: true, // Centraliza o título
-      leading: onLeadingPressed != null
-          ? IconButton(
-              icon: Icon(Icons.arrow_back, color: textColor),
-              onPressed: onLeadingPressed,
-            )
-          : null,
       flexibleSpace: backgroundImageAsset != null
           ? Container(
               decoration: BoxDecoration(
@@ -62,7 +49,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             )
           : null,
-      backgroundColor: Colors.transparent,
       elevation: 0,
     );
   }

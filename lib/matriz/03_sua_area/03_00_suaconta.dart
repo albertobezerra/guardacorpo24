@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
+import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
 
 class SuaConta extends StatefulWidget {
   const SuaConta({super.key});
@@ -195,16 +196,9 @@ class SuaContaState extends State<SuaConta>
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SUA CONTA'),
-        backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-        elevation: 0,
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-          fontFamily: 'Segoe',
-        ),
+      appBar: const CustomAppBar(
+        title: 'Sua Conta',
+        backgroundImageAsset: 'assets/images/aet2.jpg',
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -249,7 +243,7 @@ class SuaContaState extends State<SuaConta>
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withAlpha(76), // Substituído withValues
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
