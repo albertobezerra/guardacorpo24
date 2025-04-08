@@ -11,7 +11,6 @@ import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
-import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:guarda_corpo_2024/splash.dart';
@@ -129,51 +128,46 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Widget getHomePageBasedOnPlan(String planType) {
-    return const NavBarPage();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => InspecaoProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(
-            create: (_) => NavigationState()), // Usamos NavigationState
+        ChangeNotifierProvider(create: (_) => NavigationState()),
       ],
-      child: Builder(
-        builder: (context) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              Provider.of<UserProvider>(context, listen: false)
-                  .startFirebaseListener(context);
-            }
-          });
-          return MaterialApp(
-            navigatorKey: navigatorKey,
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              fontFamily: 'Segoe',
-              brightness: Brightness.light,
-              primarySwatch: Colors.blue,
-            ),
-            darkTheme: ThemeData(
-              fontFamily: 'Segoe',
-              brightness: Brightness.dark,
-              primarySwatch: Colors.blue,
-            ),
-            themeMode: ThemeMode.system,
-            supportedLocales: const [
-              Locale('en', 'US'),
-              Locale('pt', 'BR'),
-            ],
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            home: FutureBuilder<List<bool>>(
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          fontFamily: 'Segoe',
+          brightness: Brightness.light,
+          primarySwatch: Colors.blue,
+        ),
+        darkTheme: ThemeData(
+          fontFamily: 'Segoe',
+          brightness: Brightness.dark,
+          primarySwatch: Colors.blue,
+        ),
+        themeMode: ThemeMode.system,
+        supportedLocales: const [
+          Locale('en', 'US'),
+          Locale('pt', 'BR'),
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: Builder(
+          builder: (context) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                Provider.of<UserProvider>(context, listen: false)
+                    .startFirebaseListener(context);
+              }
+            });
+            return FutureBuilder<List<bool>>(
               future: Preferences.checkOnboardingAndSplash(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
@@ -202,8 +196,6 @@ class _MyAppState extends State<MyApp> {
                             return const SplashScreen();
                           }
                           if (subscriptionSnapshot.hasError) {
-                            debugPrint(
-                                'Erro ao carregar informações de assinatura: ${subscriptionSnapshot.error}');
                             return Scaffold(
                               body: Center(
                                 child: Column(
@@ -212,9 +204,7 @@ class _MyAppState extends State<MyApp> {
                                     const Text(
                                         'Ocorreu um erro ao carregar suas informações.'),
                                     ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {});
-                                      },
+                                      onPressed: () => setState(() {}),
                                       child: const Text('Tentar Novamente'),
                                     ),
                                   ],
@@ -222,12 +212,7 @@ class _MyAppState extends State<MyApp> {
                               ),
                             );
                           }
-                          subscriptionSnapshot.data?['isPremium'] ?? false;
-                          final planType =
-                              subscriptionSnapshot.data?['planType'] ?? '';
-                          return UserStatusWrapper(
-                            child: getHomePageBasedOnPlan(planType),
-                          );
+                          return const NavBarPage();
                         },
                       );
                     }
@@ -238,9 +223,9 @@ class _MyAppState extends State<MyApp> {
                   },
                 );
               },
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

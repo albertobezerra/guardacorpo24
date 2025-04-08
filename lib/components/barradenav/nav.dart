@@ -50,56 +50,55 @@ class _NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final navState = Provider.of<NavigationState>(context);
+    debugPrint(
+        'NavBarPage reconstruído - índice atual: ${navState.selectedIndex}');
+    debugPrint(
+        'Exibindo página: ${_pages[navState.selectedIndex].runtimeType}');
 
-    return PopScope(
-      canPop: true,
-      child: Scaffold(
-        body: IndexedStack(
-          index: navState.selectedIndex,
-          children: _pages,
-        ),
-        floatingActionButton: SpeedDial(
-          icon: null,
-          backgroundColor: Colors.white,
-          foregroundColor: const Color.fromARGB(255, 0, 77, 41),
-          activeIcon: Icons.close,
-          spacing: 12,
-          children: [
-            SpeedDialChild(
-              labelWidget: _buildLabelWidget(Icons.home_rounded, 'Home',
-                  const Color.fromARGB(255, 0, 104, 55)),
-              backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0),
-              ),
-              onTap: () => _onItemTapped(0),
-            ),
-            SpeedDialChild(
-              labelWidget: _buildLabelWidget(Icons.person, 'Sua Conta',
-                  const Color.fromARGB(255, 0, 104, 55)),
-              backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0),
-              ),
-              onTap: () => _onItemTapped(1),
-            ),
-            SpeedDialChild(
-              labelWidget: _buildLabelWidget(Icons.star_rounded, 'Premium',
-                  const Color.fromARGB(255, 216, 27, 96)),
-              backgroundColor: const Color.fromARGB(255, 216, 27, 96),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0),
-              ),
-              onTap: () => _onItemTapped(2),
-            ),
-          ],
-          child: ScaleTransition(
-            scale: Tween(begin: 1.0, end: 1.2).animate(CurvedAnimation(
-              parent: _animationController,
-              curve: Curves.elasticIn,
-            )),
-            child: const Icon(Icons.menu),
+    return Scaffold(
+      body: IndexedStack(
+        key: ValueKey(navState.selectedIndex),
+        index: navState.selectedIndex,
+        children: _pages,
+      ),
+      floatingActionButton: SpeedDial(
+        icon: null,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color.fromARGB(255, 0, 77, 41),
+        activeIcon: Icons.close,
+        spacing: 12,
+        children: [
+          SpeedDialChild(
+            labelWidget: _buildLabelWidget(Icons.home_rounded, 'Home',
+                const Color.fromARGB(255, 0, 104, 55)),
+            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            onTap: () => _onItemTapped(0),
           ),
+          SpeedDialChild(
+            labelWidget: _buildLabelWidget(Icons.person, 'Sua Conta',
+                const Color.fromARGB(255, 0, 104, 55)),
+            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            onTap: () => _onItemTapped(1),
+          ),
+          SpeedDialChild(
+            labelWidget: _buildLabelWidget(Icons.star_rounded, 'Premium',
+                const Color.fromARGB(255, 216, 27, 96)),
+            backgroundColor: const Color.fromARGB(255, 216, 27, 96),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            onTap: () => _onItemTapped(2),
+          ),
+        ],
+        child: ScaleTransition(
+          scale: Tween(begin: 1.0, end: 1.2).animate(CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.elasticIn,
+          )),
+          child: const Icon(Icons.menu),
         ),
       ),
     );

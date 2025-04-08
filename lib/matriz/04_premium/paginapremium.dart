@@ -113,6 +113,7 @@ class _PremiumPageState extends State<PremiumPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('PremiumPage sendo construída');
     if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

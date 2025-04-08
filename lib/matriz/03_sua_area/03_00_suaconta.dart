@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +22,6 @@ class SuaContaState extends State<SuaConta>
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   late AnimationController _animationController;
-  late Animation<double> _buttonAnimation;
   late Animation<Color?> _logoutColorAnimation;
   int _accessCount = 0;
   String? _lastAccess;
@@ -43,17 +41,15 @@ class SuaContaState extends State<SuaConta>
       vsync: this,
     )..repeat(reverse: true);
 
-    _buttonAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-
     _logoutColorAnimation = ColorTween(
       begin: Colors.red,
       end: Colors.redAccent,
     ).animate(_animationController);
 
     Future.delayed(const Duration(milliseconds: 300), () {
-      setState(() => _isVisible = true);
+      if (mounted) {
+        setState(() => _isVisible = true);
+      }
     });
 
     _updateAccessStats();
@@ -456,14 +452,9 @@ class SuaContaState extends State<SuaConta>
         const SizedBox(height: 12),
         if (userProvider.hasActiveSubscription()) ...[
           _buildInfoRow(
-            'Assinatura:',
-            _getSubscriptionName(userProvider.planType),
-          ),
+              'Assinatura:', _getSubscriptionName(userProvider.planType)),
           const SizedBox(height: 8),
-          _buildInfoRow(
-            'Válido até:',
-            _formatDate(userProvider.expiryDate),
-          ),
+          _buildInfoRow('Válido até:', _formatDate(userProvider.expiryDate)),
           const SizedBox(height: 8),
           _buildInfoRow(
             'Última Assinatura:',
@@ -474,43 +465,6 @@ class SuaContaState extends State<SuaConta>
           const Text(
             'Nenhuma assinatura ativa',
             style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
-          ),
-          const SizedBox(height: 12),
-          ScaleTransition(
-            scale: _buttonAnimation,
-            child: ElevatedButton(
-              onPressed: () {
-                Provider.of<NavigationState>(context, listen: false)
-                    .setIndex(2); // Usa NavigationState
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                side: const BorderSide(
-                    color: Color.fromARGB(255, 0, 104, 55), width: 2),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0)),
-                elevation: 0,
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.credit_card,
-                      color: Color.fromARGB(255, 0, 104, 55)),
-                  SizedBox(width: 8),
-                  Text(
-                    'ASSINAR AGORA',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 0, 104, 55),
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Segoe',
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ],
