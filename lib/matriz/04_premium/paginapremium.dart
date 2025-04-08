@@ -18,6 +18,7 @@ class _PremiumPageState extends State<PremiumPage> {
   final SubscriptionService _subscriptionService = SubscriptionService();
   List<ProductDetails> products = [];
   bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -34,38 +35,51 @@ class _PremiumPageState extends State<PremiumPage> {
   }
 
   Future<void> _loadProducts() async {
-    await _subscriptionService.initialize();
-
-    debugPrint('Carregando produtos...');
-    final ProductDetailsResponse response =
-        await InAppPurchase.instance.queryProductDetails(
-      {'monthly_ad_free', 'monthly_full'}.toSet(),
-    );
-
-    if (response.error != null) {
-      debugPrint('Erro ao carregar assinaturas: ${response.error?.message}');
-      _showSnackBar('Falha ao carregar planos: ${response.error?.message}');
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    if (response.notFoundIDs.isNotEmpty) {
-      debugPrint('Assinaturas não encontradas: ${response.notFoundIDs}');
-      _showSnackBar('Nenhum plano disponível no momento.');
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    debugPrint(
-        'Produtos encontrados: ${response.productDetails.map((p) => "${p.id}: ${p.price}")}');
     setState(() {
-      products = response.productDetails;
-      isLoading = false;
+      isLoading = true;
+      errorMessage = null;
     });
+
+    try {
+      await _subscriptionService.initialize();
+
+      debugPrint('Carregando produtos...');
+      final ProductDetailsResponse response =
+          await InAppPurchase.instance.queryProductDetails(
+        {'monthly_ad_free', 'monthly_full'}.toSet(),
+      );
+
+      if (response.error != null) {
+        debugPrint('Erro ao carregar assinaturas: ${response.error?.message}');
+        setState(() {
+          errorMessage = 'Falha ao carregar planos: ${response.error?.message}';
+          isLoading = false;
+        });
+        return;
+      }
+
+      if (response.notFoundIDs.isNotEmpty) {
+        debugPrint('Assinaturas não encontradas: ${response.notFoundIDs}');
+        setState(() {
+          errorMessage = 'Nenhum plano disponível no momento.';
+          isLoading = false;
+        });
+        return;
+      }
+
+      debugPrint(
+          'Produtos encontrados: ${response.productDetails.map((p) => "${p.id}: ${p.price}").join(', ')}');
+      setState(() {
+        products = response.productDetails;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Erro inesperado ao carregar produtos: $e');
+      setState(() {
+        errorMessage = 'Erro ao carregar planos: $e';
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _handlePurchase(
@@ -75,18 +89,23 @@ class _PremiumPageState extends State<PremiumPage> {
       return;
     }
 
-    // Defina a página inicial (homePage)
     const Widget homePage = NavBarPage();
-    // Substitua `HomePage` pela sua página inicial
 
     debugPrint('Iniciando compra para produto: ${product.id}');
     try {
       final purchase =
           await _subscriptionService.purchaseProduct(product, homePage);
-      if (purchase == null || purchase.status != PurchaseStatus.purchased) {
+      if (purchase == null) {
+        _showSnackBar('Compra cancelada ou não iniciada.');
+      } else if (purchase.status == PurchaseStatus.purchased) {
+        _showSnackBar('Compra realizada com sucesso!');
+      } else if (purchase.status == PurchaseStatus.error) {
+        _showSnackBar('Erro na compra: ${purchase.error?.message}');
+      } else {
         _showSnackBar('Compra não concluída.');
       }
     } catch (e) {
+      debugPrint('Erro ao processar compra: $e');
       _showSnackBar('Erro ao processar compra: $e');
     }
   }
@@ -98,12 +117,15 @@ class _PremiumPageState extends State<PremiumPage> {
   }
 
   bool _isPlanEnabled(String productId) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    if (userProvider.planType == 'monthly_full' &&
-        userProvider.hasActiveSubscription()) {
-      return productId == 'monthly_full';
-    }
+    // Um plano só é clicável se não estiver ativo
     return !_isPlanActive(productId);
+  }
+
+  bool _isAdFreeDisabled() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    // "Livre de Publicidade" fica desativado visualmente se Premium está ativo
+    return userProvider.planType == 'monthly_full' &&
+        userProvider.hasActiveSubscription();
   }
 
   String _formatDate(DateTime? date) {
@@ -113,12 +135,13 @@ class _PremiumPageState extends State<PremiumPage> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('PremiumPage sendo construída');
     if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
-    if (products.isEmpty) {
+    if (errorMessage != null) {
       return Scaffold(
         appBar: const CustomAppBar(
           title: 'Planos',
@@ -127,8 +150,8 @@ class _PremiumPageState extends State<PremiumPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'Não foi possível carregar os planos no momento.',
+              Text(
+                errorMessage!,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -150,40 +173,46 @@ class _PremiumPageState extends State<PremiumPage> {
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.only(top: 12),
+            child: ListView(
               children: [
                 for (final product in products)
                   CustomPlanCard(
                     title: product.id == 'monthly_ad_free'
-                        ? 'PLANO BÁSICO'
-                        : 'PLANO FULL',
+                        ? 'Livre de Publicidade'.toUpperCase()
+                        : 'Premium'.toUpperCase(),
                     description: _isPlanActive(product.id)
                         ? null
                         : product.id == 'monthly_ad_free'
                             ? 'Remove a publicidade.'
                             : 'Desbloqueie todo o conteúdo exclusivo e remova a publicidade.',
                     price: _isPlanActive(product.id) ? null : product.price,
-                    isEnabled: _isPlanEnabled(product.id),
+                    isEnabled: product.id == 'monthly_ad_free'
+                        ? !_isAdFreeDisabled() && _isPlanEnabled(product.id)
+                        : _isPlanEnabled(product.id),
                     infoText: _isPlanActive(product.id)
                         ? 'Assinatura ativa até ${_formatDate(userProvider.expiryDate)}'
                         : null,
-                    onPressed:
-                        _isPlanEnabled(product.id) && !_isPlanActive(product.id)
-                            ? () => _handlePurchase(context, product)
-                            : null,
+                    onPressed: _isPlanEnabled(product.id)
+                        ? () => _handlePurchase(context, product)
+                        : null,
+                    // Quando ativo: fundo verde e texto branco
+                    // Quando "Livre de Publicidade" e Premium ativo: cinza
                     backgroundColor: _isPlanActive(product.id)
                         ? const Color.fromARGB(255, 0, 104, 55)
-                        : _isPlanEnabled(product.id)
-                            ? Colors.white
-                            : Colors.grey.shade300,
+                        : product.id == 'monthly_ad_free' && _isAdFreeDisabled()
+                            ? const Color.fromARGB(20, 158, 158, 158)
+                            : Colors.transparent,
                     textColor: _isPlanActive(product.id)
                         ? Colors.white
-                        : const Color.fromARGB(255, 0, 104, 55),
+                        : product.id == 'monthly_ad_free' && _isAdFreeDisabled()
+                            ? Colors.grey
+                            : const Color.fromARGB(255, 0, 104, 55),
                     borderColor: _isPlanActive(product.id)
-                        ? Colors.transparent
-                        : const Color.fromARGB(255, 0, 104, 55),
+                        ? const Color.fromARGB(255, 0, 104, 55)
+                        : product.id == 'monthly_ad_free' && _isAdFreeDisabled()
+                            ? Colors.grey
+                            : const Color.fromARGB(255, 0, 104, 55),
                   ),
               ],
             ),
