@@ -8,7 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
-import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:http/http.dart' as http;
 
 class SuaConta extends StatefulWidget {
   const SuaConta({super.key});
@@ -22,17 +23,20 @@ class SuaContaState extends State<SuaConta>
   File? _profileImage;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _reportController = TextEditingController();
   late AnimationController _animationController;
   late Animation<Color?> _logoutColorAnimation;
   int _accessCount = 0;
   String? _lastAccess;
   bool _isVisible = false;
+  String _appVersion = 'Carregando...';
 
   @override
   void initState() {
     super.initState();
     _loadProfileImage();
     _loadUserData();
+    _loadAppVersion();
     final user = FirebaseAuth.instance.currentUser;
     _nameController.text = user?.displayName ?? '';
     _emailController.text = user?.email ?? '';
@@ -61,7 +65,15 @@ class SuaContaState extends State<SuaConta>
     _animationController.dispose();
     _nameController.dispose();
     _emailController.dispose();
+    _reportController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = info.version;
+    });
   }
 
   String _formatDate(DateTime? date) {
@@ -190,43 +202,134 @@ class SuaContaState extends State<SuaConta>
     }
   }
 
+  void _showReportDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Fale Conosco',
+          style: TextStyle(
+            fontFamily: 'Segoe',
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 104, 55),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _reportController,
+              maxLines: 5,
+              decoration: const InputDecoration(
+                hintText: 'Descreva seu erro, reclamação ou sugestão...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_reportController.text.trim().isNotEmpty) {
+                _submitReportToGoogleSheet();
+                Navigator.pop(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Por favor, insira uma mensagem!')),
+                );
+              }
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitReportToGoogleSheet() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid ?? 'anonymous';
+    final name = user?.displayName ?? 'Usuário';
+    final date = DateTime.now().toIso8601String();
+    final message = _reportController.text.trim();
+
+    // URL do Google Form extraída do HTML
+    const formUrl =
+        'https://docs.google.com/forms/d/e/1FAIpQLSdwONcrd5l8HK99OUIcnvSA-IzI57ckCZ__W1H84lLAlODBsw/formResponse';
+    final response = await http.post(
+      Uri.parse(formUrl),
+      body: {
+        'entry.1761278916': uid, // UID
+        'entry.856318573': name, // Nome
+        'entry.606841070': date, // Data
+        'entry.836890464': message, // Mensagem
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Obrigado pelo seu feedback!')),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao enviar feedback')),
+        );
+      }
+    }
+    _reportController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Sua Conta',
-        backgroundImageAsset: 'assets/images/aet2.jpg',
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          AnimatedOpacity(
-            opacity: _isVisible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 500),
-            child: _buildHeader(user, context),
-          ),
-          const SizedBox(height: 20),
-          AnimatedOpacity(
-            opacity: _isVisible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 500),
-            child: _buildAccountInfo(userProvider, user),
-          ),
-          const Divider(height: 30),
-          AnimatedOpacity(
-            opacity: _isVisible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 500),
-            child: _buildSubscriptionSection(context, userProvider),
-          ),
-          const Divider(height: 30),
-          AnimatedOpacity(
-            opacity: _isVisible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 500),
-            child: _buildLogoutButton(context, userProvider),
-          ),
-        ],
+      // Removido o appBar
+      body: Padding(
+        padding: const EdgeInsets.only(top: 25),
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            AnimatedOpacity(
+              opacity: _isVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 500),
+              child: _buildHeader(user, context),
+            ),
+            const SizedBox(height: 20),
+            AnimatedOpacity(
+              opacity: _isVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 500),
+              child: _buildAccountInfo(userProvider, user),
+            ),
+            const Divider(height: 30),
+            AnimatedOpacity(
+              opacity: _isVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 500),
+              child: _buildSubscriptionSection(context, userProvider),
+            ),
+            const Divider(height: 30),
+            AnimatedOpacity(
+              opacity: _isVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 500),
+              child: _buildAboutSection(context),
+            ),
+            const Divider(height: 30),
+            AnimatedOpacity(
+              opacity: _isVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 500),
+              child: _buildLogoutButton(context, userProvider),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -243,7 +346,7 @@ class SuaContaState extends State<SuaConta>
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(76), // Substituído withValues
+            color: Colors.black.withAlpha(76),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -474,6 +577,55 @@ class SuaContaState extends State<SuaConta>
       default:
         return 'Desconhecida ($planType)';
     }
+  }
+
+  Widget _buildAboutSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SOBRE O APP',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 0, 104, 55),
+            fontFamily: 'Segoe',
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'Aplicativo destinado aos profissionais da área de Saúde e Segurança do Trabalho. O app buscar deixar sempre a mão destes profissionais normas regulamentadoras, assim como CLT, DDS e outros que fazem parte do dia-a-dia deste profissional. #segurancadotrabalho #tst #ppra #riscos',
+          style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
+        ),
+        const SizedBox(height: 8),
+        _buildInfoRow('Versão:', _appVersion),
+        const SizedBox(height: 8),
+        _buildInfoRow('Data da Última Atualização:', '16/02/2025'),
+        const SizedBox(height: 8),
+        const Text(
+          'Notas da Última Atualização:\n- Melhorias no módulo de incêndio \n- Melhorias no módulo de ordem de serviço\n- Implementação de notificações',
+          style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: () => _showReportDialog(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+          ),
+          child: const Text(
+            'FALE CONOSCO',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Segoe',
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildLogoutButton(BuildContext context, UserProvider userProvider) {
