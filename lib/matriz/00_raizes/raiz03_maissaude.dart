@@ -6,6 +6,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_mapaderisco/mapa_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_raiz.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/cnpj2.dart';
 import 'package:guarda_corpo_2024/services/premium/premium_button.dart';
 import '../../services/admob/conf/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
@@ -118,7 +119,7 @@ class Raiz03Maissaude extends StatelessWidget {
                         context,
                         'assets/images/menu.jpg',
                         'Consulta de CNPJ',
-                        const Cnpj(),
+                        const Cnpj2(),
                         tamanhoBotaoLista,
                         itemFontSize),
                     _buildMaterialButton(
