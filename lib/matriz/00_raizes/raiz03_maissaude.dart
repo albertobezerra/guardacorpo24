@@ -12,7 +12,6 @@ import '../../services/admob/conf/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
 import '../02_maissaude/clt.dart';
 import '../02_maissaude/cnae.dart';
-import '../02_maissaude/cnpj.dart';
 import '../02_maissaude/nbrs.dart';
 import '../02_maissaude/nho_raiz.dart';
 import '../02_maissaude/ppp.dart';
