@@ -17,7 +17,7 @@ import '../02_maissaude/nho_raiz.dart';
 import '../02_maissaude/ppp.dart';
 import '../02_maissaude/primeiros_soc_raiz.dart';
 import '../02_maissaude/riscoamb.dart';
-import '../02_maissaude/cid.dart';
+//import '../02_maissaude/cid.dart';
 import '../02_maissaude/cipa.dart';
 import '../02_maissaude/datas.dart';
 import '../02_maissaude/esocial.dart';
@@ -96,8 +96,8 @@ class Raiz03Maissaude extends StatelessWidget {
                         itemFontSize),
                     _buildMaterialButton(context, 'assets/images/aso.jpg',
                         'A.S.O', const Aso(), tamanhoBotaoLista, itemFontSize),
-                    _buildMaterialButton(context, 'assets/images/cid.jpg',
-                        'C.I.D', const Cid(), tamanhoBotaoLista, itemFontSize),
+                    /*_buildMaterialButton(context, 'assets/images/cid.jpg',
+                        'C.I.D', const Cid(), tamanhoBotaoLista, itemFontSize),*/
                     _buildMaterialButton(context, 'assets/images/clt.jpg',
                         'C.L.T', const Clt(), tamanhoBotaoLista, itemFontSize),
                     _buildMaterialButton(
