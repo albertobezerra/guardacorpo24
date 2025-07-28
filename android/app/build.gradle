@@ -22,7 +22,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "equipebezerradasilva.guardacorpo"
-    compileSdkVersion 34
+    compileSdkVersion 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -38,8 +38,8 @@ android {
         applicationId "equipebezerradasilva.guardacorpo"
         minSdkVersion 23
         targetSdkVersion 35
-        versionCode 67
-        versionName "5.1.1"
+        versionCode 68
+        versionName "5.1.2"
     }
 
     signingConfigs {

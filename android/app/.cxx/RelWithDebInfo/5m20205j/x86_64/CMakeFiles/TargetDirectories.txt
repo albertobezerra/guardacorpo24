@@ -1,0 +1,2 @@
+C:/Users/35193/OneDrive/Documentos/GitHub/guardacorpo24/android/app/.cxx/RelWithDebInfo/5m20205j/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/35193/OneDrive/Documentos/GitHub/guardacorpo24/android/app/.cxx/RelWithDebInfo/5m20205j/x86_64/CMakeFiles/rebuild_cache.dir
