@@ -34,12 +34,13 @@ void main() async {
 
   MobileAds.instance.initialize();
 
+  // Configuração global da status bar e navigation bar
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    statusBarBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.white,
-    systemNavigationBarIconBrightness: Brightness.dark,
+    statusBarColor: Colors.white, // Fundo branco
+    statusBarIconBrightness: Brightness.dark, // Ícones pretos
+    statusBarBrightness: Brightness.light, // Para iOS: fundo claro
+    systemNavigationBarColor: Colors.white, // Navigation bar branca
+    systemNavigationBarIconBrightness: Brightness.dark, // Ícones pretos
   ));
 
   runApp(const MyApp());
@@ -142,12 +143,21 @@ class _MyAppState extends State<MyApp> {
         theme: ThemeData(
           fontFamily: 'Segoe',
           brightness: Brightness.light,
-          primarySwatch: Colors.blue,
+          primarySwatch: createMaterialColor(
+              const Color(0xFF9D291A)), // Cor principal do app
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF9D291A),
+            foregroundColor: Colors.white,
+          ),
         ),
         darkTheme: ThemeData(
           fontFamily: 'Segoe',
           brightness: Brightness.dark,
-          primarySwatch: Colors.blue,
+          primarySwatch: createMaterialColor(const Color(0xFF9D291A)),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF9D291A),
+            foregroundColor: Colors.white,
+          ),
         ),
         themeMode: ThemeMode.system,
         supportedLocales: const [
@@ -232,3 +242,26 @@ class _MyAppState extends State<MyApp> {
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Função para criar MaterialColor personalizado
+MaterialColor createMaterialColor(Color color) {
+  List strengths = <double>[.05];
+  Map<int, Color> swatch = {};
+  // ignore: deprecated_member_use
+  final int r = color.red, g = color.green, b = color.blue;
+
+  for (int i = 1; i < 10; i++) {
+    strengths.add(0.1 * i);
+  }
+  for (var strength in strengths) {
+    final double ds = 0.5 - strength;
+    swatch[(strength * 1000).round()] = Color.fromRGBO(
+      r + ((ds < 0 ? r : (255 - r)) * ds).round(),
+      g + ((ds < 0 ? g : (255 - g)) * ds).round(),
+      b + ((ds < 0 ? b : (255 - b)) * ds).round(),
+      1,
+    );
+  }
+  // ignore: deprecated_member_use
+  return MaterialColor(color.value, swatch);
+}
