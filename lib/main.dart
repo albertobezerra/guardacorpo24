@@ -13,6 +13,7 @@ import 'package:guarda_corpo_2024/firebase_options.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/inspecao_provider.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
+import 'package:guarda_corpo_2024/services/review/review_service.dart';
 import 'package:guarda_corpo_2024/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -91,6 +92,22 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _subscriptionService.startPurchaseListener(context, const NavBarPage());
     checkForUpdate();
+    // Adiciona a verificação de review após o init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndRequestReview();
+    });
+  }
+
+  Future<void> _checkAndRequestReview() async {
+    try {
+      // Só solicita review se o usuário completou o onboarding
+      final hasCompletedOnboarding = await Preferences.hasCompletedOnboarding;
+      if (hasCompletedOnboarding && await ReviewService.shouldRequestReview()) {
+        await ReviewService.requestReview();
+      }
+    } catch (e) {
+      debugPrint('Erro ao solicitar review: $e');
+    }
   }
 
   Future<void> checkForUpdate() async {

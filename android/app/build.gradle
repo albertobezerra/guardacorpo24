@@ -22,8 +22,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "equipebezerradasilva.guardacorpo"
-    compileSdkVersion 35
-    ndkVersion = flutter.ndkVersion
+    compileSdkVersion 36
+    ndkVersion = "29.0.14033849"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -36,10 +36,14 @@ android {
 
     defaultConfig {
         applicationId "equipebezerradasilva.guardacorpo"
-        minSdkVersion 23
-        targetSdkVersion 35
-        versionCode 70
-        versionName "5.2.1"
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion 36
+        versionCode 71
+        versionName "5.2.2"
+    }
+
+    packagingOptions {
+        pickFirst '**/libapp.so'
     }
 
     signingConfigs {
@@ -74,7 +78,13 @@ flutter {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    configurations.all {
+        resolutionStrategy {
+            force 'org.jetbrains.kotlin:kotlin-stdlib:2.2.0'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.0'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.0'
+        }
+    }
 }
 
 apply plugin: 'com.google.gms.google-services'
