@@ -8,8 +8,10 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+//import 'package:package_info_plus/package_info_plus.dart';
 import 'package:http/http.dart' as http;
+import 'package:guarda_corpo_2024/services/review/review_service.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 class SuaConta extends StatefulWidget {
   const SuaConta({super.key});
@@ -29,14 +31,16 @@ class SuaContaState extends State<SuaConta>
   int _accessCount = 0;
   String? _lastAccess;
   bool _isVisible = false;
-  String _appVersion = 'Carregando...';
+  //String _appVersion = 'Carregando...';
+  bool _hasAttemptedReview = false;
 
   @override
   void initState() {
     super.initState();
     _loadProfileImage();
     _loadUserData();
-    _loadAppVersion();
+    //_loadAppVersion();
+    _loadReviewStatus();
     final user = FirebaseAuth.instance.currentUser;
     _nameController.text = user?.displayName ?? '';
     _emailController.text = user?.email ?? '';
@@ -69,10 +73,17 @@ class SuaContaState extends State<SuaConta>
     super.dispose();
   }
 
-  Future<void> _loadAppVersion() async {
-    final info = await PackageInfo.fromPlatform();
+  // Future<void> _loadAppVersion() async {
+  //   final info = await PackageInfo.fromPlatform();
+  //   setState(() {
+  //     _appVersion = info.version;
+  //   });
+  // }
+
+  Future<void> _loadReviewStatus() async {
+    final hasAttempted = await ReviewService.hasAttemptedReview();
     setState(() {
-      _appVersion = info.version;
+      _hasAttemptedReview = hasAttempted;
     });
   }
 
@@ -197,6 +208,39 @@ class SuaContaState extends State<SuaConta>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao atualizar perfil: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _requestAppReview() async {
+    try {
+      final inAppReview = InAppReview.instance;
+      if (_hasAttemptedReview || !(await inAppReview.isAvailable())) {
+        // Se já tentou ou o prompt não está disponível, redireciona para a Play Store
+        await inAppReview.openStoreListing();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Redirecionado para a Google Play!')),
+          );
+        }
+        // Marca a tentativa, caso ainda não esteja marcada
+        if (!_hasAttemptedReview) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt(
+              'last_review_request', DateTime.now().millisecondsSinceEpoch);
+          await prefs.setBool('has_attempted_review', true);
+          setState(() => _hasAttemptedReview = true);
+        }
+      } else {
+        // Primeira tentativa com prompt disponível: abre o prompt nativo
+        await ReviewService.requestManualReview();
+        // Não mostra SnackBar, pois o prompt nativo é feedback suficiente
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao abrir a avaliação: $e')),
         );
       }
     }
@@ -592,20 +636,20 @@ class SuaContaState extends State<SuaConta>
             fontFamily: 'Segoe',
           ),
         ),
-        const SizedBox(height: 12),
-        const Text(
-          'Aplicativo destinado aos profissionais da área de Saúde e Segurança do Trabalho. O app buscar deixar sempre a mão destes profissionais normas regulamentadoras, assim como CLT, DDS e outros que fazem parte do dia-a-dia deste profissional. #segurancadotrabalho #tst #ppra #riscos',
-          style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
-        ),
-        const SizedBox(height: 8),
-        _buildInfoRow('Versão:', _appVersion),
-        const SizedBox(height: 8),
-        _buildInfoRow('Data da Última Atualização:', '16/02/2025'),
-        const SizedBox(height: 8),
-        const Text(
-          'Notas da Última Atualização:\n- Melhorias no módulo de incêndio \n- Melhorias no módulo de ordem de serviço\n- Implementação de notificações',
-          style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
-        ),
+        // const SizedBox(height: 12),
+        // const Text(
+        //   'Aplicativo destinado aos profissionais da área de Saúde e Segurança do Trabalho. O app buscar deixar sempre a mão destes profissionais normas regulamentadoras, assim como CLT, DDS e outros que fazem parte do dia-a-dia deste profissional. #segurancadotrabalho #tst #ppra #riscos',
+        //   style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
+        // ),
+        // const SizedBox(height: 8),
+        // _buildInfoRow('Versão:', _appVersion),
+        // const SizedBox(height: 8),
+        // _buildInfoRow('Data da Última Atualização:', '16/02/2025'),
+        // const SizedBox(height: 8),
+        // const Text(
+        //   'Notas da Última Atualização:\n- Melhorias no módulo de incêndio \n- Melhorias no módulo de ordem de serviço\n- Implementação de notificações',
+        //   style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
+        // ),
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: () => _showReportDialog(context),
@@ -617,6 +661,24 @@ class SuaContaState extends State<SuaConta>
           ),
           child: const Text(
             'FALE CONOSCO',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Segoe',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: _requestAppReview,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+          ),
+          child: const Text(
+            'AVALIAR O APP',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
