@@ -11,12 +11,23 @@ class UserProvider with ChangeNotifier {
   String? _errorMessage;
   bool _hasEverSubscribedPremium = false;
 
+  // 🔹 Novos campos Reward
+  int _rewardPoints = 0;
+  DateTime? _rewardExpiryDate;
+
+  // Getters existentes
   bool get isLoggedIn => _isLoggedIn;
   bool get isPremium => _isPremium;
   String get planType => _planType;
   DateTime? get expiryDate => _expiryDate;
   String? get errorMessage => _errorMessage;
   bool get hasEverSubscribedPremium => _hasEverSubscribedPremium;
+
+  // 🔹 Novos Getters Reward
+  int get rewardPoints => _rewardPoints;
+  DateTime? get rewardExpiryDate => _rewardExpiryDate;
+  bool get hasRewardActive =>
+      _rewardExpiryDate != null && _rewardExpiryDate!.isAfter(DateTime.now());
 
   UserProvider() {
     loadFromCache();
@@ -33,6 +44,15 @@ class UserProvider with ChangeNotifier {
       await prefs.remove('expiryDate');
     }
     await prefs.setBool('hasEverSubscribedPremium', _hasEverSubscribedPremium);
+
+    // 🔹 Cache Reward
+    await prefs.setInt('rewardPoints', _rewardPoints);
+    if (_rewardExpiryDate != null) {
+      await prefs.setInt(
+          'rewardExpiryDate', _rewardExpiryDate!.millisecondsSinceEpoch);
+    } else {
+      await prefs.remove('rewardExpiryDate');
+    }
   }
 
   void updateSubscription({
@@ -56,6 +76,29 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // 🔹 Atualizar Reward manualmente
+  void updateReward({int? points, DateTime? expiry}) {
+    if (points != null) _rewardPoints = points;
+    if (expiry != null) _rewardExpiryDate = expiry;
+    saveToCache();
+    notifyListeners();
+  }
+
+  // 🔹 Ganhar pontos
+  void addRewardPoints(int amount) {
+    _rewardPoints += amount;
+    saveToCache();
+    notifyListeners();
+  }
+
+  // 🔹 Ativar 7 dias sem anúncios (quando atingir a meta)
+  void activateAdFreeReward() {
+    _rewardPoints = 0;
+    _rewardExpiryDate = DateTime.now().add(const Duration(days: 7));
+    saveToCache();
+    notifyListeners();
+  }
+
   void resetSubscription() {
     _isLoggedIn = false;
     _isPremium = false;
@@ -66,7 +109,6 @@ class UserProvider with ChangeNotifier {
     saveToCache();
   }
 
-  // UserProvider (ajustado)
   bool hasActiveSubscription() {
     return _planType.isNotEmpty &&
         _expiryDate != null &&
@@ -75,26 +117,21 @@ class UserProvider with ChangeNotifier {
   }
 
   bool canAccessPremiumScreen() {
-    return hasActiveSubscription() &&
-        _planType ==
-            'monthly_full'; // Apenas monthly_full libera conteúdo Premium
-  }
-
-  bool isAdFree() {
-    return hasActiveSubscription(); // Ambos os planos desativam anúncios
-  }
-
-  bool canAccessPremiumSubscriptionPage() {
-    return true;
-  }
-
-  bool hasPremiumPlan() {
     return hasActiveSubscription() && _planType == 'monthly_full';
   }
 
-  bool hasAdFreePlan() {
-    return hasActiveSubscription() && _planType == 'monthly_ad_free';
+  bool isAdFree() {
+    // 🔹 Incluímos o benefício reward
+    return hasActiveSubscription() || hasRewardActive;
   }
+
+  bool canAccessPremiumSubscriptionPage() => true;
+
+  bool hasPremiumPlan() =>
+      hasActiveSubscription() && _planType == 'monthly_full';
+
+  bool hasAdFreePlan() =>
+      hasActiveSubscription() && _planType == 'monthly_ad_free';
 
   void setError(String error) {
     _errorMessage = error;
@@ -132,8 +169,11 @@ class UserProvider with ChangeNotifier {
                     ? data['hasEverSubscribedPremium']
                     : false;
 
-            debugPrint(
-                'Firestore - planType: $planType, expiryDate: $expiryDate, isPremium: $isPremium, hasEverSubscribedPremium: $hasEverSubscribedPremium');
+            // 🔹 Recuperar dados Reward se existirem
+            final rewardPoints = data['rewardPoints'] ?? 0;
+            final rewardExpiryDate =
+                (data['rewardExpiryDate'] as Timestamp?)?.toDate();
+
             updateSubscription(
               isLoggedIn: true,
               isPremium: isPremium,
@@ -142,14 +182,14 @@ class UserProvider with ChangeNotifier {
               hasEverSubscribedPremium: hasEverSubscribedPremium,
             );
 
+            updateReward(points: rewardPoints, expiry: rewardExpiryDate);
+
+            // Atualiza Firestore se expirar
             if (expiryDate != null && !expiryDate.isAfter(DateTime.now())) {
-              debugPrint('Assinatura expirada, atualizando status');
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(user.uid)
-                  .update({
-                'subscriptionStatus': 'inactive',
-              });
+                  .update({'subscriptionStatus': 'inactive'});
             }
           }
         });
@@ -168,6 +208,14 @@ class UserProvider with ChangeNotifier {
         : null;
     _hasEverSubscribedPremium =
         prefs.getBool('hasEverSubscribedPremium') ?? false;
+
+    // 🔹 Load Reward
+    _rewardPoints = prefs.getInt('rewardPoints') ?? 0;
+    final rewardExpiryMillis = prefs.getInt('rewardExpiryDate');
+    _rewardExpiryDate = rewardExpiryMillis != null
+        ? DateTime.fromMillisecondsSinceEpoch(rewardExpiryMillis)
+        : null;
+
     notifyListeners();
   }
 }

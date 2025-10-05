@@ -3,6 +3,7 @@ import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
+import 'package:guarda_corpo_2024/services/premium/reward_ads_screen.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
@@ -133,6 +134,13 @@ class _PremiumPageState extends State<PremiumPage> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  void _openRewardedAdScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RewardAdsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -176,6 +184,19 @@ class _PremiumPageState extends State<PremiumPage> {
             padding: const EdgeInsets.only(top: 12),
             child: ListView(
               children: [
+                // BOTÃO PARA GANHAR RECOMPENSA
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ElevatedButton(
+                    onPressed: _openRewardedAdScreen,
+                    child: const Text('Ganhar Recompensa'),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // LISTA DE PLANOS
                 for (final product in products)
                   CustomPlanCard(
                     title: product.id == 'monthly_ad_free'
@@ -196,8 +217,6 @@ class _PremiumPageState extends State<PremiumPage> {
                     onPressed: _isPlanEnabled(product.id)
                         ? () => _handlePurchase(context, product)
                         : null,
-                    // Quando ativo: fundo verde e texto branco
-                    // Quando "Livre de Publicidade" e Premium ativo: cinza
                     backgroundColor: _isPlanActive(product.id)
                         ? const Color.fromARGB(255, 0, 104, 55)
                         : product.id == 'monthly_ad_free' && _isAdFreeDisabled()
