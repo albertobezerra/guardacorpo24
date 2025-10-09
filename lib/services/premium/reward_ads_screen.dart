@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
-import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:guarda_corpo_2024/services/premium/reward_store_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 
 class RewardAdsScreen extends StatefulWidget {
   const RewardAdsScreen({super.key});
@@ -15,7 +16,8 @@ class RewardAdsScreen extends StatefulWidget {
 class _RewardAdsScreenState extends State<RewardAdsScreen> {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
-  bool _isRewardGranted = false;
+  static const int pointsPerAd = 4; // ajuste aqui (sugestão)
+  bool _isGranting = false;
 
   @override
   void initState() {
@@ -26,19 +28,19 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
   void _loadRewardedAd() {
     RewardedAd.load(
       adUnitId:
-          'ca-app-pub-7979689703488774/6389624112', // substitua pelo seu ID real
+          'ca-app-pub-7979689703488774/6389624112', // teu Rewarded Ad Unit
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          debugPrint('RewardedAd carregado com sucesso.');
           setState(() {
             _rewardedAd = ad;
             _isAdLoaded = true;
           });
         },
-        onAdFailedToLoad: (error) {
-          debugPrint('Falha ao carregar RewardedAd: $error');
+        onAdFailedToLoad: (err) {
+          debugPrint('Erro ao carregar RewardedAd: $err');
           setState(() {
+            _rewardedAd = null;
             _isAdLoaded = false;
           });
         },
@@ -46,70 +48,89 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
     );
   }
 
+  Future<void> _onUserEarnedReward() async {
+    if (_isGranting) return;
+    _isGranting = true;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _isGranting = false;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Faça login para ganhar pontos.')),
+      );
+      return;
+    }
+
+    final uid = user.uid;
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
+
+    try {
+      // Incrementa pontos de forma atômica
+      await userDoc.set({'rewardPoints': FieldValue.increment(pointsPerAd)},
+          SetOptions(merge: true));
+
+      // Atualiza provider local (ele tem listener onSnapshot e deveria pegar mudança automaticamente;
+      // mas aqui forçamos uma leitura rápida para sincronizar UI imediatamente)
+      final snapshot = await userDoc.get();
+      final data = snapshot.data();
+      final newPoints = (data != null && data['rewardPoints'] != null)
+          ? data['rewardPoints'] as int
+          : 0;
+      if (mounted) {
+        Provider.of<UserProvider>(context, listen: false).updateReward(
+            points: newPoints,
+            expiry: (data?['rewardExpiryDate'] != null
+                ? (data!['rewardExpiryDate'] as Timestamp).toDate()
+                : null));
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Você ganhou $pointsPerAd pontos! Total: $newPoints')),
+      );
+    } catch (e) {
+      debugPrint('Erro ao creditar pontos: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Erro ao creditar pontos. Tente novamente.')),
+      );
+    } finally {
+      _isGranting = false;
+    }
+  }
+
   void _showRewardedAd() {
     if (_rewardedAd == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Anúncio não carregado. Tente novamente.')),
+            content: Text('Anúncio não está pronto. Tente novamente.')),
       );
+      _loadRewardedAd();
       return;
     }
 
     _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
-        _loadRewardedAd(); // recarrega para próxima vez
+        _loadRewardedAd();
       },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        debugPrint('Erro ao exibir RewardedAd: $error');
+      onAdFailedToShowFullScreenContent: (ad, err) {
+        debugPrint('Erro ao mostrar RewardedAd: $err');
         ad.dispose();
         _loadRewardedAd();
       },
     );
 
     _rewardedAd!.show(onUserEarnedReward: (ad, reward) async {
-      debugPrint('Usuário recebeu recompensa: ${reward.amount} ${reward.type}');
-      await _grantReward();
+      await _onUserEarnedReward();
     });
 
+    // limpa referência para forçar reload
     _rewardedAd = null;
-  }
-
-  Future<void> _grantReward() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-    // Define 7 dias de "ad_free_reward"
-    final expiryDate = DateTime.now().add(const Duration(days: 7));
-
-    // Atualiza Firestore
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-      'planType': 'ad_free_reward',
-      'subscriptionStatus': 'active',
-      'expiryDate': expiryDate,
-      'hasEverSubscribedPremium': true,
-    });
-
-    // Atualiza provider local
-    userProvider.updateSubscription(
-      isLoggedIn: true,
-      isPremium: true,
-      planType: 'ad_free_reward',
-      expiryDate: expiryDate,
-      hasEverSubscribedPremium: true,
-    );
-
-    setState(() {
-      _isRewardGranted = true;
-    });
-
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Parabéns! Você ganhou 7 dias sem anúncios.')),
-    );
   }
 
   @override
@@ -120,37 +141,37 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final currentPoints = userProvider.rewardPoints;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ganhe dias sem anúncios'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Assista ao anúncio abaixo para ganhar 7 dias sem anúncios!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed:
-                    _isAdLoaded && !_isRewardGranted ? _showRewardedAd : null,
-                child: Text(
-                  _isRewardGranted
-                      ? 'Recompensa concedida!'
-                      : 'Assistir Anúncio',
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (!_isAdLoaded)
-                const Text('Carregando anúncio...',
-                    style: TextStyle(color: Colors.grey)),
-            ],
-          ),
+      appBar: AppBar(title: const Text('Ganhe pontos')),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Text('Seus pontos: $currentPoints',
+                style: const TextStyle(fontSize: 20)),
+            const SizedBox(height: 12),
+            Text('Cada vídeo dá $pointsPerAd pontos.'),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _isAdLoaded ? _showRewardedAd : null,
+              icon: const Icon(Icons.ondemand_video),
+              label: const Text('Assistir anúncio e ganhar pontos'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const RewardStoreScreen()),
+                );
+              },
+              child: const Text('Loja de Recompensa'),
+            )
+          ],
         ),
       ),
     );

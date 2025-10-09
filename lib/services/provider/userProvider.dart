@@ -11,21 +11,20 @@ class UserProvider with ChangeNotifier {
   String? _errorMessage;
   bool _hasEverSubscribedPremium = false;
 
-  // 🔹 Novos campos Reward
+  // 🔹 Campos de Recompensa
   int _rewardPoints = 0;
   DateTime? _rewardExpiryDate;
 
-  // Getters existentes
+  // Getters
   bool get isLoggedIn => _isLoggedIn;
   bool get isPremium => _isPremium;
   String get planType => _planType;
   DateTime? get expiryDate => _expiryDate;
   String? get errorMessage => _errorMessage;
   bool get hasEverSubscribedPremium => _hasEverSubscribedPremium;
-
-  // 🔹 Novos Getters Reward
   int get rewardPoints => _rewardPoints;
   DateTime? get rewardExpiryDate => _rewardExpiryDate;
+
   bool get hasRewardActive =>
       _rewardExpiryDate != null && _rewardExpiryDate!.isAfter(DateTime.now());
 
@@ -45,7 +44,6 @@ class UserProvider with ChangeNotifier {
     }
     await prefs.setBool('hasEverSubscribedPremium', _hasEverSubscribedPremium);
 
-    // 🔹 Cache Reward
     await prefs.setInt('rewardPoints', _rewardPoints);
     if (_rewardExpiryDate != null) {
       await prefs.setInt(
@@ -70,13 +68,10 @@ class UserProvider with ChangeNotifier {
       _hasEverSubscribedPremium = hasEverSubscribedPremium;
     }
     _errorMessage = null;
-    debugPrint(
-        'Estado atualizado - isPremium: $_isPremium, planType: $_planType, hasEverSubscribedPremium: $_hasEverSubscribedPremium');
     saveToCache();
     notifyListeners();
   }
 
-  // 🔹 Atualizar Reward manualmente
   void updateReward({int? points, DateTime? expiry}) {
     if (points != null) _rewardPoints = points;
     if (expiry != null) _rewardExpiryDate = expiry;
@@ -85,17 +80,35 @@ class UserProvider with ChangeNotifier {
   }
 
   // 🔹 Ganhar pontos
-  void addRewardPoints(int amount) {
+  Future<void> addRewardPointsAndSave(int amount) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     _rewardPoints += amount;
-    saveToCache();
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+      'rewardPoints': _rewardPoints,
+    });
+
+    await saveToCache();
     notifyListeners();
   }
 
-  // 🔹 Ativar 7 dias sem anúncios (quando atingir a meta)
-  void activateAdFreeReward() {
+  // 🔹 Ativar 7 dias sem anúncios
+  Future<void> activateAdFreeReward() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     _rewardPoints = 0;
     _rewardExpiryDate = DateTime.now().add(const Duration(days: 7));
-    saveToCache();
+
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+      'rewardPoints': 0,
+      'rewardExpiryDate': _rewardExpiryDate,
+      'planType': 'ad_free_reward',
+      'subscriptionStatus': 'active',
+    });
+
+    await saveToCache();
     notifyListeners();
   }
 
@@ -116,22 +129,17 @@ class UserProvider with ChangeNotifier {
         (_planType == 'monthly_full' || _planType == 'monthly_ad_free');
   }
 
+  bool hasPremiumPlan() {
+    return _isPremium && _planType == 'monthly_full';
+  }
+
   bool canAccessPremiumScreen() {
     return hasActiveSubscription() && _planType == 'monthly_full';
   }
 
   bool isAdFree() {
-    // 🔹 Incluímos o benefício reward
     return hasActiveSubscription() || hasRewardActive;
   }
-
-  bool canAccessPremiumSubscriptionPage() => true;
-
-  bool hasPremiumPlan() =>
-      hasActiveSubscription() && _planType == 'monthly_full';
-
-  bool hasAdFreePlan() =>
-      hasActiveSubscription() && _planType == 'monthly_ad_free';
 
   void setError(String error) {
     _errorMessage = error;
@@ -169,7 +177,6 @@ class UserProvider with ChangeNotifier {
                     ? data['hasEverSubscribedPremium']
                     : false;
 
-            // 🔹 Recuperar dados Reward se existirem
             final rewardPoints = data['rewardPoints'] ?? 0;
             final rewardExpiryDate =
                 (data['rewardExpiryDate'] as Timestamp?)?.toDate();
@@ -184,7 +191,6 @@ class UserProvider with ChangeNotifier {
 
             updateReward(points: rewardPoints, expiry: rewardExpiryDate);
 
-            // Atualiza Firestore se expirar
             if (expiryDate != null && !expiryDate.isAfter(DateTime.now())) {
               await FirebaseFirestore.instance
                   .collection('users')
@@ -208,8 +214,6 @@ class UserProvider with ChangeNotifier {
         : null;
     _hasEverSubscribedPremium =
         prefs.getBool('hasEverSubscribedPremium') ?? false;
-
-    // 🔹 Load Reward
     _rewardPoints = prefs.getInt('rewardPoints') ?? 0;
     final rewardExpiryMillis = prefs.getInt('rewardExpiryDate');
     _rewardExpiryDate = rewardExpiryMillis != null

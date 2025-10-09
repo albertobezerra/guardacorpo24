@@ -16,10 +16,10 @@ class InterstitialAdManager {
           _interstitialAd = ad;
           _isInterstitialAdReady = true;
           _interstitialAd?.setImmersiveMode(true);
-          debugPrint('Anúncio intersticial carregado com sucesso');
+          debugPrint('✅ Anúncio intersticial carregado');
         },
         onAdFailedToLoad: (LoadAdError error) {
-          debugPrint('Erro ao carregar anúncio intersticial: $error');
+          debugPrint('⚠️ Falha ao carregar intersticial: $error');
           _isInterstitialAdReady = false;
         },
       ),
@@ -29,11 +29,8 @@ class InterstitialAdManager {
   static void showInterstitialAd(BuildContext context, Widget nextPage) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final showAds = !userProvider.isAdFree();
-    debugPrint(
-        'InterstitialAdManager - showAds: $showAds, planType: ${userProvider.planType}');
 
     if (!showAds) {
-      if (!context.mounted) return;
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => nextPage));
       return;
@@ -46,22 +43,18 @@ class InterstitialAdManager {
           ad.dispose();
           _interstitialAd = null;
           loadInterstitialAd();
-          if (!context.mounted) return;
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => nextPage));
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
-          debugPrint('Erro ao exibir anúncio intersticial: $error');
           ad.dispose();
           _interstitialAd = null;
           loadInterstitialAd();
-          if (!context.mounted) return;
           Navigator.push(
               context, MaterialPageRoute(builder: (context) => nextPage));
         },
       );
     } else {
-      if (!context.mounted) return;
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => nextPage));
     }
