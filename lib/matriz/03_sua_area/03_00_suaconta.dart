@@ -1,17 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
-//import 'package:package_info_plus/package_info_plus.dart';
-import 'package:http/http.dart' as http;
+import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:guarda_corpo_2024/services/review/review_service.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:http/http.dart' as http;
 
 class SuaConta extends StatefulWidget {
   const SuaConta({super.key});
@@ -31,7 +30,6 @@ class SuaContaState extends State<SuaConta>
   int _accessCount = 0;
   String? _lastAccess;
   bool _isVisible = false;
-  //String _appVersion = 'Carregando...';
   bool _hasAttemptedReview = false;
 
   @override
@@ -39,7 +37,6 @@ class SuaContaState extends State<SuaConta>
     super.initState();
     _loadProfileImage();
     _loadUserData();
-    //_loadAppVersion();
     _loadReviewStatus();
     final user = FirebaseAuth.instance.currentUser;
     _nameController.text = user?.displayName ?? '';
@@ -56,9 +53,7 @@ class SuaContaState extends State<SuaConta>
     ).animate(_animationController);
 
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() => _isVisible = true);
-      }
+      if (mounted) setState(() => _isVisible = true);
     });
 
     _updateAccessStats();
@@ -72,13 +67,6 @@ class SuaContaState extends State<SuaConta>
     _reportController.dispose();
     super.dispose();
   }
-
-  // Future<void> _loadAppVersion() async {
-  //   final info = await PackageInfo.fromPlatform();
-  //   setState(() {
-  //     _appVersion = info.version;
-  //   });
-  // }
 
   Future<void> _loadReviewStatus() async {
     final hasAttempted = await ReviewService.hasAttemptedReview();
@@ -138,9 +126,7 @@ class SuaContaState extends State<SuaConta>
           imageCache.clear();
           imageCache.clearLiveImages();
 
-          setState(() {
-            _profileImage = newImage;
-          });
+          setState(() => _profileImage = newImage);
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -162,9 +148,7 @@ class SuaContaState extends State<SuaConta>
       imageCache.clear();
       imageCache.clearLiveImages();
 
-      setState(() {
-        _profileImage = null;
-      });
+      setState(() => _profileImage = null);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -217,14 +201,12 @@ class SuaContaState extends State<SuaConta>
     try {
       final inAppReview = InAppReview.instance;
       if (_hasAttemptedReview || !(await inAppReview.isAvailable())) {
-        // Se já tentou ou o prompt não está disponível, redireciona para a Play Store
         await inAppReview.openStoreListing();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Redirecionado para a Google Play!')),
           );
         }
-        // Marca a tentativa, caso ainda não esteja marcada
         if (!_hasAttemptedReview) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setInt(
@@ -233,9 +215,7 @@ class SuaContaState extends State<SuaConta>
           setState(() => _hasAttemptedReview = true);
         }
       } else {
-        // Primeira tentativa com prompt disponível: abre o prompt nativo
         await ReviewService.requestManualReview();
-        // Não mostra SnackBar, pois o prompt nativo é feedback suficiente
       }
     } catch (e) {
       if (mounted) {
@@ -302,79 +282,68 @@ class SuaContaState extends State<SuaConta>
     final date = DateTime.now().toIso8601String();
     final message = _reportController.text.trim();
 
-    // URL do Google Form extraída do HTML
     const formUrl =
         'https://docs.google.com/forms/d/e/1FAIpQLSdwONcrd5l8HK99OUIcnvSA-IzI57ckCZ__W1H84lLAlODBsw/formResponse';
-    final response = await http.post(
-      Uri.parse(formUrl),
-      body: {
-        'entry.1761278916': uid, // UID
-        'entry.856318573': name, // Nome
-        'entry.606841070': date, // Data
-        'entry.836890464': message, // Mensagem
-      },
-    );
+    await http.post(Uri.parse(formUrl), body: {
+      'entry.1761278916': uid,
+      'entry.856318573': name,
+      'entry.606841070': date,
+      'entry.836890464': message,
+    });
 
-    if (response.statusCode == 200 || response.statusCode == 204) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Obrigado pelo seu feedback!')),
-        );
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao enviar feedback')),
-        );
-      }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Obrigado pelo seu feedback!')),
+      );
     }
     _reportController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final user = FirebaseAuth.instance.currentUser;
-
-    return Scaffold(
-      // Removido o appBar
-      body: Padding(
-        padding: const EdgeInsets.only(top: 25),
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            AnimatedOpacity(
-              opacity: _isVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              child: _buildHeader(user, context),
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, _) {
+        final user = FirebaseAuth.instance.currentUser;
+        return Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.only(top: 25),
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                AnimatedOpacity(
+                  opacity: _isVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildHeader(user, context),
+                ),
+                const SizedBox(height: 20),
+                AnimatedOpacity(
+                  opacity: _isVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildAccountInfo(userProvider, user),
+                ),
+                const Divider(height: 30),
+                AnimatedOpacity(
+                  opacity: _isVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildSubscriptionSection(context, userProvider),
+                ),
+                const Divider(height: 30),
+                AnimatedOpacity(
+                  opacity: _isVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildAboutSection(context),
+                ),
+                const Divider(height: 30),
+                AnimatedOpacity(
+                  opacity: _isVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildLogoutButton(context, userProvider),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            AnimatedOpacity(
-              opacity: _isVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              child: _buildAccountInfo(userProvider, user),
-            ),
-            const Divider(height: 30),
-            AnimatedOpacity(
-              opacity: _isVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              child: _buildSubscriptionSection(context, userProvider),
-            ),
-            const Divider(height: 30),
-            AnimatedOpacity(
-              opacity: _isVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              child: _buildAboutSection(context),
-            ),
-            const Divider(height: 30),
-            AnimatedOpacity(
-              opacity: _isVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              child: _buildLogoutButton(context, userProvider),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -529,13 +498,17 @@ class SuaContaState extends State<SuaConta>
         _buildInfoRow('Último Acesso:', _lastAccess ?? 'N/A'),
         const SizedBox(height: 8),
         _buildInfoRow('Acessos Totais:', _accessCount.toString()),
+        const SizedBox(height: 8),
+        _buildInfoRow(
+            'Pontos de publicidade:', userProvider.rewardPoints.toString()),
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const ResetPasswordPage()));
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ResetPasswordPage()),
+            );
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color.fromARGB(255, 0, 104, 55),
@@ -636,20 +609,6 @@ class SuaContaState extends State<SuaConta>
             fontFamily: 'Segoe',
           ),
         ),
-        // const SizedBox(height: 12),
-        // const Text(
-        //   'Aplicativo destinado aos profissionais da área de Saúde e Segurança do Trabalho. O app buscar deixar sempre a mão destes profissionais normas regulamentadoras, assim como CLT, DDS e outros que fazem parte do dia-a-dia deste profissional. #segurancadotrabalho #tst #ppra #riscos',
-        //   style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
-        // ),
-        // const SizedBox(height: 8),
-        // _buildInfoRow('Versão:', _appVersion),
-        // const SizedBox(height: 8),
-        // _buildInfoRow('Data da Última Atualização:', '16/02/2025'),
-        // const SizedBox(height: 8),
-        // const Text(
-        //   'Notas da Última Atualização:\n- Melhorias no módulo de incêndio \n- Melhorias no módulo de ordem de serviço\n- Implementação de notificações',
-        //   style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
-        // ),
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: () => _showReportDialog(context),
@@ -678,7 +637,7 @@ class SuaContaState extends State<SuaConta>
                 borderRadius: BorderRadius.circular(18.0)),
           ),
           child: const Text(
-            'AVALIAR O APP',
+            'AVALIAR APP',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -693,46 +652,33 @@ class SuaContaState extends State<SuaConta>
   Widget _buildLogoutButton(BuildContext context, UserProvider userProvider) {
     return AnimatedBuilder(
       animation: _logoutColorAnimation,
-      builder: (context, child) {
-        return ElevatedButton(
-          onPressed: () async {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.remove('profile_image_path');
-            setState(() {
-              _profileImage = null;
-            });
-            if (context.mounted) {
-              userProvider.logout(context);
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const AuthPage()),
-                (route) => false,
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _logoutColorAnimation.value,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0)),
+      builder: (context, child) => ElevatedButton.icon(
+        onPressed: () async {
+          await FirebaseAuth.instance.signOut();
+          if (mounted) {
+            Navigator.pushReplacement(
+              // ignore: use_build_context_synchronously
+              context,
+              MaterialPageRoute(builder: (context) => const AuthPage()),
+            );
+          }
+        },
+        icon: const Icon(Icons.logout, color: Colors.white),
+        label: const Text(
+          'SAIR',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Segoe',
           ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.logout, color: Colors.white),
-              SizedBox(width: 8),
-              Text(
-                'SAIR',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Segoe',
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _logoutColorAnimation.value,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
+        ),
+      ),
     );
   }
 }

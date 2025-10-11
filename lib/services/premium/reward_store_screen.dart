@@ -55,6 +55,12 @@ class RewardStoreScreen extends StatelessWidget {
                       }
 
                       userProvider.updateReward(points: 0, expiry: expiry);
+                      userProvider.updateSubscription(
+                        isLoggedIn: true,
+                        isPremium: true,
+                        planType: 'reward_full_access',
+                        expiryDate: expiry,
+                      );
 
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(

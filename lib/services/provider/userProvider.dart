@@ -11,7 +11,7 @@ class UserProvider with ChangeNotifier {
   String? _errorMessage;
   bool _hasEverSubscribedPremium = false;
 
-  // 🔹 Campos de Recompensa
+  // 🔹 Recompensas
   int _rewardPoints = 0;
   DateTime? _rewardExpiryDate;
 
@@ -79,7 +79,7 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔹 Ganhar pontos
+  // 🔹 Adicionar pontos
   Future<void> addRewardPointsAndSave(int amount) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -93,7 +93,7 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔹 Ativar 7 dias sem anúncios
+  // 🔹 Ativar 7 dias sem anúncios (100 pontos)
   Future<void> activateAdFreeReward() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -108,18 +108,12 @@ class UserProvider with ChangeNotifier {
       'subscriptionStatus': 'active',
     });
 
+    _isPremium = false;
+    _planType = 'ad_free_reward';
+    _expiryDate = _rewardExpiryDate;
+
     await saveToCache();
     notifyListeners();
-  }
-
-  void resetSubscription() {
-    _isLoggedIn = false;
-    _isPremium = false;
-    _planType = '';
-    _expiryDate = null;
-    _errorMessage = null;
-    notifyListeners();
-    saveToCache();
   }
 
   bool hasActiveSubscription() {
@@ -141,17 +135,19 @@ class UserProvider with ChangeNotifier {
     return hasActiveSubscription() || hasRewardActive;
   }
 
+  void resetSubscription() {
+    _isLoggedIn = false;
+    _isPremium = false;
+    _planType = '';
+    _expiryDate = null;
+    _errorMessage = null;
+    notifyListeners();
+    saveToCache();
+  }
+
   void setError(String error) {
     _errorMessage = error;
     notifyListeners();
-  }
-
-  void logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    resetSubscription();
-    if (context.mounted) {
-      Navigator.pushReplacementNamed(context, '/auth');
-    }
   }
 
   void startFirebaseListener(BuildContext context) {
@@ -176,7 +172,6 @@ class UserProvider with ChangeNotifier {
                 data['hasEverSubscribedPremium'] is bool
                     ? data['hasEverSubscribedPremium']
                     : false;
-
             final rewardPoints = data['rewardPoints'] ?? 0;
             final rewardExpiryDate =
                 (data['rewardExpiryDate'] as Timestamp?)?.toDate();
@@ -190,13 +185,6 @@ class UserProvider with ChangeNotifier {
             );
 
             updateReward(points: rewardPoints, expiry: rewardExpiryDate);
-
-            if (expiryDate != null && !expiryDate.isAfter(DateTime.now())) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .update({'subscriptionStatus': 'inactive'});
-            }
           }
         });
       }
@@ -219,7 +207,6 @@ class UserProvider with ChangeNotifier {
     _rewardExpiryDate = rewardExpiryMillis != null
         ? DateTime.fromMillisecondsSinceEpoch(rewardExpiryMillis)
         : null;
-
     notifyListeners();
   }
 }

@@ -16,7 +16,7 @@ class RewardAdsScreen extends StatefulWidget {
 class _RewardAdsScreenState extends State<RewardAdsScreen> {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
-  static const int pointsPerAd = 4; // ajuste aqui (sugestão)
+  static const int pointsPerAd = 4;
   bool _isGranting = false;
 
   @override
@@ -27,8 +27,7 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
 
   void _loadRewardedAd() {
     RewardedAd.load(
-      adUnitId:
-          'ca-app-pub-7979689703488774/6389624112', // teu Rewarded Ad Unit
+      adUnitId: 'ca-app-pub-7979689703488774/6389624112',
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
@@ -66,12 +65,9 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
     final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
 
     try {
-      // Incrementa pontos de forma atômica
       await userDoc.set({'rewardPoints': FieldValue.increment(pointsPerAd)},
           SetOptions(merge: true));
 
-      // Atualiza provider local (ele tem listener onSnapshot e deveria pegar mudança automaticamente;
-      // mas aqui forçamos uma leitura rápida para sincronizar UI imediatamente)
       final snapshot = await userDoc.get();
       final data = snapshot.data();
       final newPoints = (data != null && data['rewardPoints'] != null)
@@ -79,10 +75,11 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
           : 0;
       if (mounted) {
         Provider.of<UserProvider>(context, listen: false).updateReward(
-            points: newPoints,
-            expiry: (data?['rewardExpiryDate'] != null
-                ? (data!['rewardExpiryDate'] as Timestamp).toDate()
-                : null));
+          points: newPoints,
+          expiry: (data?['rewardExpiryDate'] != null
+              ? (data!['rewardExpiryDate'] as Timestamp).toDate()
+              : null),
+        );
       }
 
       if (!mounted) return;
@@ -129,7 +126,6 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
       await _onUserEarnedReward();
     });
 
-    // limpa referência para forçar reload
     _rewardedAd = null;
   }
 
