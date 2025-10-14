@@ -49,6 +49,7 @@ class RewardStoreScreen extends StatelessWidget {
                     onPressed: userProvider.rewardPoints >= 100
                         ? () async {
                             await userProvider.activateAdFreeReward();
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text('🎉 7 dias sem anúncios!')));
@@ -93,6 +94,7 @@ class RewardStoreScreen extends StatelessWidget {
                               planType: 'reward_full_access',
                               expiryDate: expiry,
                             );
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text('🎉 14 dias premium!')));

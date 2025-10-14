@@ -57,8 +57,9 @@ class _SuaContaState extends State<SuaConta> {
       await prefs.setString('profile_image_path', imagePath);
 
       await FileImage(newImage).evict();
-
       setState(() => _profileImage = newImage);
+
+      if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Foto atualizada!')));
     }
@@ -73,6 +74,7 @@ class _SuaContaState extends State<SuaConta> {
     }
 
     setState(() => _profileImage = null);
+    if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Foto removida!')));
   }
@@ -127,6 +129,7 @@ class _SuaContaState extends State<SuaConta> {
       } else if (field == 'email') {
         if (user.email != value) {
           await user.verifyBeforeUpdateEmail(value);
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Email de verificação enviado!')),
           );
@@ -137,6 +140,7 @@ class _SuaContaState extends State<SuaConta> {
         _passwordController.clear();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Erro: $e')));
     } finally {
@@ -146,6 +150,7 @@ class _SuaContaState extends State<SuaConta> {
 
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
     Provider.of<UserProvider>(context, listen: false).resetSubscription();
     Navigator.pushReplacementNamed(context, '/login');
   }
@@ -208,8 +213,9 @@ class _SuaContaState extends State<SuaConta> {
                                 radius: 40,
                                 backgroundColor: _profileImage == null
                                     ? const Color.fromARGB(255, 0, 104, 55)
-                                        .withOpacity(
-                                            0.5) // Background vazio para sem foto
+                                        .withValues(
+                                            alpha:
+                                                0.5) // Background vazio para sem foto
                                     : null,
                                 backgroundImage: _profileImage != null
                                     ? FileImage(_profileImage!)
