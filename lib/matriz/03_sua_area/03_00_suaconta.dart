@@ -1,83 +1,37 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
+import 'package:guarda_corpo_2024/services/premium/reward_store_screen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
-import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
-import 'package:guarda_corpo_2024/services/review/review_service.dart';
-import 'package:in_app_review/in_app_review.dart';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/provider/userProvider.dart';
 
 class SuaConta extends StatefulWidget {
   const SuaConta({super.key});
 
   @override
-  SuaContaState createState() => SuaContaState();
+  State<SuaConta> createState() => _SuaContaState();
 }
 
-class SuaContaState extends State<SuaConta>
-    with SingleTickerProviderStateMixin {
+class _SuaContaState extends State<SuaConta> {
   File? _profileImage;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _reportController = TextEditingController();
-  late AnimationController _animationController;
-  late Animation<Color?> _logoutColorAnimation;
-  int _accessCount = 0;
-  String? _lastAccess;
-  bool _isVisible = false;
-  bool _hasAttemptedReview = false;
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool _isSaving = false;
+
+  User? get _currentUser => FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
     super.initState();
     _loadProfileImage();
     _loadUserData();
-    _loadReviewStatus();
-    final user = FirebaseAuth.instance.currentUser;
-    _nameController.text = user?.displayName ?? '';
-    _emailController.text = user?.email ?? '';
-
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _logoutColorAnimation = ColorTween(
-      begin: Colors.red,
-      end: Colors.redAccent,
-    ).animate(_animationController);
-
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) setState(() => _isVisible = true);
-    });
-
-    _updateAccessStats();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _nameController.dispose();
-    _emailController.dispose();
-    _reportController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadReviewStatus() async {
-    final hasAttempted = await ReviewService.hasAttemptedReview();
-    setState(() {
-      _hasAttemptedReview = hasAttempted;
-    });
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return '${date.day}/${date.month}/${date.year}';
   }
 
   Future<void> _loadProfileImage() async {
@@ -86,597 +40,399 @@ class SuaContaState extends State<SuaConta>
     if (imagePath != null && File(imagePath).existsSync()) {
       setState(() {
         _profileImage = File(imagePath);
-        imageCache.clear();
-        imageCache.clearLiveImages();
       });
     }
   }
 
-  Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _accessCount = prefs.getInt('access_count') ?? 0;
-      _lastAccess = prefs.getString('last_access');
-    });
-  }
+  Future<void> _pickAndSetImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-  Future<void> _updateAccessStats() async {
-    final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    await prefs.setInt('access_count', _accessCount + 1);
-    await prefs.setString('last_access', _formatDate(now));
-    _loadUserData();
-  }
-
-  Future<void> _handleProfilePhoto() async {
-    if (_profileImage == null) {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-      if (pickedFile != null) {
-        try {
-          final user = FirebaseAuth.instance.currentUser;
-          final directory = await getApplicationDocumentsDirectory();
-          final imagePath =
-              '${directory.path}/profile_image_${user?.uid ?? 'default'}.jpg';
-          final newImage = await File(pickedFile.path).copy(imagePath);
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('profile_image_path', imagePath);
-
-          imageCache.clear();
-          imageCache.clearLiveImages();
-
-          setState(() => _profileImage = newImage);
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Foto de perfil atualizada com sucesso!')),
-            );
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erro ao atualizar a foto de perfil: $e')),
-            );
-          }
-        }
-      }
-    } else {
+    if (pickedFile != null) {
+      final directory = await getApplicationDocumentsDirectory();
+      final imagePath =
+          '${directory.path}/profile_image_${_currentUser?.uid ?? 'default'}.jpg';
+      final newImage = await File(pickedFile.path).copy(imagePath);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('profile_image_path');
-      imageCache.clear();
-      imageCache.clearLiveImages();
+      await prefs.setString('profile_image_path', imagePath);
 
-      setState(() => _profileImage = null);
+      await FileImage(newImage).evict();
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Foto de perfil removida!')),
-        );
-      }
+      setState(() => _profileImage = newImage);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Foto atualizada!')));
     }
   }
 
-  Future<void> _updateProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+  Future<void> _deletePhoto() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('profile_image_path');
 
-    try {
-      if (_nameController.text.trim().isNotEmpty &&
-          _nameController.text.trim() != user.displayName) {
-        await user.updateDisplayName(_nameController.text.trim());
-        await user.reload();
-      }
-      if (_emailController.text.trim().isNotEmpty &&
-          _emailController.text.trim() != user.email) {
-        await user.verifyBeforeUpdateEmail(_emailController.text.trim());
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Um e-mail de verificação foi enviado para o novo endereço. Por favor, verifique para completar a alteração.',
-              ),
-              duration: Duration(seconds: 5),
-            ),
-          );
-        }
-      }
-      setState(() {});
-      if (mounted && _emailController.text.trim() == user.email) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Perfil atualizado com sucesso!')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar perfil: $e')),
-        );
-      }
+    if (_profileImage != null) {
+      await FileImage(_profileImage!).evict();
     }
+
+    setState(() => _profileImage = null);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Foto removida!')));
   }
 
-  Future<void> _requestAppReview() async {
-    try {
-      final inAppReview = InAppReview.instance;
-      if (_hasAttemptedReview || !(await inAppReview.isAvailable())) {
-        await inAppReview.openStoreListing();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Redirecionado para a Google Play!')),
-          );
-        }
-        if (!_hasAttemptedReview) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setInt(
-              'last_review_request', DateTime.now().millisecondsSinceEpoch);
-          await prefs.setBool('has_attempted_review', true);
-          setState(() => _hasAttemptedReview = true);
-        }
-      } else {
-        await ReviewService.requestManualReview();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao abrir a avaliação: $e')),
-        );
-      }
-    }
-  }
-
-  void _showReportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          'Fale Conosco',
-          style: TextStyle(
-            fontFamily: 'Segoe',
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 0, 104, 55),
+  void _openProfilePhotoViewer() {
+    if (_profileImage == null) {
+      // Sem foto: Abre galeria diretamente
+      _pickAndSetImage();
+    } else {
+      // Com foto: Abre tela fullscreen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfilePhotoViewer(
+            imageFile: _profileImage!,
+            onSwap: _pickAndSetImage,
+            onDelete: _deletePhoto,
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _reportController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                hintText: 'Descreva seu erro, reclamação ou sugestão...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_reportController.text.trim().isNotEmpty) {
-                _submitReportToGoogleSheet();
-                Navigator.pop(context);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Por favor, insira uma mensagem!')),
-                );
-              }
-            },
-            child: const Text('Enviar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitReportToGoogleSheet() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final uid = user?.uid ?? 'anonymous';
-    final name = user?.displayName ?? 'Usuário';
-    final date = DateTime.now().toIso8601String();
-    final message = _reportController.text.trim();
-
-    const formUrl =
-        'https://docs.google.com/forms/d/e/1FAIpQLSdwONcrd5l8HK99OUIcnvSA-IzI57ckCZ__W1H84lLAlODBsw/formResponse';
-    await http.post(Uri.parse(formUrl), body: {
-      'entry.1761278916': uid,
-      'entry.856318573': name,
-      'entry.606841070': date,
-      'entry.836890464': message,
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Obrigado pelo seu feedback!')),
       );
     }
-    _reportController.clear();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = _currentUser;
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    if (doc.exists) {
+      final data = doc.data()!;
+      _nameController.text = data['name'] ?? user.displayName ?? '';
+      _emailController.text = user.email ?? '';
+    }
+  }
+
+  Future<void> _updateUserField(String field, String value) async {
+    final user = _currentUser;
+    if (user == null) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      if (field == 'name') {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'name': value});
+        await user.updateDisplayName(value);
+      } else if (field == 'email') {
+        if (user.email != value) {
+          await user.verifyBeforeUpdateEmail(value);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email de verificação enviado!')),
+          );
+        }
+      } else if (field == 'password') {
+        if (value.isEmpty) throw Exception('Senha não pode estar vazia');
+        await user.updatePassword(value);
+        _passwordController.clear();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Erro: $e')));
+    } finally {
+      setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    Provider.of<UserProvider>(context, listen: false).resetSubscription();
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
+  String _formatDate(DateTime? date) {
+    return date != null ? '${date.day}/${date.month}/${date.year}' : 'N/A';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, _) {
-        final user = FirebaseAuth.instance.currentUser;
-        return Scaffold(
-          body: Padding(
-            padding: const EdgeInsets.only(top: 25),
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                AnimatedOpacity(
-                  opacity: _isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: _buildHeader(user, context),
-                ),
-                const SizedBox(height: 20),
-                AnimatedOpacity(
-                  opacity: _isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: _buildAccountInfo(userProvider, user),
-                ),
-                const Divider(height: 30),
-                AnimatedOpacity(
-                  opacity: _isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: _buildSubscriptionSection(context, userProvider),
-                ),
-                const Divider(height: 30),
-                AnimatedOpacity(
-                  opacity: _isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: _buildAboutSection(context),
-                ),
-                const Divider(height: 30),
-                AnimatedOpacity(
-                  opacity: _isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: _buildLogoutButton(context, userProvider),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = _currentUser;
 
-  Widget _buildHeader(User? user, BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color.fromARGB(255, 0, 104, 55), Colors.black],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(76),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundImage: _profileImage != null
-                    ? FileImage(_profileImage!)
-                    : const AssetImage('assets/images/default-avatar.png')
-                        as ImageProvider,
-              ),
-              GestureDetector(
-                onTap: _handleProfilePhoto,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _profileImage == null ? Icons.add_a_photo : Icons.delete,
-                    size: 20,
-                    color: _profileImage == null
-                        ? const Color.fromARGB(255, 0, 104, 55)
-                        : Colors.red,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user?.displayName?.toUpperCase() ?? 'USUÁRIO',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontFamily: 'Segoe',
-                  ),
-                ),
-                Text(
-                  user?.email ?? 'Sem e-mail',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white70,
-                    fontFamily: 'Segoe',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () => _showEditDialog(context),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.edit,
-                size: 20,
-                color: Color.fromARGB(255, 0, 104, 55),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Perfil'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(hintText: 'Novo nome'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(hintText: 'Novo e-mail'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              _updateProfile();
-              Navigator.pop(context);
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountInfo(UserProvider userProvider, User? user) {
-    final creationDate = user?.metadata.creationTime;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'INFORMAÇÕES DA CONTA',
-          style: TextStyle(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'SUA CONTA'.toUpperCase(),
+          style: const TextStyle(
+            fontFamily: 'Segoe Bold',
+            color: Colors.white,
             fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 0, 104, 55),
-            fontFamily: 'Segoe',
           ),
         ),
-        const SizedBox(height: 12),
-        _buildInfoRow('Data de Criação:',
-            creationDate != null ? _formatDate(creationDate) : 'N/A'),
-        const SizedBox(height: 8),
-        _buildInfoRow('Último Acesso:', _lastAccess ?? 'N/A'),
-        const SizedBox(height: 8),
-        _buildInfoRow('Acessos Totais:', _accessCount.toString()),
-        const SizedBox(height: 8),
-        _buildInfoRow(
-            'Pontos de publicidade:', userProvider.rewardPoints.toString()),
-        const SizedBox(height: 12),
-        ElevatedButton(
+        backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const ResetPasswordPage()),
-            );
+            Provider.of<NavigationState>(context, listen: false)
+                .setIndex(0); // Volta para Home sem pop
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0)),
-          ),
-          child: const Text(
-            'MUDAR SENHA',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Segoe',
+        ),
+      ),
+      body: _isSaving
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with gradient
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color.fromARGB(255, 0, 104, 55), Colors.black],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap:
+                              _openProfilePhotoViewer, // Clique abre viewer ou galeria
+                          child: Stack(
+                            alignment: Alignment.center, // Centraliza conteúdo
+                            children: [
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor: _profileImage == null
+                                    ? const Color.fromARGB(255, 0, 104, 55)
+                                        .withOpacity(
+                                            0.5) // Background vazio para sem foto
+                                    : null,
+                                backgroundImage: _profileImage != null
+                                    ? FileImage(_profileImage!)
+                                    : null,
+                                child: _profileImage == null
+                                    ? const Icon(
+                                        Icons.add_a_photo,
+                                        color: Colors.white,
+                                        size: 40,
+                                      ) // Ícone centralizado sem foto
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.displayName?.toUpperCase() ?? 'USUÁRIO',
+                                style: const TextStyle(
+                                    fontFamily: 'Segoe Bold',
+                                    color: Colors.white,
+                                    fontSize: 16),
+                              ),
+                              Text(
+                                user?.email ?? '',
+                                style: const TextStyle(
+                                    fontFamily: 'Segoe',
+                                    color: Colors.white70,
+                                    fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Editable fields
+                  _buildEditableField('Nome', _nameController, Icons.person,
+                      () => _updateUserField('name', _nameController.text)),
+                  const SizedBox(height: 12),
+                  _buildEditableField('Email', _emailController, Icons.email,
+                      () => _updateUserField('email', _emailController.text)),
+                  const SizedBox(height: 12),
+                  _buildEditableField(
+                      'Senha',
+                      _passwordController,
+                      Icons.lock,
+                      () => _updateUserField(
+                          'password', _passwordController.text),
+                      obscure: true),
+                  const SizedBox(height: 20),
+                  // Subscription section
+                  Text(
+                    'ASSINATURA'.toUpperCase(),
+                    style: const TextStyle(
+                        fontFamily: 'Segoe Bold',
+                        color: Color.fromARGB(255, 0, 104, 55),
+                        fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  userProvider.hasActiveSubscription()
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInfoRow(
+                                'Plano:',
+                                userProvider.planType == 'monthly_full'
+                                    ? 'Premium'
+                                    : 'Sem Anúncios'),
+                            _buildInfoRow('Válido até:',
+                                _formatDate(userProvider.expiryDate)),
+                          ],
+                        )
+                      : const Text('Nenhuma assinatura ativa',
+                          style: TextStyle(fontFamily: 'Segoe', fontSize: 14)),
+                  const SizedBox(height: 20),
+                  // Points
+                  Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading: const Icon(Icons.star,
+                          color: Color.fromARGB(255, 0, 104, 55)),
+                      title: const Text('Pontos de Recompensa',
+                          style: TextStyle(fontFamily: 'Segoe Bold')),
+                      subtitle: Text('${userProvider.rewardPoints} pontos',
+                          style: const TextStyle(fontFamily: 'Segoe')),
+                      trailing: ElevatedButton(
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RewardStoreScreen())),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 0, 104, 55),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Trocar',
+                            style: TextStyle(
+                                color: Colors.white, fontFamily: 'Segoe Bold')),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Logout
+                  ElevatedButton.icon(
+                    onPressed: _logout,
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    label: const Text('Sair',
+                        style: TextStyle(
+                            color: Colors.white, fontFamily: 'Segoe Bold')),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      minimumSize: const Size(double.infinity, 0),
+                    ),
+                  ),
+                ],
+              ),
             ),
+    );
+  }
+
+  Widget _buildEditableField(String label, TextEditingController controller,
+      IconData icon, VoidCallback onSave,
+      {bool obscure = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: const Color.fromARGB(255, 0, 104, 55)),
+        title: TextField(
+          controller: controller,
+          obscureText: obscure,
+          decoration: InputDecoration(
+            labelText: label.toUpperCase(),
+            border: InputBorder.none,
+            labelStyle: const TextStyle(
+                fontFamily: 'Segoe', color: Color.fromARGB(255, 0, 104, 55)),
           ),
         ),
-      ],
+        trailing: IconButton(
+          icon: const Icon(Icons.save, color: Color.fromARGB(255, 0, 104, 55)),
+          onPressed: onSave,
+        ),
+      ),
     );
   }
 
   Widget _buildInfoRow(String label, String value) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-              fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Segoe'),
-        ),
+        Text(label,
+            style:
+                const TextStyle(fontFamily: 'Segoe Bold', color: Colors.black)),
         const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontFamily: 'Segoe'),
-          ),
-        ),
+        Text(value, style: const TextStyle(fontFamily: 'Segoe')),
       ],
     );
   }
+}
 
-  Widget _buildSubscriptionSection(
-      BuildContext context, UserProvider userProvider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'ASSINATURA',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 0, 104, 55),
-            fontFamily: 'Segoe',
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (userProvider.hasActiveSubscription()) ...[
-          _buildInfoRow(
-              'Assinatura:', _getSubscriptionName(userProvider.planType)),
-          const SizedBox(height: 8),
-          _buildInfoRow('Válido até:', _formatDate(userProvider.expiryDate)),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            'Última Assinatura:',
-            _formatDate(
-                userProvider.expiryDate!.subtract(const Duration(days: 30))),
-          ),
-        ] else ...[
-          const Text(
-            'Nenhuma assinatura ativa',
-            style: TextStyle(fontSize: 14, fontFamily: 'Segoe'),
-          ),
-        ],
-      ],
-    );
-  }
+// Nova tela para visualização fullscreen da foto
+class ProfilePhotoViewer extends StatelessWidget {
+  final File imageFile;
+  final VoidCallback onSwap;
+  final VoidCallback onDelete;
 
-  String _getSubscriptionName(String? planType) {
-    switch (planType) {
-      case 'monthly_full':
-        return 'Premium';
-      case 'monthly_ad_free':
-        return 'Sem Publicidade';
-      default:
-        return 'Desconhecida ($planType)';
-    }
-  }
+  const ProfilePhotoViewer({
+    super.key,
+    required this.imageFile,
+    required this.onSwap,
+    required this.onDelete,
+  });
 
-  Widget _buildAboutSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'SOBRE O APP',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 0, 104, 55),
-            fontFamily: 'Segoe',
-          ),
-        ),
-        const SizedBox(height: 12),
-        ElevatedButton(
-          onPressed: () => _showReportDialog(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0)),
-          ),
-          child: const Text(
-            'FALE CONOSCO',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Segoe',
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Visualizar Foto'),
+        backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+      ),
+      body: Center(
+        child: Image.file(imageFile),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                onSwap();
+              },
+              icon: const Icon(Icons.swap_horiz),
+              label: const Text('Trocar Foto'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        ElevatedButton(
-          onPressed: _requestAppReview,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0)),
-          ),
-          child: const Text(
-            'AVALIAR APP',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Segoe',
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                onDelete();
+              },
+              icon: const Icon(Icons.delete),
+              label: const Text('Apagar Foto'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLogoutButton(BuildContext context, UserProvider userProvider) {
-    return AnimatedBuilder(
-      animation: _logoutColorAnimation,
-      builder: (context, child) => ElevatedButton.icon(
-        onPressed: () async {
-          await FirebaseAuth.instance.signOut();
-          if (mounted) {
-            Navigator.pushReplacement(
-              // ignore: use_build_context_synchronously
-              context,
-              MaterialPageRoute(builder: (context) => const AuthPage()),
-            );
-          }
-        },
-        icon: const Icon(Icons.logout, color: Colors.white),
-        label: const Text(
-          'SAIR',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Segoe',
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _logoutColorAnimation.value,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.0)),
+          ],
         ),
       ),
     );

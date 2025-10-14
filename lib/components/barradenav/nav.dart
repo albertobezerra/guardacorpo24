@@ -1,9 +1,14 @@
+// Código completo da tela NavBarPage
+// Corrigido overflow no texto "RECOMPENSAS": Reduzido fontSize para 14, adicionado Flexible com overflow.ellipsis.
+// Mantida a adição do item "Recompensas" no SpeedDial.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:guarda_corpo_2024/matriz/03_sua_area/03_00_suaconta.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
+import 'package:guarda_corpo_2024/services/premium/reward_ads_screen.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:provider/provider.dart';
 
@@ -47,6 +52,13 @@ class _NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
     Provider.of<NavigationState>(context, listen: false).setIndex(index);
   }
 
+  void _openRewards() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RewardAdsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final navState = Provider.of<NavigationState>(context);
@@ -83,6 +95,14 @@ class _NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18.0)),
             onTap: () => _onItemTapped(1),
+          ),
+          SpeedDialChild(
+            labelWidget: _buildLabelWidget(Icons.star_rounded, 'Recompensas',
+                const Color.fromARGB(255, 0, 104, 55)),
+            backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0)),
+            onTap: _openRewards,
           ),
           SpeedDialChild(
             labelWidget: _buildLabelWidget(Icons.star_rounded, 'Premium',
@@ -122,13 +142,17 @@ class _NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
               size: 26,
             ),
             const SizedBox(width: 8.0),
-            Text(
-              label.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                fontFamily: 'Segoe',
+            Flexible(
+              child: Text(
+                label.toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14, // Reduzido para 14 para evitar overflow
+                  fontFamily: 'Segoe',
+                ),
+                overflow: TextOverflow
+                    .ellipsis, // Adicionado ellipsis para cortar texto longo
               ),
             ),
           ],

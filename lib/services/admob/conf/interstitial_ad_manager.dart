@@ -28,11 +28,15 @@ class InterstitialAdManager {
 
   static void showInterstitialAd(BuildContext context, Widget nextPage) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final showAds = !userProvider.isAdFree();
 
-    if (!showAds) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => nextPage));
+    if (userProvider.isAdFree()) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => nextPage));
+      return;
+    }
+
+    // Novo controle de frequência
+    if (!userProvider.shouldShowInterstitial()) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => nextPage));
       return;
     }
 
@@ -43,20 +47,17 @@ class InterstitialAdManager {
           ad.dispose();
           _interstitialAd = null;
           loadInterstitialAd();
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => nextPage));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => nextPage));
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
           _interstitialAd = null;
           loadInterstitialAd();
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => nextPage));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => nextPage));
         },
       );
     } else {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => nextPage));
+      Navigator.push(context, MaterialPageRoute(builder: (_) => nextPage));
     }
   }
 }

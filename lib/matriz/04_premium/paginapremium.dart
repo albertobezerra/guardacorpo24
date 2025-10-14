@@ -1,9 +1,13 @@
+// Código completo da tela PremiumPage
+// Adicionada seção explicativa no topo para "insinuar" a compra de forma humana e efetiva.
+// Mantida a consistência estética: Verde escuro, Segoe, arredondados.
+// Removido o botão "Ganhar Recompensa" daqui, já que movemos para o nav menu.
+
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
-import 'package:guarda_corpo_2024/services/premium/reward_ads_screen.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
@@ -134,13 +138,6 @@ class _PremiumPageState extends State<PremiumPage> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _openRewardedAdScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const RewardAdsScreen()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -184,17 +181,29 @@ class _PremiumPageState extends State<PremiumPage> {
             padding: const EdgeInsets.only(top: 12),
             child: ListView(
               children: [
-                // BOTÃO PARA GANHAR RECOMPENSA
+                // Nova seção explicativa humana e efetiva para insinuar a compra
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ElevatedButton(
-                    onPressed: _openRewardedAdScreen,
-                    child: const Text('Ganhar Recompensa'),
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18)),
+                    color: const Color.fromARGB(255, 0, 104, 55),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Eleve sua experiência! Com nossos planos, remova anúncios e acesse conteúdos exclusivos de forma ilimitada. Imagine o app mais fluido e completo, pronto para te ajudar no dia a dia. Escolha o que melhor se adapta a você e comece agora!',
+                        style: const TextStyle(
+                          fontFamily: 'Segoe',
+                          fontSize: 17,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ),
-
-                const SizedBox(height: 10),
+                const SizedBox(height: 4),
 
                 // LISTA DE PLANOS
                 for (final product in products)

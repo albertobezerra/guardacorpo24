@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:guarda_corpo_2024/services/premium/reward_store_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:guarda_corpo_2024/services/premium/reward_store_screen.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 
 class RewardAdsScreen extends StatefulWidget {
@@ -13,16 +13,30 @@ class RewardAdsScreen extends StatefulWidget {
   State<RewardAdsScreen> createState() => _RewardAdsScreenState();
 }
 
-class _RewardAdsScreenState extends State<RewardAdsScreen> {
+class _RewardAdsScreenState extends State<RewardAdsScreen>
+    with SingleTickerProviderStateMixin {
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
-  static const int pointsPerAd = 4;
   bool _isGranting = false;
+  static const int pointsPerAd = 4;
+
+  late AnimationController _controller;
+  late Animation<Color?> _buttonGlow;
 
   @override
   void initState() {
     super.initState();
     _loadRewardedAd();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+
+    _buttonGlow = ColorTween(
+      begin: const Color.fromARGB(255, 0, 104, 55),
+      end: Colors.green[700],
+    ).animate(_controller);
   }
 
   void _loadRewardedAd() {
@@ -36,13 +50,7 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
             _isAdLoaded = true;
           });
         },
-        onAdFailedToLoad: (err) {
-          debugPrint('Erro ao carregar RewardedAd: $err');
-          setState(() {
-            _rewardedAd = null;
-            _isAdLoaded = false;
-          });
-        },
+        onAdFailedToLoad: (err) => setState(() => _isAdLoaded = false),
       ),
     );
   }
@@ -53,84 +61,57 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _isGranting = false;
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Faça login para ganhar pontos.')),
-      );
+          const SnackBar(content: Text('Faça login para ganhar pontos.')));
+      _isGranting = false;
       return;
     }
 
-    final uid = user.uid;
-    final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
+    final userDoc =
+        FirebaseFirestore.instance.collection('users').doc(user.uid);
 
-    try {
-      await userDoc.set({'rewardPoints': FieldValue.increment(pointsPerAd)},
-          SetOptions(merge: true));
+    await userDoc.update({'rewardPoints': FieldValue.increment(pointsPerAd)});
 
-      final snapshot = await userDoc.get();
-      final data = snapshot.data();
-      final newPoints = (data != null && data['rewardPoints'] != null)
-          ? data['rewardPoints'] as int
-          : 0;
-      if (mounted) {
-        Provider.of<UserProvider>(context, listen: false).updateReward(
-          points: newPoints,
-          expiry: (data?['rewardExpiryDate'] != null
-              ? (data!['rewardExpiryDate'] as Timestamp).toDate()
-              : null),
-        );
-      }
+    final data = (await userDoc.get()).data();
+    final newPoints = data?['rewardPoints'] ?? 0;
 
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text('Você ganhou $pointsPerAd pontos! Total: $newPoints')),
-      );
-    } catch (e) {
-      debugPrint('Erro ao creditar pontos: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Erro ao creditar pontos. Tente novamente.')),
-      );
-    } finally {
+    if (!mounted) {
       _isGranting = false;
+      return;
     }
+
+    Provider.of<UserProvider>(context, listen: false).updateReward(
+        points: newPoints, expiry: data?['rewardExpiryDate']?.toDate());
+
+    if (!mounted) {
+      _isGranting = false;
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('🎉 Ganhou $pointsPerAd pontos! Total: $newPoints')));
+
+    _isGranting = false;
   }
 
   void _showRewardedAd() {
     if (_rewardedAd == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Anúncio não está pronto. Tente novamente.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Anúncio não pronto.')));
       _loadRewardedAd();
       return;
     }
 
-    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _loadRewardedAd();
-      },
-      onAdFailedToShowFullScreenContent: (ad, err) {
-        debugPrint('Erro ao mostrar RewardedAd: $err');
-        ad.dispose();
-        _loadRewardedAd();
-      },
-    );
-
-    _rewardedAd!.show(onUserEarnedReward: (ad, reward) async {
-      await _onUserEarnedReward();
-    });
-
+    _rewardedAd!.show(onUserEarnedReward: (_, __) => _onUserEarnedReward());
     _rewardedAd = null;
+    _isAdLoaded = false;
+    _loadRewardedAd();
   }
 
   @override
   void dispose() {
+    _controller.dispose();
     _rewardedAd?.dispose();
     super.dispose();
   }
@@ -138,35 +119,80 @@ class _RewardAdsScreenState extends State<RewardAdsScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    final currentPoints = userProvider.rewardPoints;
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Ganhe pontos')),
+      appBar: AppBar(
+        title: Text(
+          'GANHAR PONTOS'.toUpperCase(),
+          style: const TextStyle(
+              fontFamily: 'Segoe Bold', color: Colors.white, fontSize: 16),
+        ),
+        backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Seus pontos: $currentPoints',
-                style: const TextStyle(fontSize: 20)),
-            const SizedBox(height: 12),
-            Text('Cada vídeo dá $pointsPerAd pontos.'),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _isAdLoaded ? _showRewardedAd : null,
-              icon: const Icon(Icons.ondemand_video),
-              label: const Text('Assistir anúncio e ganhar pontos'),
+            Text(
+              'Ganhe pontos assistindo anúncios'.toUpperCase(),
+              style: const TextStyle(
+                  fontFamily: 'Segoe Bold',
+                  color: Color.fromARGB(255, 0, 104, 55),
+                  fontSize: 18),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Cada vídeo vale 4 pontos. Troque por benefícios como dias sem anúncios ou premium.',
+              style: TextStyle(
+                  fontFamily: 'Segoe', color: Colors.black87, fontSize: 14),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const RewardStoreScreen()),
-                );
-              },
-              child: const Text('Loja de Recompensa'),
-            )
+            Center(
+              child: AnimatedBuilder(
+                animation: _buttonGlow,
+                builder: (_, __) => ElevatedButton.icon(
+                  onPressed: _isAdLoaded ? _showRewardedAd : null,
+                  icon: const Icon(Icons.play_circle, color: Colors.white),
+                  label: const Text('Assistir e Ganhar',
+                      style: TextStyle(
+                          fontFamily: 'Segoe Bold', color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _buttonGlow.value,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Text(
+                'Pontos atuais: ${userProvider.rewardPoints}',
+                style: const TextStyle(
+                    fontFamily: 'Segoe Bold',
+                    color: Color.fromARGB(255, 0, 104, 55),
+                    fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const RewardStoreScreen())),
+              icon: const Icon(Icons.store, color: Colors.white),
+              label: const Text('Loja de Recompensas',
+                  style:
+                      TextStyle(fontFamily: 'Segoe Bold', color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                minimumSize: const Size(double.infinity, 0),
+              ),
+            ),
           ],
         ),
       ),

@@ -145,6 +145,20 @@ class UserProvider with ChangeNotifier {
     saveToCache();
   }
 
+  int _screenCountSinceLastAd = 0;
+  final int _adFrequency = 4; // Exibe a cada 4 telas, por exemplo
+
+  bool shouldShowInterstitial() {
+    if (isAdFree()) return false;
+
+    _screenCountSinceLastAd++;
+    if (_screenCountSinceLastAd >= _adFrequency) {
+      _screenCountSinceLastAd = 0;
+      return true;
+    }
+    return false;
+  }
+
   void setError(String error) {
     _errorMessage = error;
     notifyListeners();
