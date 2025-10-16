@@ -81,10 +81,8 @@ class _SuaContaState extends State<SuaConta> {
 
   void _openProfilePhotoViewer() {
     if (_profileImage == null) {
-      // Sem foto: Abre galeria diretamente
       _pickAndSetImage();
     } else {
-      // Com foto: Abre tela fullscreen
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -178,8 +176,7 @@ class _SuaContaState extends State<SuaConta> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Provider.of<NavigationState>(context, listen: false)
-                .setIndex(0); // Volta para Home sem pop
+            Provider.of<NavigationState>(context, listen: false).setIndex(0);
           },
         ),
       ),
@@ -204,28 +201,22 @@ class _SuaContaState extends State<SuaConta> {
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap:
-                              _openProfilePhotoViewer, // Clique abre viewer ou galeria
+                          onTap: _openProfilePhotoViewer,
                           child: Stack(
-                            alignment: Alignment.center, // Centraliza conteúdo
+                            alignment: Alignment.center,
                             children: [
                               CircleAvatar(
                                 radius: 40,
                                 backgroundColor: _profileImage == null
                                     ? const Color.fromARGB(255, 0, 104, 55)
-                                        .withValues(
-                                            alpha:
-                                                0.5) // Background vazio para sem foto
+                                        .withAlpha(120)
                                     : null,
                                 backgroundImage: _profileImage != null
                                     ? FileImage(_profileImage!)
                                     : null,
                                 child: _profileImage == null
-                                    ? const Icon(
-                                        Icons.add_a_photo,
-                                        color: Colors.white,
-                                        size: 40,
-                                      ) // Ícone centralizado sem foto
+                                    ? const Icon(Icons.add_a_photo,
+                                        color: Colors.white, size: 40)
                                     : null,
                               ),
                             ],
@@ -389,7 +380,7 @@ class _SuaContaState extends State<SuaConta> {
   }
 }
 
-// Nova tela para visualização fullscreen da foto
+// Fullscreen Photo Viewer
 class ProfilePhotoViewer extends StatelessWidget {
   final File imageFile;
   final VoidCallback onSwap;

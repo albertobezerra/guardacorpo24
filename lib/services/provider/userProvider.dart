@@ -15,6 +15,10 @@ class UserProvider with ChangeNotifier {
   int _rewardPoints = 0;
   DateTime? _rewardExpiryDate;
 
+  // Contador de telas para intersticial
+  int _screenCountSinceLastAd = 0;
+  final int _adFrequency = 4;
+
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   bool get isPremium => _isPremium;
@@ -32,6 +36,7 @@ class UserProvider with ChangeNotifier {
     loadFromCache();
   }
 
+  // 🔹 Cache
   Future<void> saveToCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', _isLoggedIn);
@@ -53,6 +58,26 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> loadFromCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    _isPremium = prefs.getBool('isPremium') ?? false;
+    _planType = prefs.getString('planType') ?? '';
+    final expiryMillis = prefs.getInt('expiryDate');
+    _expiryDate = expiryMillis != null
+        ? DateTime.fromMillisecondsSinceEpoch(expiryMillis)
+        : null;
+    _hasEverSubscribedPremium =
+        prefs.getBool('hasEverSubscribedPremium') ?? false;
+    _rewardPoints = prefs.getInt('rewardPoints') ?? 0;
+    final rewardExpiryMillis = prefs.getInt('rewardExpiryDate');
+    _rewardExpiryDate = rewardExpiryMillis != null
+        ? DateTime.fromMillisecondsSinceEpoch(rewardExpiryMillis)
+        : null;
+    notifyListeners();
+  }
+
+  // 🔹 Atualização de assinatura
   void updateSubscription({
     required bool isLoggedIn,
     required bool isPremium,
@@ -72,6 +97,7 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // 🔹 Atualização de recompensa
   void updateReward({int? points, DateTime? expiry}) {
     if (points != null) _rewardPoints = points;
     if (expiry != null) _rewardExpiryDate = expiry;
@@ -93,34 +119,53 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔹 Ativar 7 dias sem anúncios (100 pontos)
-  Future<void> activateAdFreeReward() async {
+  // 🔹 Ativar recompensa por pontos (flexível para 7 ou 14 dias)
+  Future<void> activateReward({
+    required int cost,
+    required String type,
+    required int days,
+  }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    if (_rewardPoints < cost) return; // segurança
 
-    _rewardPoints = 0;
-    _rewardExpiryDate = DateTime.now().add(const Duration(days: 7));
+    final newExpiry = DateTime.now().add(Duration(days: days));
 
+    _rewardPoints -= cost;
+
+    // Atualiza Firebase
     await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-      'rewardPoints': 0,
-      'rewardExpiryDate': _rewardExpiryDate,
-      'planType': 'ad_free_reward',
+      'rewardPoints': _rewardPoints,
+      'rewardExpiryDate': newExpiry,
+      'planType': type,
       'subscriptionStatus': 'active',
     });
 
-    _isPremium = false;
-    _planType = 'ad_free_reward';
-    _expiryDate = _rewardExpiryDate;
+    // Atualiza estado local
+    _rewardExpiryDate = newExpiry;
+    if (type == 'reward_full_access') {
+      _isPremium = true;
+      _planType = type;
+      _expiryDate = newExpiry;
+    } else if (type == 'ad_free_reward') {
+      _isPremium = false;
+      _planType = type;
+      _expiryDate = newExpiry;
+    }
 
     await saveToCache();
     notifyListeners();
   }
 
+  // 🔹 Status
   bool hasActiveSubscription() {
     return _planType.isNotEmpty &&
         _expiryDate != null &&
         _expiryDate!.isAfter(DateTime.now()) &&
-        (_planType == 'monthly_full' || _planType == 'monthly_ad_free');
+        (_planType == 'monthly_full' ||
+            _planType == 'monthly_ad_free' ||
+            _planType == 'ad_free_reward' ||
+            _planType == 'reward_full_access');
   }
 
   bool hasPremiumPlan() {
@@ -145,9 +190,6 @@ class UserProvider with ChangeNotifier {
     saveToCache();
   }
 
-  int _screenCountSinceLastAd = 0;
-  final int _adFrequency = 4; // Exibe a cada 4 telas, por exemplo
-
   bool shouldShowInterstitial() {
     if (isAdFree()) return false;
 
@@ -164,6 +206,7 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // 🔹 Listener Firebase
   void startFirebaseListener(BuildContext context) {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
@@ -173,7 +216,7 @@ class UserProvider with ChangeNotifier {
             .collection('users')
             .doc(user.uid)
             .snapshots()
-            .listen((snapshot) async {
+            .listen((snapshot) {
           if (snapshot.exists) {
             final data = snapshot.data()!;
             final expiryDate = (data['expiryDate'] as Timestamp?)?.toDate();
@@ -203,24 +246,5 @@ class UserProvider with ChangeNotifier {
         });
       }
     });
-  }
-
-  Future<void> loadFromCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    _isPremium = prefs.getBool('isPremium') ?? false;
-    _planType = prefs.getString('planType') ?? '';
-    final expiryMillis = prefs.getInt('expiryDate');
-    _expiryDate = expiryMillis != null
-        ? DateTime.fromMillisecondsSinceEpoch(expiryMillis)
-        : null;
-    _hasEverSubscribedPremium =
-        prefs.getBool('hasEverSubscribedPremium') ?? false;
-    _rewardPoints = prefs.getInt('rewardPoints') ?? 0;
-    final rewardExpiryMillis = prefs.getInt('rewardExpiryDate');
-    _rewardExpiryDate = rewardExpiryMillis != null
-        ? DateTime.fromMillisecondsSinceEpoch(rewardExpiryMillis)
-        : null;
-    notifyListeners();
   }
 }
