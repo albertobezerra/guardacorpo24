@@ -154,7 +154,11 @@ class _SuaContaState extends State<SuaConta> {
   }
 
   String _formatDate(DateTime? date) {
-    return date != null ? '${date.day}/${date.month}/${date.year}' : 'N/A';
+    if (date == null) return 'N/A';
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return '$day/$month/$year';
   }
 
   @override
@@ -187,7 +191,7 @@ class _SuaContaState extends State<SuaConta> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header with gradient
+                  // Header
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -248,7 +252,7 @@ class _SuaContaState extends State<SuaConta> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Editable fields
+                  // Campos editáveis
                   _buildEditableField('Nome', _nameController, Icons.person,
                       () => _updateUserField('name', _nameController.text)),
                   const SizedBox(height: 12),
@@ -263,7 +267,8 @@ class _SuaContaState extends State<SuaConta> {
                           'password', _passwordController.text),
                       obscure: true),
                   const SizedBox(height: 20),
-                  // Subscription section
+
+                  // Assinatura
                   Text(
                     'ASSINATURA'.toUpperCase(),
                     style: const TextStyle(
@@ -272,23 +277,34 @@ class _SuaContaState extends State<SuaConta> {
                         fontSize: 16),
                   ),
                   const SizedBox(height: 8),
-                  userProvider.hasActiveSubscription()
+                  userProvider.hasActiveSubscription() ||
+                          userProvider.hasRewardActive
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _buildInfoRow(
-                                'Plano:',
-                                userProvider.planType == 'monthly_full'
-                                    ? 'Premium'
-                                    : 'Sem Anúncios'),
-                            _buildInfoRow('Válido até:',
-                                _formatDate(userProvider.expiryDate)),
+                              'Plano:',
+                              userProvider.planType == 'monthly_full'
+                                  ? 'Premium'
+                                  : userProvider.planType ==
+                                          'reward_full_access'
+                                      ? 'Premium via Recompensa'
+                                      : 'Sem Anúncios via Recompensa',
+                            ),
+                            _buildInfoRow(
+                              'Válido até:',
+                              userProvider.hasRewardActive
+                                  ? _formatDate(userProvider.rewardExpiryDate)
+                                  : _formatDate(userProvider.expiryDate),
+                            ),
                           ],
                         )
                       : const Text('Nenhuma assinatura ativa',
                           style: TextStyle(fontFamily: 'Segoe', fontSize: 14)),
+
                   const SizedBox(height: 20),
-                  // Points
+
+                  // Pontos
                   Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -301,9 +317,11 @@ class _SuaContaState extends State<SuaConta> {
                           style: const TextStyle(fontFamily: 'Segoe')),
                       trailing: ElevatedButton(
                         onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const RewardStoreScreen())),
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RewardStoreScreen(),
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               const Color.fromARGB(255, 0, 104, 55),
@@ -317,6 +335,7 @@ class _SuaContaState extends State<SuaConta> {
                     ),
                   ),
                   const SizedBox(height: 20),
+
                   // Logout
                   ElevatedButton.icon(
                     onPressed: _logout,
@@ -380,7 +399,7 @@ class _SuaContaState extends State<SuaConta> {
   }
 }
 
-// Fullscreen Photo Viewer
+// Visualizador de foto fullscreen
 class ProfilePhotoViewer extends StatelessWidget {
   final File imageFile;
   final VoidCallback onSwap;

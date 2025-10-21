@@ -214,11 +214,24 @@ class SubscriptionService {
       final snapshot = await _firestore.collection('users').doc(uid).get();
       if (!snapshot.exists) return {'isPremium': false, 'planType': ''};
       final data = snapshot.data() as Map<String, dynamic>;
+      final expiry = data['expiryDate']?.toDate();
+      final rewardExpiry = data['rewardExpiryDate']?.toDate();
+      final now = DateTime.now();
+
+      final hasActivePremium = data['subscriptionStatus'] == 'active' &&
+          expiry != null &&
+          expiry.isAfter(now);
+
+      final hasActiveReward = data['planType'] == 'reward_full_access' &&
+          rewardExpiry != null &&
+          rewardExpiry.isAfter(now);
+
+      final isPremium = hasActivePremium || hasActiveReward;
+
       return {
-        'isPremium': data['subscriptionStatus'] == 'active' &&
-            data['expiryDate']?.toDate().isAfter(DateTime.now()),
+        'isPremium': isPremium,
         'planType': data['planType'] ?? '',
-        'expiryDate': data['expiryDate'],
+        'expiryDate': expiry ?? rewardExpiry,
       };
     } catch (e) {
       debugPrint('Erro ao carregar informações de assinatura: $e');

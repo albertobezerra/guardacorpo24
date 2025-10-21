@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/admob/conf/banner_ad_widget.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
 class ConditionalBannerAdWidget extends StatelessWidget {
   const ConditionalBannerAdWidget({super.key});
@@ -11,21 +11,29 @@ class ConditionalBannerAdWidget extends StatelessWidget {
     return FutureBuilder<Map<String, dynamic>>(
       future: _checkUserStatus(),
       builder: (context, snapshot) {
-        // Se ainda está carregando, exibe um espaço vazio temporário
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(height: 50); // Altura fixa enquanto carrega
+          return const SizedBox(height: 50);
         }
 
-        // Verifica o status do usuário
         final isPremium = snapshot.data?['isPremium'] ?? false;
         final planType = snapshot.data?['planType'] ?? '';
+        final expiryDate = snapshot.data?['expiryDate'] as DateTime?;
+        final rewardExpiryDate =
+            snapshot.data?['rewardExpiryDate'] as DateTime?;
 
-        // Exibe o banner apenas se o usuário não for premium nem "ad_free"
-        if (!isPremium && planType != 'ad_free') {
-          return const BannerAdWidget(); // Widget do banner de anúncio
+        final now = DateTime.now();
+
+        // Considera premium ativo ou recompensa válida apenas se a data ainda estiver no futuro
+        final premiumActive =
+            (isPremium && expiryDate != null && expiryDate.isAfter(now)) ||
+                (rewardExpiryDate != null &&
+                    rewardExpiryDate.isAfter(now) &&
+                    planType == 'reward_full_access');
+
+        if (!premiumActive) {
+          return const BannerAdWidget();
         }
 
-        // Caso contrário, retorna um espaço vazio
         return const SizedBox.shrink();
       },
     );
@@ -34,7 +42,12 @@ class ConditionalBannerAdWidget extends StatelessWidget {
   Future<Map<String, dynamic>> _checkUserStatus() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return {'isPremium': false, 'planType': ''};
+      return {
+        'isPremium': false,
+        'planType': '',
+        'expiryDate': null,
+        'rewardExpiryDate': null
+      };
     }
 
     final subscriptionInfo =
@@ -42,6 +55,8 @@ class ConditionalBannerAdWidget extends StatelessWidget {
     return {
       'isPremium': subscriptionInfo['isPremium'] ?? false,
       'planType': subscriptionInfo['planType'] ?? '',
+      'expiryDate': subscriptionInfo['expiryDate'],
+      'rewardExpiryDate': subscriptionInfo['rewardExpiryDate'],
     };
   }
 }

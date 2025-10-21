@@ -1,7 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
 class BannerAdWidget extends StatefulWidget {
   const BannerAdWidget({super.key});
@@ -23,17 +23,32 @@ class BannerAdWidgetState extends State<BannerAdWidget> {
   Future<void> _checkUserStatus() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      setState(() {
-        _isPremium = false; // Usuário não logado, não é premium
-      });
+      setState(() => _isPremium = false);
       return;
     }
 
-    final subscriptionInfo =
-        await SubscriptionService().getUserSubscriptionInfo(user.uid);
+    // Pega os dados do usuário do Firebase
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (!doc.exists) {
+      setState(() => _isPremium = false);
+      return;
+    }
+
+    final data = doc.data()!;
+    final expiryDate = (data['expiryDate'] as Timestamp?)?.toDate();
+    final rewardExpiryDate = (data['rewardExpiryDate'] as Timestamp?)?.toDate();
+
+    final now = DateTime.now();
+    // Premium ativo se assinatura válida ou recompensa válida
+    final premiumActive = (expiryDate != null && expiryDate.isAfter(now)) ||
+        (rewardExpiryDate != null && rewardExpiryDate.isAfter(now));
 
     setState(() {
-      _isPremium = subscriptionInfo['isPremium'] ?? false;
+      _isPremium = premiumActive;
     });
 
     if (!_isPremium) {
@@ -43,15 +58,12 @@ class BannerAdWidgetState extends State<BannerAdWidget> {
 
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId:
-          'ca-app-pub-7979689703488774/4117286099', // Substitua pelo seu ID de unidade de anúncio
+      adUnitId: 'ca-app-pub-7979689703488774/4117286099',
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
-          if (mounted) {
-            setState(() {});
-          }
+          if (mounted) setState(() {});
         },
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
           debugPrint('Erro ao carregar anúncio: $error');
@@ -69,10 +81,8 @@ class BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isPremium) {
-      // Usuário premium ou livre de publicidade, não exibe o banner
-      return const SizedBox.shrink();
-    }
+    // Se premium ou recompensa ativa, não mostra banner
+    if (_isPremium) return const SizedBox.shrink();
 
     return _bannerAd != null
         ? Container(
@@ -81,7 +91,6 @@ class BannerAdWidgetState extends State<BannerAdWidget> {
             height: _bannerAd!.size.height.toDouble(),
             child: AdWidget(ad: _bannerAd!),
           )
-        : const SizedBox
-            .shrink(); // Use SizedBox.shrink() para evitar problemas de layout
+        : const SizedBox.shrink();
   }
 }
