@@ -7,6 +7,7 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/02_mapaderisco/mapa_raiz.d
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_ordem_de_servico/os_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_analise_ergonomica/aet_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/cnpj2.dart';
+import 'package:guarda_corpo_2024/matriz/02_maissaude/pgr.dart';
 import 'package:guarda_corpo_2024/services/premium/premium_button.dart';
 import '../../services/admob/conf/interstitial_ad_manager.dart';
 import '../02_maissaude/aso.dart';
@@ -180,6 +181,13 @@ class Raiz03Maissaude extends StatelessWidget {
                         const OrdemRaiz(), tamanhoBotaoLista, itemFontSize),
                     _buildMaterialButton(context, 'assets/images/ppp.jpg',
                         'P.P.P', const Ppp(), tamanhoBotaoLista, itemFontSize),
+                    _buildMaterialButton(
+                        context,
+                        'assets/images/treinamentos.jpg',
+                        'PPRA x PGR',
+                        const Pgr(),
+                        tamanhoBotaoLista,
+                        itemFontSize),
                     _buildMaterialButton(
                         context,
                         'assets/images/cid.jpg',
