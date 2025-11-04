@@ -11,15 +11,12 @@ class UserProvider with ChangeNotifier {
   String? _errorMessage;
   bool _hasEverSubscribedPremium = false;
 
-  // 🔹 Recompensas
   int _rewardPoints = 0;
   DateTime? _rewardExpiryDate;
 
-  // Contador de telas para intersticial
   int _screenCountSinceLastAd = 0;
   final int _adFrequency = 4;
 
-  // Getters
   bool get isLoggedIn => _isLoggedIn;
   bool get isPremium => _isPremium;
   String get planType => _planType;
@@ -32,11 +29,28 @@ class UserProvider with ChangeNotifier {
   bool get hasRewardActive =>
       _rewardExpiryDate != null && _rewardExpiryDate!.isAfter(DateTime.now());
 
+  bool get hasActivePremiumReward =>
+      _planType == 'reward_full_access' && hasRewardActive;
+
   UserProvider() {
     loadFromCache();
   }
 
-  // 🔹 Cache
+  String get planDisplayName {
+    switch (_planType) {
+      case 'monthly_full':
+        return 'Premium';
+      case 'monthly_ad_free':
+        return 'Livre de Publicidade';
+      case 'reward_full_access':
+        return 'Premium via Recompensa';
+      case 'ad_free_reward':
+        return 'Sem Anúncios via Recompensa';
+      default:
+        return 'Nenhum benefício ativo';
+    }
+  }
+
   Future<void> saveToCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', _isLoggedIn);
@@ -48,7 +62,6 @@ class UserProvider with ChangeNotifier {
       await prefs.remove('expiryDate');
     }
     await prefs.setBool('hasEverSubscribedPremium', _hasEverSubscribedPremium);
-
     await prefs.setInt('rewardPoints', _rewardPoints);
     if (_rewardExpiryDate != null) {
       await prefs.setInt(
@@ -75,12 +88,10 @@ class UserProvider with ChangeNotifier {
         ? DateTime.fromMillisecondsSinceEpoch(rewardExpiryMillis)
         : null;
 
-    checkSubscriptionAndRewards(); // ✅ verifica expirações
-
+    checkSubscriptionAndRewards();
     notifyListeners();
   }
 
-  // 🔹 Atualização de assinatura
   void updateSubscription({
     required bool isLoggedIn,
     required bool isPremium,
@@ -95,23 +106,20 @@ class UserProvider with ChangeNotifier {
     _hasEverSubscribedPremium =
         hasEverSubscribedPremium ?? _hasEverSubscribedPremium;
 
-    checkSubscriptionAndRewards(); // ✅ verifica expirações
-
-    notifyListeners();
-  }
-
-  // 🔹 Atualização de recompensa
-  void updateReward({int? points, DateTime? expiry}) {
-    if (points != null) _rewardPoints = points;
-    if (expiry != null) _rewardExpiryDate = expiry;
-
-    checkSubscriptionAndRewards(); // ✅ verifica expirações
-
+    checkSubscriptionAndRewards();
     saveToCache();
     notifyListeners();
   }
 
-  // 🔹 Adicionar pontos
+  void updateReward({int? points, DateTime? expiry}) {
+    if (points != null) _rewardPoints = points;
+    if (expiry != null) _rewardExpiryDate = expiry;
+
+    checkSubscriptionAndRewards();
+    saveToCache();
+    notifyListeners();
+  }
+
   Future<void> addRewardPointsAndSave(int amount) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -125,90 +133,73 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔹 Ativar recompensa por pontos (flexível para 7 ou 14 dias)
   Future<void> activateReward({
     required int cost,
-    required String type, // "reward_full_access" ou "ad_free_reward"
+    required String type,
     required int days,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    if (_rewardPoints < cost) return;
+    if (user == null || _rewardPoints < cost) return;
 
     final newExpiry = DateTime.now().add(Duration(days: days));
-
     _rewardPoints -= cost;
 
     final updateData = {
       'rewardPoints': _rewardPoints,
-      'rewardExpiryDate': newExpiry,
+      'rewardExpiryDate': Timestamp.fromDate(newExpiry),
       'subscriptionStatus': 'active',
+      'planType': type,
     };
 
-    // Atualiza Firebase
+    if (type == 'reward_full_access') {
+      updateData['expiryDate'] = Timestamp.fromDate(newExpiry);
+    }
+
     await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
-        .update(updateData);
+        .set(updateData, SetOptions(merge: true));
 
-    // Atualiza estado local
     _rewardExpiryDate = newExpiry;
+    _planType = type;
 
     if (type == 'reward_full_access') {
-      // Premium total
-      _isPremium = true;
-      _planType = type;
       _expiryDate = newExpiry;
-    } else if (type == 'ad_free_reward') {
-      // Apenas remove anúncios
-      // Não altera _isPremium nem _planType nem _expiryDate
+      _isPremium = true;
+    } else {
+      _isPremium = false;
     }
 
-    checkSubscriptionAndRewards(); // ✅ verifica expirações
-
-    await saveToCache();
+    saveToCache();
     notifyListeners();
   }
 
-  // 🔹 Status
   bool hasActiveSubscription() {
-    return _planType.isNotEmpty &&
+    final now = DateTime.now();
+    return (_planType == 'monthly_full' || _planType == 'monthly_ad_free') &&
         _expiryDate != null &&
-        _expiryDate!.isAfter(DateTime.now()) &&
-        (_planType == 'monthly_full' ||
-            _planType == 'monthly_ad_free' ||
-            _planType == 'ad_free_reward' ||
-            _planType == 'reward_full_access');
+        _expiryDate!.isAfter(now);
   }
 
-  bool hasPremiumPlan() {
-    return _isPremium && _planType == 'monthly_full';
-  }
+  bool hasPremiumPlan() => _planType == 'monthly_full';
+  bool canAccessPremiumScreen() =>
+      _isPremium &&
+      (_planType == 'monthly_full' || _planType == 'reward_full_access');
 
-  bool canAccessPremiumScreen() {
-    return hasActiveSubscription() &&
-        (_planType == 'monthly_full' || _planType == 'reward_full_access');
-  }
-
-  bool isAdFree() {
-    return hasActiveSubscription() || hasRewardActive;
-  }
+  bool isAdFree() => hasActiveSubscription() || hasRewardActive;
 
   void resetSubscription() {
     _isLoggedIn = false;
     _isPremium = false;
     _planType = '';
     _expiryDate = null;
-    _errorMessage = null;
     _rewardExpiryDate = null;
-
     saveToCache();
     notifyListeners();
   }
 
   bool shouldShowInterstitial() {
     if (isAdFree()) return false;
-
     _screenCountSinceLastAd++;
     if (_screenCountSinceLastAd >= _adFrequency) {
       _screenCountSinceLastAd = 0;
@@ -222,7 +213,6 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔹 Listener Firebase
   void startFirebaseListener(BuildContext context) {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) {
@@ -242,9 +232,7 @@ class UserProvider with ChangeNotifier {
                 expiryDate != null &&
                 expiryDate.isAfter(DateTime.now());
             final hasEverSubscribedPremium =
-                data['hasEverSubscribedPremium'] is bool
-                    ? data['hasEverSubscribedPremium']
-                    : false;
+                data['hasEverSubscribedPremium'] == true;
             final rewardPoints = data['rewardPoints'] ?? 0;
             final rewardExpiryDate =
                 (data['rewardExpiryDate'] as Timestamp?)?.toDate();
@@ -256,34 +244,39 @@ class UserProvider with ChangeNotifier {
               expiryDate: expiryDate,
               hasEverSubscribedPremium: hasEverSubscribedPremium,
             );
-
             updateReward(points: rewardPoints, expiry: rewardExpiryDate);
-
-            checkSubscriptionAndRewards(); // ✅ garante atualização
           }
         });
       }
     });
   }
 
-  // 🔹 ✅ Verifica expiração de assinaturas e recompensas
   void checkSubscriptionAndRewards() {
     final now = DateTime.now();
 
-    // Assinatura normal
     if (_expiryDate != null && _expiryDate!.isBefore(now)) {
-      _isPremium = false;
-      _planType = '';
-      _expiryDate = null;
+      if (_planType == 'monthly_full' || _planType == 'monthly_ad_free') {
+        _planType = '';
+        _expiryDate = null;
+        _isPremium = false;
+      }
     }
 
-    // Recompensa ativa
     if (_rewardExpiryDate != null && _rewardExpiryDate!.isBefore(now)) {
       _rewardExpiryDate = null;
       if (_planType == 'reward_full_access' || _planType == 'ad_free_reward') {
-        _isPremium = false;
         _planType = '';
+        _isPremium = false;
       }
     }
+
+    if (_planType == 'reward_full_access' &&
+        _rewardExpiryDate != null &&
+        _rewardExpiryDate!.isAfter(now)) {
+      _isPremium = true;
+    }
+
+    if (_planType == 'monthly_full') _isPremium = true;
+    if (_planType == 'monthly_ad_free') _isPremium = false;
   }
 }

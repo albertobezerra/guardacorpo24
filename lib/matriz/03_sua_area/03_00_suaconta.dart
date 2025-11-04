@@ -22,7 +22,6 @@ class _SuaContaState extends State<SuaConta> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   bool _isSaving = false;
 
   User? get _currentUser => FirebaseAuth.instance.currentUser;
@@ -38,45 +37,42 @@ class _SuaContaState extends State<SuaConta> {
     final prefs = await SharedPreferences.getInstance();
     final imagePath = prefs.getString('profile_image_path');
     if (imagePath != null && File(imagePath).existsSync()) {
-      setState(() {
-        _profileImage = File(imagePath);
-      });
+      if (!mounted) return;
+      setState(() => _profileImage = File(imagePath));
     }
   }
 
   Future<void> _pickAndSetImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) return;
 
-    if (pickedFile != null) {
-      final directory = await getApplicationDocumentsDirectory();
-      final imagePath =
-          '${directory.path}/profile_image_${_currentUser?.uid ?? 'default'}.jpg';
-      final newImage = await File(pickedFile.path).copy(imagePath);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('profile_image_path', imagePath);
+    final directory = await getApplicationDocumentsDirectory();
+    final imagePath =
+        '${directory.path}/profile_image_${_currentUser?.uid ?? 'default'}.jpg';
+    final newImage = await File(pickedFile.path).copy(imagePath);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profile_image_path', imagePath);
 
-      await FileImage(newImage).evict();
-      setState(() => _profileImage = newImage);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Foto atualizada!')));
-    }
+    await FileImage(newImage).evict();
+    if (!mounted) return;
+    setState(() => _profileImage = newImage);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Foto atualizada!')),
+    );
   }
 
   Future<void> _deletePhoto() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('profile_image_path');
-
     if (_profileImage != null) {
       await FileImage(_profileImage!).evict();
     }
-
-    setState(() => _profileImage = null);
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Foto removida!')));
+    setState(() => _profileImage = null);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Foto removida!')),
+    );
   }
 
   void _openProfilePhotoViewer() {
@@ -104,7 +100,7 @@ class _SuaContaState extends State<SuaConta> {
         .collection('users')
         .doc(user.uid)
         .get();
-    if (doc.exists) {
+    if (doc.exists && mounted) {
       final data = doc.data()!;
       _nameController.text = data['name'] ?? user.displayName ?? '';
       _emailController.text = user.email ?? '';
@@ -116,7 +112,6 @@ class _SuaContaState extends State<SuaConta> {
     if (user == null) return;
 
     setState(() => _isSaving = true);
-
     try {
       if (field == 'name') {
         await FirebaseFirestore.instance
@@ -125,13 +120,11 @@ class _SuaContaState extends State<SuaConta> {
             .update({'name': value});
         await user.updateDisplayName(value);
       } else if (field == 'email') {
-        if (user.email != value) {
-          await user.verifyBeforeUpdateEmail(value);
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Email de verificação enviado!')),
-          );
-        }
+        await user.verifyBeforeUpdateEmail(value);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email de verificação enviado!')),
+        );
       } else if (field == 'password') {
         if (value.isEmpty) throw Exception('Senha não pode estar vazia');
         await user.updatePassword(value);
@@ -139,10 +132,13 @@ class _SuaContaState extends State<SuaConta> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Erro: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro: $e')),
+      );
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -155,10 +151,7 @@ class _SuaContaState extends State<SuaConta> {
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'N/A';
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year.toString();
-    return '$day/$month/$year';
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
   @override
@@ -171,17 +164,13 @@ class _SuaContaState extends State<SuaConta> {
         title: Text(
           'SUA CONTA'.toUpperCase(),
           style: const TextStyle(
-            fontFamily: 'Segoe Bold',
-            color: Colors.white,
-            fontSize: 16,
-          ),
+              fontFamily: 'Segoe Bold', color: Colors.white, fontSize: 16),
         ),
         backgroundColor: const Color.fromARGB(255, 0, 104, 55),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Provider.of<NavigationState>(context, listen: false).setIndex(0);
-          },
+          onPressed: () =>
+              Provider.of<NavigationState>(context, listen: false).setIndex(0),
         ),
       ),
       body: _isSaving
@@ -191,7 +180,6 @@ class _SuaContaState extends State<SuaConta> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -252,7 +240,6 @@ class _SuaContaState extends State<SuaConta> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Campos editáveis
                   _buildEditableField('Nome', _nameController, Icons.person,
                       () => _updateUserField('name', _nameController.text)),
                   const SizedBox(height: 12),
@@ -260,51 +247,62 @@ class _SuaContaState extends State<SuaConta> {
                       () => _updateUserField('email', _emailController.text)),
                   const SizedBox(height: 12),
                   _buildEditableField(
-                      'Senha',
-                      _passwordController,
-                      Icons.lock,
-                      () => _updateUserField(
-                          'password', _passwordController.text),
-                      obscure: true),
-                  const SizedBox(height: 20),
-
-                  // Assinatura
-                  Text(
-                    'ASSINATURA'.toUpperCase(),
-                    style: const TextStyle(
-                        fontFamily: 'Segoe Bold',
-                        color: Color.fromARGB(255, 0, 104, 55),
-                        fontSize: 16),
+                    'Senha',
+                    _passwordController,
+                    Icons.lock,
+                    () =>
+                        _updateUserField('password', _passwordController.text),
+                    obscure: true,
                   ),
-                  const SizedBox(height: 8),
-                  userProvider.hasActiveSubscription() ||
-                          userProvider.hasRewardActive
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildInfoRow(
-                              'Plano:',
-                              userProvider.planType == 'monthly_full'
-                                  ? 'Premium'
-                                  : userProvider.planType ==
-                                          'reward_full_access'
-                                      ? 'Premium via Recompensa'
-                                      : 'Sem Anúncios via Recompensa',
-                            ),
-                            _buildInfoRow(
-                              'Válido até:',
-                              userProvider.hasRewardActive
-                                  ? _formatDate(userProvider.rewardExpiryDate)
-                                  : _formatDate(userProvider.expiryDate),
-                            ),
-                          ],
-                        )
-                      : const Text('Nenhuma assinatura ativa',
-                          style: TextStyle(fontFamily: 'Segoe', fontSize: 14)),
-
                   const SizedBox(height: 20),
-
-                  // Pontos
+                  Text('STATUS'.toUpperCase(),
+                      style: const TextStyle(
+                          fontFamily: 'Segoe Bold',
+                          color: Color.fromARGB(255, 0, 104, 55),
+                          fontSize: 16)),
+                  const SizedBox(height: 8),
+                  if (userProvider.hasActiveSubscription())
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.credit_card,
+                                size: 20, color: Colors.green),
+                            const SizedBox(width: 8),
+                            Text(userProvider.planDisplayName,
+                                style:
+                                    const TextStyle(fontFamily: 'Segoe Bold')),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        _buildInfoRow('Válido até:',
+                            _formatDate(userProvider.expiryDate)),
+                      ],
+                    )
+                  else if (userProvider.hasRewardActive)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.card_giftcard,
+                                size: 20, color: Colors.orange),
+                            const SizedBox(width: 8),
+                            Text(userProvider.planDisplayName,
+                                style:
+                                    const TextStyle(fontFamily: 'Segoe Bold')),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        _buildInfoRow('Válido até:',
+                            _formatDate(userProvider.rewardExpiryDate)),
+                      ],
+                    )
+                  else
+                    const Text('Nenhum benefício ativo',
+                        style: TextStyle(fontFamily: 'Segoe', fontSize: 14)),
+                  const SizedBox(height: 20),
                   Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -319,8 +317,7 @@ class _SuaContaState extends State<SuaConta> {
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const RewardStoreScreen(),
-                          ),
+                              builder: (_) => const RewardStoreScreen()),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
@@ -335,8 +332,6 @@ class _SuaContaState extends State<SuaConta> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Logout
                   ElevatedButton.icon(
                     onPressed: _logout,
                     icon: const Icon(Icons.logout, color: Colors.white),
@@ -357,9 +352,13 @@ class _SuaContaState extends State<SuaConta> {
     );
   }
 
-  Widget _buildEditableField(String label, TextEditingController controller,
-      IconData icon, VoidCallback onSave,
-      {bool obscure = false}) {
+  Widget _buildEditableField(
+    String label,
+    TextEditingController controller,
+    IconData icon,
+    VoidCallback onSave, {
+    bool obscure = false,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -387,19 +386,21 @@ class _SuaContaState extends State<SuaConta> {
   }
 
   Widget _buildInfoRow(String label, String value) {
-    return Row(
-      children: [
-        Text(label,
-            style:
-                const TextStyle(fontFamily: 'Segoe Bold', color: Colors.black)),
-        const SizedBox(width: 8),
-        Text(value, style: const TextStyle(fontFamily: 'Segoe')),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontFamily: 'Segoe Bold', color: Colors.black)),
+          const SizedBox(width: 8),
+          Text(value, style: const TextStyle(fontFamily: 'Segoe')),
+        ],
+      ),
     );
   }
 }
 
-// Visualizador de foto fullscreen
 class ProfilePhotoViewer extends StatelessWidget {
   final File imageFile;
   final VoidCallback onSwap;
@@ -419,9 +420,7 @@ class ProfilePhotoViewer extends StatelessWidget {
         title: const Text('Visualizar Foto'),
         backgroundColor: const Color.fromARGB(255, 0, 104, 55),
       ),
-      body: Center(
-        child: Image.file(imageFile),
-      ),
+      body: Center(child: Image.file(imageFile)),
       bottomNavigationBar: BottomAppBar(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -434,8 +433,7 @@ class ProfilePhotoViewer extends StatelessWidget {
               icon: const Icon(Icons.swap_horiz),
               label: const Text('Trocar Foto'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-              ),
+                  backgroundColor: const Color.fromARGB(255, 0, 104, 55)),
             ),
             ElevatedButton.icon(
               onPressed: () {
@@ -444,9 +442,7 @@ class ProfilePhotoViewer extends StatelessWidget {
               },
               icon: const Icon(Icons.delete),
               label: const Text('Apagar Foto'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             ),
           ],
         ),
