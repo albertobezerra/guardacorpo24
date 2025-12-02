@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '01_treinamento_base.dart';
@@ -78,6 +79,24 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
           "No treinamento de LER e DORT aborde os seguintes subtemas:\n\n• A ergonomia no ambiete de trabalho.\n• Movimentos repetitivos.\n• Doenças do trabalho.\n• LER/DORT.\n\nOBS: na formulação deste treinamento leve em consideração as condições de sua empresa, os problemas mais frequentes. Utilize imagens, colaboradores querem mais imagens e menos textos. Tome a NR 17 para fundamentar sua apresentação e NBRs pertinentes ao tema.\n\nO foco do módulo de treinamento não é disponibilizar um treinamento específico, mas auxiliar o ministrante do treinamento no que deve ser levado em consideração em seu treinamento."
     },
   ];
+  List<int> _getCtaPositions(int totalItems) {
+    if (totalItems <= 10) {
+      return [];
+    } else if (totalItems <= 20) {
+      return [totalItems ~/ 2];
+    } else if (totalItems <= 50) {
+      return [
+        (totalItems * 0.3).round(),
+        (totalItems * 0.7).round(),
+      ];
+    } else {
+      return [
+        (totalItems * 0.25).round(),
+        (totalItems * 0.5).round(),
+        (totalItems * 0.75).round(),
+      ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +140,12 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
                 child: ListView.builder(
                   itemCount: treinamentos.length,
                   itemBuilder: (context, index) {
+                    final ctaPositions = _getCtaPositions(treinamentos.length);
+
+                    if (ctaPositions.contains(index)) {
+                      return const RewardCTAWidget();
+                    }
+
                     return Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),

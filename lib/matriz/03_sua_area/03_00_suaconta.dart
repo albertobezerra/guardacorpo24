@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
-import 'package:guarda_corpo_2024/services/premium/reward_store_screen.dart';
+import 'package:guarda_corpo_2024/services/rewards/reward_store_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';

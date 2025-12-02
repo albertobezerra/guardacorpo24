@@ -8,7 +8,7 @@ import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
 import 'package:guarda_corpo_2024/matriz/03_sua_area/03_00_suaconta.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
-import 'package:guarda_corpo_2024/services/premium/reward_ads_screen.dart';
+import 'package:guarda_corpo_2024/services/rewards/reward_ads_screen.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:provider/provider.dart';
 

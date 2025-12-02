@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '01_dds_base.dart';
@@ -84,6 +85,24 @@ class _DdsRaizState extends State<DdsRaiz> {
     },
     // Adicione mais itens conforme necessário
   ];
+  List<int> _getCtaPositions(int totalItems) {
+    if (totalItems <= 10) {
+      return [];
+    } else if (totalItems <= 20) {
+      return [totalItems ~/ 2];
+    } else if (totalItems <= 50) {
+      return [
+        (totalItems * 0.3).round(),
+        (totalItems * 0.7).round(),
+      ];
+    } else {
+      return [
+        (totalItems * 0.25).round(),
+        (totalItems * 0.5).round(),
+        (totalItems * 0.75).round(),
+      ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,6 +146,12 @@ class _DdsRaizState extends State<DdsRaiz> {
                 child: ListView.builder(
                   itemCount: dds.length,
                   itemBuilder: (context, index) {
+                    final ctaPositions = _getCtaPositions(dds.length);
+
+                    if (ctaPositions.contains(index)) {
+                      return const RewardCTAWidget();
+                    }
+
                     return Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),

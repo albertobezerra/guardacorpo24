@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '01_nr_base.dart';
@@ -165,6 +166,27 @@ class _NrsRaizState extends State<NrsRaiz> {
     },
   ];
 
+  // Adicione esta função FORA do build(), dentro da classe _NrsRaizState:
+
+  List<int> _getCtaPositions(int totalItems) {
+    if (totalItems <= 10) {
+      return []; // Lista pequena, sem CTA
+    } else if (totalItems <= 20) {
+      return [totalItems ~/ 2]; // 1 CTA no meio
+    } else if (totalItems <= 50) {
+      return [
+        (totalItems * 0.3).round(), // ~30% da lista
+        (totalItems * 0.7).round(), // ~70% da lista
+      ];
+    } else {
+      return [
+        (totalItems * 0.25).round(), // ~25%
+        (totalItems * 0.5).round(), // ~50%
+        (totalItems * 0.75).round(), // ~75%
+      ];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,6 +230,10 @@ class _NrsRaizState extends State<NrsRaiz> {
                 child: ListView.builder(
                   itemCount: nrs.length,
                   itemBuilder: (context, index) {
+                    final ctaPositions = _getCtaPositions(nrs.length);
+                    if (ctaPositions.contains(index)) {
+                      return const RewardCTAWidget();
+                    }
                     return Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),

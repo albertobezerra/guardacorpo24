@@ -3,7 +3,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'package:guarda_corpo_2024/services/premium/reward_store_screen.dart';
+import 'package:guarda_corpo_2024/services/rewards/reward_store_screen.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 
 class RewardAdsScreen extends StatefulWidget {
