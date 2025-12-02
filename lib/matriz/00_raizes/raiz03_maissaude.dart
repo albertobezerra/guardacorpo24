@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/components/reward_cta_widget_principal.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_raiz.dart';
@@ -35,6 +36,26 @@ class Raiz03Maissaude extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
+    // Função para decidir em quais índices entram CTAs
+    List<int> getCtaPositions(int totalItems) {
+      if (totalItems <= 10) {
+        return [];
+      } else if (totalItems <= 20) {
+        return [totalItems ~/ 2];
+      } else if (totalItems <= 50) {
+        return [
+          (totalItems * 0.3).round(),
+          (totalItems * 0.7).round(),
+        ];
+      } else {
+        return [
+          (totalItems * 0.25).round(),
+          (totalItems * 0.5).round(),
+          (totalItems * 0.75).round(),
+        ];
+      }
+    }
+
     double headerFontSize;
     double itemFontSize;
     double tamanhoBotaoLista;
@@ -52,6 +73,123 @@ class Raiz03Maissaude extends StatelessWidget {
       itemFontSize = 16;
       tamanhoBotaoLista = 80;
     }
+
+    // Lista de itens do menu (exceto Inspeção, que é PremiumButton)
+    final List<Map<String, dynamic>> itens = [
+      {
+        'image': 'assets/images/acidente.jpg',
+        'label': 'Acidentes',
+        'screen': const AcidenteRaiz(),
+      },
+      {
+        'image': 'assets/images/cid.jpg',
+        'label': 'Análise Ergonômica do Trabalho',
+        'screen': const AETModule(),
+      },
+      {
+        'image': 'assets/images/aso.jpg',
+        'label': 'A.S.O',
+        'screen': const Aso(),
+      },
+      {
+        'image': 'assets/images/clt.jpg',
+        'label': 'C.L.T',
+        'screen': const Clt(),
+      },
+      {
+        'image': 'assets/images/treinamentos.jpg',
+        'label': 'Cipa',
+        'screen': const Cipa(),
+      },
+      {
+        'image': 'assets/images/cnae.jpg',
+        'label': 'Consulta de Cnae',
+        'screen': const Cnae(),
+      },
+      {
+        'image': 'assets/images/menu.jpg',
+        'label': 'Consulta de CNPJ',
+        'screen': const Cnpj2(),
+      },
+      {
+        'image': 'assets/images/datas.jpg',
+        'label': 'Datas Importantes',
+        'screen': const Datas(),
+      },
+      {
+        'image': 'assets/images/esocial.jpg',
+        'label': 'E-Social',
+        'screen': const Esocial(),
+      },
+      {
+        'image': 'assets/images/historia.jpg',
+        'label': 'História da Segurança do Trabalho',
+        'screen': const Historia(),
+      },
+      {
+        'image': 'assets/images/incendio4.jpg',
+        'label': 'Incêndio',
+        'screen': const IncendioRaiz(),
+      },
+      // Inspeção vem depois como PremiumButton
+      {
+        'image': 'assets/images/mapa.jpg',
+        'label': 'Mapa de Risco',
+        'screen': const MapaRaiz(),
+      },
+      {
+        'image': 'assets/images/nbr.jpg',
+        'label': 'NBrs Relevantes',
+        'screen': const Nbrs(),
+      },
+      {
+        'image': 'assets/images/normas.jpg',
+        'label': 'Normas de Higiene Ocupacional',
+        'screen': const Nho(),
+      },
+      {
+        'image': 'assets/images/os.jpg',
+        'label': 'O.s',
+        'screen': const OrdemRaiz(),
+      },
+      {
+        'image': 'assets/images/ppp.jpg',
+        'label': 'P.P.P',
+        'screen': const Ppp(),
+      },
+      {
+        'image': 'assets/images/treinamentos.jpg',
+        'label': 'PPRA x PGR',
+        'screen': const Pgr(),
+      },
+      {
+        'image': 'assets/images/cid.jpg',
+        'label': 'Primeiros Socorros',
+        'screen': const PrimeirosSocRz(),
+      },
+      {
+        'image': 'assets/images/riscos.jpg',
+        'label': 'Riscos Ambientais',
+        'screen': const Riscoamb(),
+      },
+      {
+        'image': 'assets/images/sinalizacao.jpg',
+        'label': 'Sinalização de Segurança',
+        'screen': const Sinalizacao(),
+      },
+      {
+        'image': 'assets/images/tecnico.jpg',
+        'label': 'Técnico em tst',
+        'screen': const Tecnico(),
+      },
+      {
+        'image': 'assets/images/epi.jpg',
+        'label': 'E.P.I',
+        'screen': const EpiRaiz(),
+      },
+    ];
+
+    final ctaPositions = getCtaPositions(itens.length);
 
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
@@ -81,148 +219,27 @@ class Raiz03Maissaude extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.only(top: 9),
                   children: [
-                    _buildMaterialButton(
+                    // Gera dinamicamente: CTA + botões
+                    for (int i = 0; i < itens.length; i++) ...[
+                      if (ctaPositions.contains(i))
+                        const RewardCTAWidgetPrincipal(),
+                      _buildMaterialButton(
                         context,
-                        'assets/images/acidente.jpg',
-                        'Acidentes',
-                        const AcidenteRaiz(),
+                        itens[i]['image'] as String,
+                        itens[i]['label'] as String,
+                        itens[i]['screen'] as Widget,
                         tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/cid.jpg',
-                        'Análise Ergonômica do Trabalho',
-                        const AETModule(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(context, 'assets/images/aso.jpg',
-                        'A.S.O', const Aso(), tamanhoBotaoLista, itemFontSize),
-                    /*_buildMaterialButton(context, 'assets/images/cid.jpg',
-                        'C.I.D', const Cid(), tamanhoBotaoLista, itemFontSize),*/
-                    _buildMaterialButton(context, 'assets/images/clt.jpg',
-                        'C.L.T', const Clt(), tamanhoBotaoLista, itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/treinamentos.jpg',
-                        'Cipa',
-                        const Cipa(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/cnae.jpg',
-                        'Consulta de Cnae',
-                        const Cnae(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/menu.jpg',
-                        'Consulta de CNPJ',
-                        const Cnpj2(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/datas.jpg',
-                        'Datas Importantes',
-                        const Datas(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/esocial.jpg',
-                        'E-Social',
-                        const Esocial(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/historia.jpg',
-                        'História da Segurança do Trabalho',
-                        const Historia(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/incendio4.jpg',
-                        'Incêndio',
-                        const IncendioRaiz(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
+                        itemFontSize,
+                      ),
+                    ],
+
+                    // Mantém o PremiumButton de Inspeção
                     PremiumButton(
                       buttonText: 'Inspeção',
                       imagePath: 'assets/images/inspecao.jpg',
                       destinationScreen: const ViewInspecoes(),
                       buttonHeight: tamanhoBotaoLista,
                     ),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/mapa.jpg',
-                        'Mapa de Risco',
-                        const MapaRaiz(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/nbr.jpg',
-                        'NBrs Relevantes',
-                        const Nbrs(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/normas.jpg',
-                        'Normas de Higiene Ocupacional',
-                        const Nho(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(context, 'assets/images/os.jpg', 'O.s',
-                        const OrdemRaiz(), tamanhoBotaoLista, itemFontSize),
-                    _buildMaterialButton(context, 'assets/images/ppp.jpg',
-                        'P.P.P', const Ppp(), tamanhoBotaoLista, itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/treinamentos.jpg',
-                        'PPRA x PGR',
-                        const Pgr(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/cid.jpg',
-                        'Primeiros Socorros',
-                        const PrimeirosSocRz(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/riscos.jpg',
-                        'Riscos Ambientais',
-                        const Riscoamb(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/sinalizacao.jpg',
-                        'Sinalização de Segurança',
-                        const Sinalizacao(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/tecnico.jpg',
-                        'Técnico em tst',
-                        const Tecnico(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
-                    _buildMaterialButton(
-                        context,
-                        'assets/images/epi.jpg',
-                        'E.P.I',
-                        const EpiRaiz(),
-                        tamanhoBotaoLista,
-                        itemFontSize),
                   ],
                 ),
               ),
@@ -251,7 +268,9 @@ class Raiz03Maissaude extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           image: DecorationImage(
-              image: ExactAssetImage(imagePath), fit: BoxFit.cover),
+            image: ExactAssetImage(imagePath),
+            fit: BoxFit.cover,
+          ),
         ),
         child: Container(
           alignment: AlignmentDirectional.bottomStart,
@@ -259,9 +278,10 @@ class Raiz03Maissaude extends StatelessWidget {
           child: Text(
             label.toUpperCase(),
             style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Segoe Bold',
-                fontSize: fontSize),
+              color: Colors.white,
+              fontFamily: 'Segoe Bold',
+              fontSize: fontSize,
+            ),
           ),
         ),
       ),
