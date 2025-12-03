@@ -1,10 +1,10 @@
-// lib/components/firebase_messaging_service.dart
-
+import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../firebase_options.dart';
+import 'package:guarda_corpo_2024/firebase_options.dart';
+import 'package:guarda_corpo_2024/services/notifications/notification_router.dart';
 
 // Handler em background PRECISA ser top-level
 @pragma('vm:entry-point')
@@ -35,15 +35,25 @@ class FirebaseMessagingService {
     );
     debugPrint('Permissão FCM: ${settings.authorizationStatus}');
 
-    // 4) (Opcional) pega token para testes
+    // 4) Pega token para testes
     final token = await _messaging.getToken();
     debugPrint('FCM Token: $token');
 
     // 5) Ouve mensagens com app em foreground
     FirebaseMessaging.onMessage.listen(_onMessage);
 
-    // 6) Ouve quando usuário toca na notificação
+    // 6) Ouve quando usuário toca na notificação (app em background)
     FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
+
+    // 7) Verifica se o app foi aberto via notificação (app estava fechado)
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint('App aberto via notificação: ${initialMessage.messageId}');
+      // Aguarda um frame para garantir que o navigator está pronto
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        handleNotificationNavigation(initialMessage.data);
+      });
+    }
   }
 
   Future<void> _initLocalNotifications() async {
@@ -54,13 +64,16 @@ class FirebaseMessagingService {
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (details) {
-        // Aqui você pode navegar para uma tela específica, se quiser
-        // final context = navigatorKey.currentContext;
-        // if (context != null) {
-        //   Navigator.of(context).push(MaterialPageRoute(
-        //     builder: (_) => const AlgumaTela(),
-        //   ));
-        // }
+        // Quando usuário toca na notificação local (foreground)
+        if (details.payload != null && details.payload!.isNotEmpty) {
+          try {
+            final data = jsonDecode(details.payload!) as Map<String, dynamic>;
+            debugPrint('Notification tapped with payload: $data');
+            handleNotificationNavigation(data);
+          } catch (e) {
+            debugPrint('Erro ao processar payload: $e');
+          }
+        }
       },
     );
 
@@ -82,6 +95,8 @@ class FirebaseMessagingService {
     final notification = message.notification;
     if (notification == null) return;
 
+    debugPrint('Notificação recebida em foreground: ${message.messageId}');
+
     const androidDetails = AndroidNotificationDetails(
       'sst_channel',
       'Segurança do Trabalho',
@@ -97,17 +112,13 @@ class FirebaseMessagingService {
       notification.title,
       notification.body,
       details,
-      payload: message.data['route'], // se quiser passar rota
+      payload: jsonEncode(message.data), // passa dados como JSON
     );
   }
 
   void _onMessageOpenedApp(RemoteMessage message) {
-    debugPrint('Usuário clicou na notificação: ${message.messageId}');
-    // Exemplo: navegar para alguma tela baseada em "route" vinda nos dados
-    // final route = message.data['route'];
-    // final context = navigatorKey.currentContext;
-    // if (route != null && context != null) {
-    //   Navigator.of(context).pushNamed(route);
-    // }
+    debugPrint(
+        'Usuário clicou na notificação (app em background): ${message.messageId}');
+    handleNotificationNavigation(message.data);
   }
 }
