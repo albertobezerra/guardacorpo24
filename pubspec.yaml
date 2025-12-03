@@ -14,7 +14,7 @@ dependencies:
 
   cupertino_icons: ^1.0.6
   permission_handler: ^12.0.1
-  url_launcher: ^6.0.9
+  url_launcher: ^6.3.2
   flutter_phone_direct_caller: ^2.0.0
   syncfusion_flutter_pdfviewer: ^31.1.19
   google_mobile_ads: ^6.0.0
@@ -42,12 +42,19 @@ dependencies:
   http: ^1.3.0
   html: ^0.15.4
   in_app_review: ^2.0.11
+  flutter_local_notifications: ^19.5.0
+  dtd: ^4.0.0
+  flutter_lints: ^6.0.0
+  google_fonts: ^6.3.3
+  json_rpc_2: ^4.0.0
+  path: ^1.9.1
+  stack_trace: ^1.12.1
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^6.0.0
 
 flutter:
 
