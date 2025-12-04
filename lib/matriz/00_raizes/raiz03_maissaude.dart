@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/reward_cta_widget_principal.dart';
+import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_raiz.dart';
@@ -19,7 +19,6 @@ import '../02_maissaude/nho_raiz.dart';
 import '../02_maissaude/ppp.dart';
 import '../02_maissaude/primeiros_soc_raiz.dart';
 import '../02_maissaude/riscoamb.dart';
-//import '../02_maissaude/cid.dart';
 import '../02_maissaude/cipa.dart';
 import '../02_maissaude/datas.dart';
 import '../02_maissaude/esocial.dart';
@@ -36,7 +35,6 @@ class Raiz03Maissaude extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
-    // Função para decidir em quais índices entram CTAs
     List<int> getCtaPositions(int totalItems) {
       if (totalItems <= 10) {
         return [];
@@ -74,7 +72,6 @@ class Raiz03Maissaude extends StatelessWidget {
       tamanhoBotaoLista = 80;
     }
 
-    // Lista de itens do menu (exceto Inspeção, que é PremiumButton)
     final List<Map<String, dynamic>> itens = [
       {
         'image': 'assets/images/acidente.jpg',
@@ -117,6 +114,11 @@ class Raiz03Maissaude extends StatelessWidget {
         'screen': const Datas(),
       },
       {
+        'image': 'assets/images/epi.jpg',
+        'label': 'E.P.I',
+        'screen': const EpiRaiz(),
+      },
+      {
         'image': 'assets/images/esocial.jpg',
         'label': 'E-Social',
         'screen': const Esocial(),
@@ -131,7 +133,12 @@ class Raiz03Maissaude extends StatelessWidget {
         'label': 'Incêndio',
         'screen': const IncendioRaiz(),
       },
-      // Inspeção vem depois como PremiumButton
+      {
+        'image': 'assets/images/inspecao.jpg',
+        'label': 'Inspeção',
+        'screen': const ViewInspecoes(),
+        'isPremium': true,
+      },
       {
         'image': 'assets/images/mapa.jpg',
         'label': 'Mapa de Risco',
@@ -182,11 +189,6 @@ class Raiz03Maissaude extends StatelessWidget {
         'label': 'Técnico em tst',
         'screen': const Tecnico(),
       },
-      {
-        'image': 'assets/images/epi.jpg',
-        'label': 'E.P.I',
-        'screen': const EpiRaiz(),
-      },
     ];
 
     final ctaPositions = getCtaPositions(itens.length);
@@ -219,27 +221,30 @@ class Raiz03Maissaude extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.only(top: 9),
                   children: [
-                    // Gera dinamicamente: CTA + botões
                     for (int i = 0; i < itens.length; i++) ...[
                       if (ctaPositions.contains(i))
-                        const RewardCTAWidgetPrincipal(),
-                      _buildMaterialButton(
-                        context,
-                        itens[i]['image'] as String,
-                        itens[i]['label'] as String,
-                        itens[i]['screen'] as Widget,
-                        tamanhoBotaoLista,
-                        itemFontSize,
-                      ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, bottom: 12),
+                          child: const RewardCTAWidget(),
+                        ),
+                      if (itens[i]['isPremium'] == true)
+                        PremiumButton(
+                          buttonText: itens[i]['label'] as String,
+                          imagePath: itens[i]['image'] as String,
+                          destinationScreen: itens[i]['screen'] as Widget,
+                          buttonHeight: tamanhoBotaoLista,
+                        )
+                      else
+                        _buildMaterialButton(
+                          context,
+                          itens[i]['image'] as String,
+                          itens[i]['label'] as String,
+                          itens[i]['screen'] as Widget,
+                          tamanhoBotaoLista,
+                          itemFontSize,
+                        ),
                     ],
-
-                    // Mantém o PremiumButton de Inspeção
-                    PremiumButton(
-                      buttonText: 'Inspeção',
-                      imagePath: 'assets/images/inspecao.jpg',
-                      destinationScreen: const ViewInspecoes(),
-                      buttonHeight: tamanhoBotaoLista,
-                    ),
                   ],
                 ),
               ),

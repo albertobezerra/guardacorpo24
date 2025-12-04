@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
-import '../../../services/admob/conf/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/history/history_service.dart';
+import 'package:guarda_corpo_2024/services/favorites/favorites_service.dart';
 import '01_nr_base.dart';
 
 class NrsRaiz extends StatefulWidget {
@@ -12,9 +14,29 @@ class NrsRaiz extends StatefulWidget {
 }
 
 class _NrsRaizState extends State<NrsRaiz> {
+  // NRs com atualização recente (você atualiza manualmente quando houver mudança real)
+  final Set<int> _recentlyUpdatedNrs = {
+    //1,
+    //6,
+    38
+  }; // NR 1, 6 e 35 marcadas como "NOVO"
+
+  // Map para controlar favoritos localmente (para atualização de UI rápida)
+  final Map<String, bool> _favoritesCache = {};
+
   @override
   void initState() {
     super.initState();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    for (var nr in nrs) {
+      final isFav = await FavoritesService.isFavorite(nr['pdf']!);
+      setState(() {
+        _favoritesCache[nr['pdf']!] = isFav;
+      });
+    }
   }
 
   final List<Map<String, String>> nrs = [
@@ -166,25 +188,32 @@ class _NrsRaizState extends State<NrsRaiz> {
     },
   ];
 
-  // Adicione esta função FORA do build(), dentro da classe _NrsRaizState:
-
   List<int> _getCtaPositions(int totalItems) {
     if (totalItems <= 10) {
-      return []; // Lista pequena, sem CTA
+      return [];
     } else if (totalItems <= 20) {
-      return [totalItems ~/ 2]; // 1 CTA no meio
+      return [totalItems ~/ 2];
     } else if (totalItems <= 50) {
       return [
-        (totalItems * 0.3).round(), // ~30% da lista
-        (totalItems * 0.7).round(), // ~70% da lista
+        (totalItems * 0.3).round(),
+        (totalItems * 0.7).round(),
       ];
     } else {
       return [
-        (totalItems * 0.25).round(), // ~25%
-        (totalItems * 0.5).round(), // ~50%
-        (totalItems * 0.75).round(), // ~75%
+        (totalItems * 0.25).round(),
+        (totalItems * 0.5).round(),
+        (totalItems * 0.75).round(),
       ];
     }
+  }
+
+  // Extrair número da NR do título
+  int? _getNrNumber(String title) {
+    final match = RegExp(r'NR\s*(\d+)').firstMatch(title);
+    if (match != null) {
+      return int.tryParse(match.group(1)!);
+    }
+    return null;
   }
 
   @override
@@ -234,41 +263,110 @@ class _NrsRaizState extends State<NrsRaiz> {
                     if (ctaPositions.contains(index)) {
                       return const RewardCTAWidget();
                     }
+
+                    final nr = nrs[index];
+                    final nrNumber = _getNrNumber(nr['title']!);
+                    final isNew = nrNumber != null &&
+                        _recentlyUpdatedNrs.contains(nrNumber);
+                    final isFavorite = _favoritesCache[nr['pdf']!] ?? false;
+
                     return Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                       elevation: 5,
-                      child: InkWell(
-                        onTap: () async {
-                          InterstitialAdManager.showInterstitialAd(
-                            context,
-                            NrBase(
-                                title: nrs[index]["title"]!,
-                                pdfPath: nrs[index][
-                                    "pdf"]!), // Passa o título e o caminho do PDF
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.library_books),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                child: Text(
-                                  nrs[index]["title"]!.toUpperCase(),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
-                                  style: const TextStyle(
+                      child: Stack(
+                        children: [
+                          InkWell(
+                            onTap: () async {
+                              // Salva no histórico
+                              await HistoryService.addToHistory(
+                                type: 'nr',
+                                title: nr['title']!,
+                                path: nr['pdf']!,
+                              );
+
+                              // Navega para a NR
+                              InterstitialAdManager.showInterstitialAd(
+                                // ignore: use_build_context_synchronously
+                                context,
+                                NrBase(
+                                  title: nr['title']!,
+                                  pdfPath: nr['pdf']!,
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.library_books),
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    child: Text(
+                                      nr['title']!.toUpperCase(),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                      style: const TextStyle(
+                                        fontFamily: 'Segoe Bold',
+                                      ),
+                                    ),
+                                  ),
+                                  // Botão de favorito
+                                  IconButton(
+                                    icon: Icon(
+                                      isFavorite
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: isFavorite
+                                          ? const Color(0xFFD32F2F)
+                                          : Colors.grey,
+                                    ),
+                                    onPressed: () async {
+                                      if (isFavorite) {
+                                        await FavoritesService.removeFavorite(
+                                            nr['pdf']!);
+                                      } else {
+                                        await FavoritesService.addFavorite(
+                                          type: 'nr',
+                                          title: nr['title']!,
+                                          path: nr['pdf']!,
+                                        );
+                                      }
+                                      setState(() {
+                                        _favoritesCache[nr['pdf']!] =
+                                            !isFavorite;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Badge "NOVO"
+                          if (isNew)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD32F2F),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'NOVO',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
                                     fontFamily: 'Segoe Bold',
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
+                        ],
                       ),
                     );
                   },
