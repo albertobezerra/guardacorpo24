@@ -1,23 +1,36 @@
+// lib/services/provider/userProvider.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProvider with ChangeNotifier {
+  // Dados do Usuário
   bool _isLoggedIn = false;
+  String? _userName;
+  String? _userPhotoUrl;
+
+  // Dados de Assinatura
   bool _isPremium = false;
   String _planType = '';
   DateTime? _expiryDate;
   String? _errorMessage;
   bool _hasEverSubscribedPremium = false;
 
+  // Dados de Recompensa
   int _rewardPoints = 0;
   DateTime? _rewardExpiryDate;
 
+  // Controle de Ads
   int _screenCountSinceLastAd = 0;
   final int _adFrequency = 4;
 
+  // Getters Públicos
   bool get isLoggedIn => _isLoggedIn;
+  String? get userName => _userName;
+  String? get userPhotoUrl => _userPhotoUrl;
+
   bool get isPremium => _isPremium;
   String get planType => _planType;
   DateTime? get expiryDate => _expiryDate;
@@ -56,6 +69,12 @@ class UserProvider with ChangeNotifier {
     await prefs.setBool('isLoggedIn', _isLoggedIn);
     await prefs.setBool('isPremium', _isPremium);
     await prefs.setString('planType', _planType);
+
+    if (_userName != null) await prefs.setString('userName', _userName!);
+    if (_userPhotoUrl != null) {
+      await prefs.setString('userPhotoUrl', _userPhotoUrl!);
+    }
+
     if (_expiryDate != null) {
       await prefs.setInt('expiryDate', _expiryDate!.millisecondsSinceEpoch);
     } else {
@@ -76,6 +95,10 @@ class UserProvider with ChangeNotifier {
     _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     _isPremium = prefs.getBool('isPremium') ?? false;
     _planType = prefs.getString('planType') ?? '';
+
+    _userName = prefs.getString('userName');
+    _userPhotoUrl = prefs.getString('userPhotoUrl');
+
     final expiryMillis = prefs.getInt('expiryDate');
     _expiryDate = expiryMillis != null
         ? DateTime.fromMillisecondsSinceEpoch(expiryMillis)
@@ -89,6 +112,12 @@ class UserProvider with ChangeNotifier {
         : null;
 
     checkSubscriptionAndRewards();
+    notifyListeners();
+  }
+
+  void updateUserData({String? name, String? photoUrl}) {
+    if (name != null) _userName = name;
+    if (photoUrl != null) _userPhotoUrl = photoUrl;
     notifyListeners();
   }
 
@@ -194,6 +223,8 @@ class UserProvider with ChangeNotifier {
     _planType = '';
     _expiryDate = null;
     _rewardExpiryDate = null;
+    _userName = null;
+    _userPhotoUrl = null;
     saveToCache();
     notifyListeners();
   }
@@ -218,6 +249,10 @@ class UserProvider with ChangeNotifier {
       if (user == null) {
         resetSubscription();
       } else {
+        // Atualiza dados básicos do Auth
+        _userName = user.displayName;
+        _userPhotoUrl = user.photoURL;
+
         FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
@@ -225,6 +260,12 @@ class UserProvider with ChangeNotifier {
             .listen((snapshot) {
           if (snapshot.exists) {
             final data = snapshot.data()!;
+
+            // Atualiza nome se vier do Firestore também
+            if (data.containsKey('name')) {
+              _userName = data['name'];
+            }
+
             final expiryDate = (data['expiryDate'] as Timestamp?)?.toDate();
             final planType = data['planType'] ?? '';
             final subscriptionStatus = data['subscriptionStatus'] ?? 'inactive';

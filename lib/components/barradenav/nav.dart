@@ -5,9 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
-import 'package:guarda_corpo_2024/matriz/00_raizes/raiz_mestra.dart';
-import 'package:guarda_corpo_2024/matriz/03_sua_area/03_00_suaconta.dart';
+import 'package:guarda_corpo_2024/screens/home/home_screen.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
+import 'package:guarda_corpo_2024/screens/profile/profile_screen.dart';
 import 'package:guarda_corpo_2024/services/rewards/reward_ads_screen.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:provider/provider.dart';
@@ -23,8 +23,8 @@ class _NavBarPageState extends State<NavBarPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
 
   final List<Widget> _pages = [
-    const Raiz(),
-    const SuaConta(),
+    const HomeScreen(),
+    const ProfileScreen(),
     const PremiumPage(),
   ];
 

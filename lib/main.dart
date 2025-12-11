@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/components/firebase_messaging_service.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
@@ -19,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:guarda_corpo_2024/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -157,25 +157,8 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp(
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          fontFamily: 'Segoe',
-          brightness: Brightness.light,
-          primarySwatch: createMaterialColor(
-              const Color(0xFF9D291A)), // Cor principal do app
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF9D291A),
-            foregroundColor: Colors.white,
-          ),
-        ),
-        darkTheme: ThemeData(
-          fontFamily: 'Segoe',
-          brightness: Brightness.dark,
-          primarySwatch: createMaterialColor(const Color(0xFF9D291A)),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF9D291A),
-            foregroundColor: Colors.white,
-          ),
-        ),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
         supportedLocales: const [
           Locale('en', 'US'),
