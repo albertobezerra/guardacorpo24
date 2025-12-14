@@ -3,21 +3,70 @@ import 'package:guarda_corpo_2024/screens/home/components/home_header.dart';
 import 'package:guarda_corpo_2024/screens/home/components/quick_access_section.dart';
 import 'package:guarda_corpo_2024/screens/home/components/safety_list.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _unfocus() {
+    if (_searchFocusNode.hasFocus) {
+      _searchFocusNode.unfocus();
+    }
+  }
+
+  // Função para limpar a busca
+  void _clearSearch() {
+    _searchController.clear();
+    _unfocus(); // Garante que o teclado feche também
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFF5F7FA),
-      body: CustomScrollView(
-        slivers: [
-          HomeHeader(), // Componente 1: Header Verde
-          QuickAccessSection(), // Componente 2: Cards Horizontais
-          SafetyList(), // Componente 3: Lista Vertical Longa
-          SliverToBoxAdapter(
-              child: SizedBox(height: 50)), // Espaço extra no final
-        ],
+    return GestureDetector(
+      onTap: _unfocus,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: CustomScrollView(
+          slivers: [
+            HomeHeader(
+              searchController: _searchController,
+              focusNode: _searchFocusNode,
+            ),
+            if (_searchQuery.isEmpty) const QuickAccessSection(),
+            SafetyList(
+              searchQuery: _searchQuery,
+              onItemTap: _unfocus,
+              onSearchClear: _clearSearch, // AQUI: Passamos a função de limpeza
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ),
+          ],
+        ),
       ),
     );
   }

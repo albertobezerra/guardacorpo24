@@ -5,7 +5,13 @@ import '../../../services/provider/userProvider.dart';
 import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '../../../components/reward_cta_widget.dart';
 
-// Imports de Destino
+// Imports "Mais Buscados" (ADICIONADOS AQUI)
+import 'package:guarda_corpo_2024/matriz/01_maisbuscados/01_nrs/00_raizdasnrs.dart';
+import 'package:guarda_corpo_2024/matriz/01_maisbuscados/02_consultaCa/consulta_ca.dart';
+import 'package:guarda_corpo_2024/matriz/01_maisbuscados/03_treinamentos/00_treinamento_raiz.dart';
+import 'package:guarda_corpo_2024/matriz/01_maisbuscados/04_dds/00_dds_raiz.dart';
+
+// Imports Originais
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_acidente/acidente_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_epi/epi_raiz.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_raiz.dart';
@@ -31,234 +37,291 @@ import 'package:guarda_corpo_2024/matriz/02_maissaude/sinalizacao.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/tecnico.dart';
 
 class SafetyList extends StatelessWidget {
-  const SafetyList({super.key});
+  final String searchQuery;
+  final VoidCallback? onItemTap;
+  final VoidCallback? onSearchClear;
+
+  const SafetyList({
+    super.key,
+    this.searchQuery = "",
+    this.onItemTap,
+    this.onSearchClear,
+  });
+
+  String _normalizeText(String str) {
+    String normalized = str.toLowerCase();
+    var withDia =
+        'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
+    var withoutDia =
+        'AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz';
+    for (int i = 0; i < withDia.length; i++) {
+      normalized = normalized.replaceAll(withDia[i], withoutDia[i]);
+    }
+    normalized =
+        normalized.replaceAll('.', '').replaceAll('-', '').replaceAll('/', '');
+    return normalized;
+  }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    // Lista de Itens
-    final List<Map<String, dynamic>> itens = [
+    // Lista "Mais Buscados" (Invisíveis na lista principal, mas visíveis na busca)
+    final List<Map<String, dynamic>> quickAccessItems = [
+      {
+        'icon': Icons.gavel,
+        'label': 'NRs - Normas Regulamentadoras',
+        'screen': const NrsRaiz()
+      },
+      {
+        'icon': Icons.search,
+        'label': 'Consulta CA - EPIs',
+        'screen': const ConsultaCa()
+      },
+      {
+        'icon': Icons.school,
+        'label': 'Treinamentos',
+        'screen': const TreinamentoRaiz()
+      },
+      {
+        'icon': Icons.chat_bubble_outline,
+        'label': 'DDS - Diálogos de Segurança',
+        'screen': const DdsRaiz()
+      },
+    ];
+
+    // Lista Original
+    final List<Map<String, dynamic>> originalItems = [
       {
         'icon': Icons.healing_outlined,
         'label': 'Acidentes',
-        'screen': const AcidenteRaiz(),
-        'color': Colors.red
+        'screen': const AcidenteRaiz()
       },
       {
         'icon': Icons.accessibility_new,
         'label': 'Ergonomia (AET)',
-        'screen': const AETModule(),
-        'color': Colors.blue
+        'screen': const AETModule()
       },
       {
         'icon': Icons.health_and_safety_outlined,
         'label': 'A.S.O',
-        'screen': const Aso(),
-        'color': Colors.teal
+        'screen': const Aso()
       },
-      {
-        'icon': Icons.gavel,
-        'label': 'C.L.T',
-        'screen': const Clt(),
-        'color': Colors.brown
-      },
-      {
-        'icon': Icons.groups_outlined,
-        'label': 'Cipa',
-        'screen': const Cipa(),
-        'color': Colors.indigo
-      },
-      {
-        'icon': Icons.search,
-        'label': 'Consulta CNAE',
-        'screen': const Cnae(),
-        'color': Colors.blueGrey
-      },
+      {'icon': Icons.gavel, 'label': 'C.L.T', 'screen': const Clt()},
+      {'icon': Icons.groups_outlined, 'label': 'Cipa', 'screen': const Cipa()},
+      {'icon': Icons.search, 'label': 'Consulta CNAE', 'screen': const Cnae()},
       {
         'icon': Icons.business,
         'label': 'Consulta CNPJ',
-        'screen': const Cnpj2(),
-        'color': Colors.blueGrey
+        'screen': const Cnpj2()
       },
       {
         'icon': Icons.calendar_month,
         'label': 'Datas Importantes',
-        'screen': const Datas(),
-        'color': Colors.orange
+        'screen': const Datas()
       },
-      {
-        'icon': Icons.masks,
-        'label': 'E.P.I',
-        'screen': const EpiRaiz(),
-        'color': Colors.deepOrange
-      },
-      {
-        'icon': Icons.computer,
-        'label': 'E-Social',
-        'screen': const Esocial(),
-        'color': Colors.purple
-      },
+      {'icon': Icons.masks, 'label': 'E.P.I', 'screen': const EpiRaiz()},
+      {'icon': Icons.computer, 'label': 'E-Social', 'screen': const Esocial()},
       {
         'icon': Icons.history_edu,
         'label': 'História SST',
-        'screen': const Historia(),
-        'color': Colors.amber
+        'screen': const Historia()
       },
       {
         'icon': Icons.local_fire_department,
         'label': 'Incêndio',
-        'screen': const IncendioRaiz(),
-        'color': Colors.redAccent
+        'screen': const IncendioRaiz()
       },
       {
         'icon': Icons.checklist_rtl,
         'label': 'Inspeção',
         'screen': const ViewInspecoes(),
-        'isPremium': true,
-        'color': Colors.green
+        'isPremium': true
       },
       {
         'icon': Icons.map_outlined,
         'label': 'Mapa de Risco',
-        'screen': const MapaRaiz(),
-        'color': Colors.lime
+        'screen': const MapaRaiz()
       },
-      {
-        'icon': Icons.menu_book,
-        'label': 'NBRs',
-        'screen': const Nbrs(),
-        'color': Colors.grey
-      },
+      {'icon': Icons.menu_book, 'label': 'NBRs', 'screen': const Nbrs()},
       {
         'icon': Icons.science_outlined,
         'label': 'Higiene Ocupacional',
-        'screen': const Nho(),
-        'color': Colors.cyan
+        'screen': const Nho()
       },
       {
         'icon': Icons.description_outlined,
         'label': 'Ordem de Serviço',
-        'screen': const OrdemRaiz(),
-        'color': Colors.blueAccent
+        'screen': const OrdemRaiz()
       },
-      {
-        'icon': Icons.folder_shared,
-        'label': 'P.P.P',
-        'screen': const Ppp(),
-        'color': Colors.indigoAccent
-      },
+      {'icon': Icons.folder_shared, 'label': 'P.P.P', 'screen': const Ppp()},
       {
         'icon': Icons.assignment_outlined,
         'label': 'PGR / GRO',
-        'screen': const Pgr(),
-        'color': Colors.deepPurple
+        'screen': const Pgr()
       },
       {
         'icon': Icons.medical_services_outlined,
         'label': 'Primeiros Socorros',
-        'screen': const PrimeirosSocRz(),
-        'color': Colors.pink
+        'screen': const PrimeirosSocRz()
       },
       {
         'icon': Icons.warning_amber,
         'label': 'Riscos Ambientais',
-        'screen': const Riscoamb(),
-        'color': Colors.orangeAccent
+        'screen': const Riscoamb()
       },
       {
         'icon': Icons.traffic,
         'label': 'Sinalização',
-        'screen': const Sinalizacao(),
-        'color': Colors.yellow[800]
+        'screen': const Sinalizacao()
       },
       {
         'icon': Icons.engineering,
         'label': 'Técnico TST',
-        'screen': const Tecnico(),
-        'color': Colors.brown
+        'screen': const Tecnico()
       },
     ];
 
-    final ctaPositions = _getCtaPositions(itens.length);
+    // Lógica para Exibir:
+    // Se estiver buscando: junta tudo (Quick + Original) e filtra
+    // Se não estiver buscando: mostra só a lista Original (pois Quick já aparece no carrossel)
+
+    List<Map<String, dynamic>> itemsToShow;
+
+    if (searchQuery.isNotEmpty) {
+      // BUSCA ATIVA: Junta tudo para procurar em todos
+      final allItemsCombined = [...quickAccessItems, ...originalItems];
+      itemsToShow = allItemsCombined.where((item) {
+        final String label = _normalizeText(item['label'].toString());
+        final String query = _normalizeText(searchQuery);
+        return label.contains(query);
+      }).toList();
+    } else {
+      // SEM BUSCA: Mostra só a lista original (o carrossel cuida dos outros)
+      itemsToShow = originalItems;
+    }
+
+    final ctaPositions =
+        searchQuery.isEmpty ? _getCtaPositions(itemsToShow.length) : [];
 
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            if (index >= itens.length) return null;
+            if (index >= itemsToShow.length) return null;
 
-            final item = itens[index];
+            final item = itemsToShow[index];
             final bool showCta = ctaPositions.contains(index);
 
             return Column(
               children: [
                 if (showCta)
                   const Padding(
-                    padding: EdgeInsets.only(bottom: 12),
+                    padding: EdgeInsets.only(bottom: 16),
                     child: RewardCTAWidget(),
                   ),
-                _buildListTile(context,
-                    label: item['label'],
-                    icon: item['icon'],
-                    color: item['color'] ?? AppTheme.primaryColor,
-                    isPremium: item['isPremium'] == true, onTap: () {
-                  if (item['isPremium'] == true) {
-                    if (userProvider.canAccessPremiumScreen()) {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => item['screen']));
+                _buildLargeListTile(
+                  context,
+                  label: item['label'],
+                  icon: item['icon'],
+                  color: AppTheme.primaryColor,
+                  isPremium: item['isPremium'] == true,
+                  onTap: () async {
+                    onItemTap?.call();
+
+                    if (item['isPremium'] == true) {
+                      if (userProvider.canAccessPremiumScreen()) {
+                        await Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => item['screen']));
+                      } else {
+                        await Navigator.pushNamed(context, '/premium');
+                      }
                     } else {
-                      Navigator.pushNamed(context, '/premium');
+                      // Usando o novo InterstitialAdManager com await para detectar retorno
+                      // Caso seu método não retorne Future, o await não fará mal, mas o ideal é que ele retorne.
+                      InterstitialAdManager.showInterstitialAd(
+                          context, item['screen']);
                     }
-                  } else {
-                    InterstitialAdManager.showInterstitialAd(
-                        context, item['screen']);
-                  }
-                }),
+
+                    onSearchClear?.call();
+                  },
+                ),
               ],
             );
           },
-          childCount: itens.length,
+          childCount: itemsToShow.length,
         ),
       ),
     );
   }
 
-  Widget _buildListTile(BuildContext context,
+  Widget _buildLargeListTile(BuildContext context,
       {required String label,
       required IconData icon,
       required Color color,
       required VoidCallback onTap,
       bool isPremium = false}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 5,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: color, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Color(0xFF2D3436),
+                    ),
+                  ),
+                ),
+                if (isPremium)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.lock_outline_rounded,
+                        color: Colors.amber, size: 20),
+                  )
+                else
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 16, color: Colors.grey[300]),
+              ],
+            ),
           ),
-          child: Icon(icon, color: color, size: 22),
         ),
-        title: Text(label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-        trailing: isPremium
-            ? const Icon(Icons.lock, color: Colors.amber, size: 20)
-            : Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[300]),
       ),
     );
   }
