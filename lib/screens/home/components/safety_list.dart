@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
 import 'package:guarda_corpo_2024/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../../../services/provider/userProvider.dart';
@@ -228,18 +229,19 @@ class SafetyList extends StatelessWidget {
                   color: AppTheme.primaryColor,
                   isPremium: item['isPremium'] == true,
                   onTap: () async {
-                    onItemTap?.call();
+                    onItemTap?.call(); // Fecha teclado
 
                     if (item['isPremium'] == true) {
                       if (userProvider.canAccessPremiumScreen()) {
+                        // Usuário TEM acesso, entra na tela
                         await Navigator.push(context,
                             MaterialPageRoute(builder: (_) => item['screen']));
                       } else {
-                        await Navigator.pushNamed(context, '/premium');
+                        // Usuário NÃO tem acesso -> Mostrar Dialog ou ir para Premium
+                        _showPremiumDialog(context);
                       }
                     } else {
-                      // Usando o novo InterstitialAdManager com await para detectar retorno
-                      // Caso seu método não retorne Future, o await não fará mal, mas o ideal é que ele retorne.
+                      // Item Grátis (com anúncio)
                       InterstitialAdManager.showInterstitialAd(
                           context, item['screen']);
                     }
@@ -342,5 +344,62 @@ class SafetyList extends StatelessWidget {
         (totalItems * 0.5).round(),
         (totalItems * 0.75).round()
       ];
+  }
+
+  // Função para mostrar o Dialog de Premium
+  void _showPremiumDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.workspace_premium, color: Colors.amber),
+              SizedBox(width: 10),
+              Text("Conteúdo Exclusivo"),
+            ],
+          ),
+          content: const Text(
+            "Este recurso é exclusivo para assinantes Premium. Deseja desbloquear tudo agora?",
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // Fechar
+              child:
+                  const Text("Cancelar", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o dialog
+                // Navega para a tela de venda (PremiumPage)
+                // Certifique-se de importar sua PremiumPage no topo se não estiver
+                // import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
+
+                // Se você usa navegação por índice na BottomBar (Recomendado):
+                // Provider.of<NavigationState>(context, listen: false).setIndex(2);
+
+                // OU Navegação direta (Mais simples):
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const PremiumPage()) // Certifique-se que PremiumPage existe
+                    );
+              },
+              child: const Text("Assinar Agora",
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
