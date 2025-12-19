@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:guarda_corpo_2024/components/customizacao/modern_list_tile.dart';
 import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
 import 'package:guarda_corpo_2024/services/history/history_service.dart';
 import 'package:guarda_corpo_2024/services/favorites/favorites_service.dart';
+import 'package:guarda_corpo_2024/theme/app_theme.dart';
 import '01_nr_base.dart';
 
 class NrsRaiz extends StatefulWidget {
@@ -14,39 +17,21 @@ class NrsRaiz extends StatefulWidget {
 }
 
 class _NrsRaizState extends State<NrsRaiz> {
-  // NRs com atualização recente (você atualiza manualmente quando houver mudança real)
-  final Set<int> _recentlyUpdatedNrs = {
-    //1,
-    //6,
-    38
-  }; // NR 1, 6 e 35 marcadas como "NOVO"
-
-  // Map para controlar favoritos localmente (para atualização de UI rápida)
+  // --- LÓGICA DE DADOS (Mantida) ---
+  final Set<int> _recentlyUpdatedNrs = {38};
   final Map<String, bool> _favoritesCache = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _loadFavorites();
-  }
-
-  Future<void> _loadFavorites() async {
-    for (var nr in nrs) {
-      final isFav = await FavoritesService.isFavorite(nr['pdf']!);
-      setState(() {
-        _favoritesCache[nr['pdf']!] = isFav;
-      });
-    }
-  }
+  final TextEditingController _searchController =
+      TextEditingController(); // Novo: Controller de busca
+  List<Map<String, String>> _filteredNrs = []; // Novo: Lista filtrada
 
   final List<Map<String, String>> nrs = [
     {
       "title":
-          "NR 1 - Disposições Gerais e gerenciamento de riscos Ocupacionais.",
+          "NR 1 - DISPOSIÇÕES GERAIS E GERENCIAMENTO DE RISCOS OCUPACIONAIS",
       "pdf": "assets/pdf_nr/nr1.pdf"
     },
     {
-      "title": "NR 2 - Inspeção Prévia (REVOGADA)",
+      "title": "NR 2 - INSPEÇÃO PRÉVIA (REVOGADA)",
       "pdf": "assets/pdf_nr/nr2.pdf"
     },
     {"title": "NR 3 - EMBARGO E INTERDIÇÃO", "pdf": "assets/pdf_nr/nr3.pdf"},
@@ -94,7 +79,7 @@ class _NrsRaizState extends State<NrsRaiz> {
     },
     {"title": "NR 14 - FORNOS", "pdf": "assets/pdf_nr/nr14.pdf"},
     {
-      "title": "NR 15 -  ATIVIDADES E OPERAÇÕES INSALUBRES",
+      "title": "NR 15 - ATIVIDADES E OPERAÇÕES INSALUBRES",
       "pdf": "assets/pdf_nr/nr15.pdf"
     },
     {
@@ -188,196 +173,214 @@ class _NrsRaizState extends State<NrsRaiz> {
     },
   ];
 
-  List<int> _getCtaPositions(int totalItems) {
-    if (totalItems <= 10) {
-      return [];
-    } else if (totalItems <= 20) {
-      return [totalItems ~/ 2];
-    } else if (totalItems <= 50) {
-      return [
-        (totalItems * 0.3).round(),
-        (totalItems * 0.7).round(),
-      ];
-    } else {
-      return [
-        (totalItems * 0.25).round(),
-        (totalItems * 0.5).round(),
-        (totalItems * 0.75).round(),
-      ];
+  @override
+  void initState() {
+    super.initState();
+    _filteredNrs = nrs; // Inicializa filtro com tudo
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    for (var nr in nrs) {
+      final isFav = await FavoritesService.isFavorite(nr['pdf']!);
+      if (mounted) {
+        setState(() {
+          _favoritesCache[nr['pdf']!] = isFav;
+        });
+      }
     }
   }
 
-  // Extrair número da NR do título
+  // Lógica de Filtro
+  void _filterNrs(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredNrs = nrs;
+      } else {
+        _filteredNrs = nrs.where((nr) {
+          return nr['title']!.toLowerCase().contains(query.toLowerCase());
+        }).toList();
+      }
+    });
+  }
+
+  List<int> _getCtaPositions(int totalItems) {
+    if (totalItems <= 10) return [];
+    if (totalItems <= 20) return [totalItems ~/ 2];
+    if (totalItems <= 50) {
+      return [(totalItems * 0.3).round(), (totalItems * 0.7).round()];
+    }
+    return [
+      (totalItems * 0.25).round(),
+      (totalItems * 0.5).round(),
+      (totalItems * 0.75).round()
+    ];
+  }
+
   int? _getNrNumber(String title) {
     final match = RegExp(r'NR\s*(\d+)').firstMatch(title);
-    if (match != null) {
-      return int.tryParse(match.group(1)!);
-    }
+    if (match != null) return int.tryParse(match.group(1)!);
     return null;
   }
 
+  // --- UI NOVA ---
   @override
   Widget build(BuildContext context) {
+    // Se estiver filtrando, não mostramos os Ads no meio da lista para não quebrar a lógica de posição
+    final bool isSearching = _searchController.text.isNotEmpty;
+    final ctaPositions = isSearching ? <int>[] : _getCtaPositions(nrs.length);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Normas Regulamentadoras'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/normas.jpg'),
-            fit: BoxFit.cover,
-          ),
+      backgroundColor: Colors.grey[50], // Fundo claro moderno
+
+      // 1. AppBar Limpa e Branca
+      appBar: AppBar(
+        title: Text("Normas Regulamentadoras",
+            style: GoogleFonts.poppins(
+                color: const Color(0xFF2D3436),
+                fontWeight: FontWeight.w600,
+                fontSize: 18)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Color(0xFF2D3436), size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
+
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                child: ListView.builder(
-                  itemCount: nrs.length,
-                  itemBuilder: (context, index) {
-                    final ctaPositions = _getCtaPositions(nrs.length);
-                    if (ctaPositions.contains(index)) {
-                      return const RewardCTAWidget();
-                    }
-
-                    final nr = nrs[index];
-                    final nrNumber = _getNrNumber(nr['title']!);
-                    final isNew = nrNumber != null &&
-                        _recentlyUpdatedNrs.contains(nrNumber);
-                    final isFavorite = _favoritesCache[nr['pdf']!] ?? false;
-
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                      child: Stack(
-                        children: [
-                          InkWell(
-                            onTap: () async {
-                              // Salva no histórico
-                              await HistoryService.addToHistory(
-                                type: 'nr',
-                                title: nr['title']!,
-                                path: nr['pdf']!,
-                              );
-
-                              // Navega para a NR
-                              InterstitialAdManager.showInterstitialAd(
-                                // ignore: use_build_context_synchronously
-                                context,
-                                NrBase(
-                                  title: nr['title']!,
-                                  pdfPath: nr['pdf']!,
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(24),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.library_books),
-                                  const SizedBox(width: 20),
-                                  Expanded(
-                                    child: Text(
-                                      nr['title']!.toUpperCase(),
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                      softWrap: false,
-                                      style: const TextStyle(
-                                        fontFamily: 'Segoe Bold',
-                                      ),
-                                    ),
-                                  ),
-                                  // Botão de favorito
-                                  IconButton(
-                                    icon: Icon(
-                                      isFavorite
-                                          ? Icons.star
-                                          : Icons.star_border,
-                                      color: isFavorite
-                                          ? const Color(0xFFD32F2F)
-                                          : Colors.grey,
-                                    ),
-                                    onPressed: () async {
-                                      if (isFavorite) {
-                                        await FavoritesService.removeFavorite(
-                                            nr['pdf']!);
-                                      } else {
-                                        await FavoritesService.addFavorite(
-                                          type: 'nr',
-                                          title: nr['title']!,
-                                          path: nr['pdf']!,
-                                        );
-                                      }
-                                      setState(() {
-                                        _favoritesCache[nr['pdf']!] =
-                                            !isFavorite;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // Badge "NOVO"
-                          if (isNew)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD32F2F),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'NOVO',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontFamily: 'Segoe Bold',
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
+          // 2. Barra de Pesquisa
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _filterNrs,
+              decoration: InputDecoration(
+                hintText: "Buscar NR (ex: 35, CIPA...)",
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                prefixIcon:
+                    const Icon(Icons.search, color: AppTheme.primaryColor),
+                filled: true,
+                fillColor: Colors.grey[100],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: ConditionalBannerAdWidget(),
+
+          // 3. Lista Moderna
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(20),
+              // Se estiver buscando, usa filtered. Se não, usa nrs (para manter lógica de CTA)
+              itemCount: isSearching ? _filteredNrs.length : nrs.length,
+              itemBuilder: (context, index) {
+                // Inserção de ADs (CTA)
+                if (!isSearching && ctaPositions.contains(index)) {
+                  return const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: RewardCTAWidget(),
+                  );
+                }
+
+                final nr = isSearching ? _filteredNrs[index] : nrs[index];
+                final nrNumber = _getNrNumber(nr['title']!);
+                final isNew =
+                    nrNumber != null && _recentlyUpdatedNrs.contains(nrNumber);
+                final isFavorite = _favoritesCache[nr['pdf']!] ?? false;
+
+                // Título formatado: remove "NR X - " para ficar limpo no card, já que temos o badge
+                String cleanTitle = nr['title']!;
+                // Opcional: Logica de string para limpar se quiser
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ModernListTile(
+                      badgeText: nrNumber != null ? "NR $nrNumber" : "NR",
+                      icon: Icons.article,
+                      title: cleanTitle,
+                      subtitle:
+                          "Toque para ler o documento completo", // Subtítulo padrão ou extraído
+                      onTap: () async {
+                        await HistoryService.addToHistory(
+                          type: 'nr',
+                          title: nr['title']!,
+                          path: nr['pdf']!,
+                        );
+                        InterstitialAdManager.showInterstitialAd(
+                          // ignore: use_build_context_synchronously
+                          context,
+                          NrBase(title: nr['title']!, pdfPath: nr['pdf']!),
+                        );
+                      },
+                      // Botão Favorito no Trailing
+                      trailing: IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.star : Icons.star_border,
+                          color: isFavorite
+                              ? const Color(0xFFD32F2F)
+                              : Colors.grey,
+                        ),
+                        onPressed: () async {
+                          if (isFavorite) {
+                            await FavoritesService.removeFavorite(nr['pdf']!);
+                          } else {
+                            await FavoritesService.addFavorite(
+                              type: 'nr',
+                              title: nr['title']!,
+                              path: nr['pdf']!,
+                            );
+                          }
+                          setState(() {
+                            _favoritesCache[nr['pdf']!] = !isFavorite;
+                          });
+                        },
+                      ),
+                    ),
+
+                    // Badge "NOVO" (Sobreposto no canto)
+                    if (isNew)
+                      Positioned(
+                        right: -5,
+                        top: -5,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                              color: const Color(0xFFD32F2F),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2))
+                              ]),
+                          child: const Text(
+                            'NOVO',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
+
+          // 4. Banner Ad (Fixo na base)
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

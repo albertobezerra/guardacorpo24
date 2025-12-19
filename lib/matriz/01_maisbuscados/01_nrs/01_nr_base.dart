@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Importe Google Fonts
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-
 import '../../../components/carregamento/barradecarregamento.dart';
 
 class NrBase extends StatefulWidget {
@@ -19,60 +19,53 @@ class NrBase extends StatefulWidget {
 
 class NrBaseState extends State<NrBase> {
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
-  bool _isLoading = true; // Declaração de Variável de Estado
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadPDF(); // Método chamado na inicialização
+    _loadPDF();
   }
 
   Future<void> _loadPDF() async {
-    // Simula um atraso para carregar
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      _isLoading = false; // Atualiza o estado após o carregamento
-    });
+    await Future.delayed(
+        const Duration(seconds: 1)); // Reduzi para 1s para ser mais ágil
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            widget.title.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/normas.jpg'),
-            fit: BoxFit.cover,
-          ),
+      backgroundColor: Colors.white,
+      // APP BAR MODERNA
+      appBar: AppBar(
+        title: Text(
+          // Tenta extrair apenas "NR XX" se o título for muito longo, senão mostra tudo
+          widget.title.length > 20
+              ? "${widget.title.substring(0, 15)}..."
+              : widget.title,
+          style: GoogleFonts.poppins(
+              color: const Color(0xFF2D3436),
+              fontWeight: FontWeight.w600,
+              fontSize: 16),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 1, // Leve sombra para separar do PDF
+        iconTheme: const IconThemeData(color: Color(0xFF2D3436)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
+
       body: Column(
         children: [
           Expanded(
             child: _isLoading
-                ? const Center(
-                    child: CustomLoadingIndicator(),
-                  )
+                ? const Center(child: CustomLoadingIndicator())
                 : SfPdfViewer.asset(
                     widget.pdfPath,
                     key: _pdfViewerKey,

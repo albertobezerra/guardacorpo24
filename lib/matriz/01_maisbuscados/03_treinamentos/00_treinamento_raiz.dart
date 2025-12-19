@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Certifique-se de ter este pacote
+import 'package:guarda_corpo_2024/components/customizacao/modern_list_tile.dart';
 import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import '../../../services/admob/conf/interstitial_ad_manager.dart';
@@ -12,10 +14,8 @@ class TreinamentoRaiz extends StatefulWidget {
 }
 
 class _TreinamentoRaizState extends State<TreinamentoRaiz> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  // Cor padrão do tema
+  final Color primaryColor = const Color(0xFF006837);
 
   final List<Map<String, String>> treinamentos = [
     {
@@ -79,6 +79,7 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
           "No treinamento de LER e DORT aborde os seguintes subtemas:\n\n• A ergonomia no ambiete de trabalho.\n• Movimentos repetitivos.\n• Doenças do trabalho.\n• LER/DORT.\n\nOBS: na formulação deste treinamento leve em consideração as condições de sua empresa, os problemas mais frequentes. Utilize imagens, colaboradores querem mais imagens e menos textos. Tome a NR 17 para fundamentar sua apresentação e NBRs pertinentes ao tema.\n\nO foco do módulo de treinamento não é disponibilizar um treinamento específico, mas auxiliar o ministrante do treinamento no que deve ser levado em consideração em seu treinamento."
     },
   ];
+
   List<int> _getCtaPositions(int totalItems) {
     if (totalItems <= 10) {
       return [];
@@ -101,94 +102,63 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Treinamentos'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/treinamentos.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white, // Fundo Clean
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Treinamentos'.toUpperCase(),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: primaryColor,
+            fontSize: 16,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                child: ListView.builder(
-                  itemCount: treinamentos.length,
-                  itemBuilder: (context, index) {
-                    final ctaPositions = _getCtaPositions(treinamentos.length);
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              itemCount: treinamentos.length,
+              itemBuilder: (context, index) {
+                final ctaPositions = _getCtaPositions(treinamentos.length);
 
-                    if (ctaPositions.contains(index)) {
-                      return const RewardCTAWidget();
-                    }
+                // Widget de Recompensa intercalado
+                if (ctaPositions.contains(index)) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: const RewardCTAWidget(),
+                  );
+                }
 
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                      child: InkWell(
-                        onTap: () async {
-                          InterstitialAdManager.showInterstitialAd(
-                            context,
-                            TreinamentoBase(
-                                title: treinamentos[index]["title"]!,
-                                content: treinamentos[index][
-                                    "content"]!), // Passa o título e o conteúdo
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.library_books),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                child: Text(
-                                  treinamentos[index]["title"]!.toUpperCase(),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
-                                  style: const TextStyle(
-                                    fontFamily: 'Segoe Bold',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                // Usando o novo Componente Padrão
+                return ModernListTile(
+                  title: treinamentos[index]["title"]!.toUpperCase(),
+                  subtitle: "Toque para ver o conteúdo programático",
+                  icon: Icons.menu_book_rounded,
+                  iconColor: primaryColor,
+                  onTap: () async {
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      TreinamentoBase(
+                        title: treinamentos[index]["title"]!,
+                        content: treinamentos[index]["content"]!,
                       ),
                     );
                   },
-                ),
-              ),
+                );
+              },
             ),
           ),
-          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 
 class TreinamentoBase extends StatefulWidget {
@@ -15,56 +16,69 @@ class TreinamentoBase extends StatefulWidget {
 }
 
 class TreinamentoBaseState extends State<TreinamentoBase> {
+  final Color primaryColor = const Color(0xFF006837);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            widget.title.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/treinamentos.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          "Detalhes".toUpperCase(),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: primaryColor,
+            fontSize: 16,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: SingleChildScrollView(
-                child: RichText(
-                  textAlign: TextAlign.justify,
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontFamily: 'Segoe',
-                      fontSize: 14,
-                      color: Colors.black,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Título destacado no topo do conteúdo
+                  Text(
+                    widget.title.toUpperCase(),
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
                     ),
-                    children: <TextSpan>[
-                      TextSpan(text: widget.content),
-                    ],
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 60,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: primaryColor.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Conteúdo do Texto
+                  Text(
+                    widget.content,
+                    textAlign: TextAlign.justify,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      height: 1.6, // Melhor leitura
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

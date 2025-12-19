@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:guarda_corpo_2024/components/customizacao/modern_list_tile.dart';
 import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import '../../../services/admob/conf/interstitial_ad_manager.dart';
@@ -12,10 +14,7 @@ class DdsRaiz extends StatefulWidget {
 }
 
 class _DdsRaizState extends State<DdsRaiz> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  final Color primaryColor = const Color(0xFF006837);
 
   final List<Map<String, String>> dds = [
     {
@@ -83,8 +82,8 @@ class _DdsRaizState extends State<DdsRaiz> {
       "content":
           "A rotina de ouvir os sons do ambiente, como o barulho do tráfego no deslocamento diário para o trabalho, possivelmente passa despercebida por você e tantos outros, mas pode fazer falta para muitos.A perda auditiva é realidade para uma parcela de brasileiros. Boa parte dos acometidos por algum grau de deficiência auditiva desenvolveu o problema devido à exposição ocupacional ao ruído.\n\nO único meio de evitar danos ao ouvido do trabalhador, em atividades nas quais a eliminação total do ruído não é viável, é o controle do agente na fonte.\n\nQuando não for possível prover EPCs, a saída é buscar alternativas capazes de minimizar os efeitos das emissões até o limite permitido.\n\nO uso de protetor auditivo se apresenta como um dos métodos mais comuns e práticos para reduzir o nível de exposição ao ruído de origem ocupacional, orienta Samir Gerges, doutor em Ruído e Vibrações, professor aposentado e ex-coordenador do Laboratório de Vibroacústica Industrial, Veicular e Aeronáutica da Universidade Federal de Santa Catarina. O protetor auditivo deve ser fornecido pela empresa ao trabalhador sempre que ele desempenhar atividades em local cujo ruído extrapole 85 dB(A) ou 87 dB(A), dependendo da duração da sua jornada de trabalho.\n\nO nível de ruído permitido em decibéis varia conforme a carga horária.\n\nNo Brasil, para uma jornada de oito horas, a exposição ao ruído contínuo ou intermitente deve ser de, no máximo, 85 dB(A) e, para seis horas, o limite é de 87 dB(A).\n\nTais delimitações estão previstas no Anexo 1 da NR 15. “A partir do momento em que o colaborador está exposto acima do limite aceitável, é necessário realizar um controle do ruído no ambiente de trabalho”, pontua.\n\nVários são os tipos de protetores auditivos à venda atualmente, assim como há diversos fornecedores no mercado.\n\nSegundo Gerges, há em torno de mil marcas comerciais oferecendo soluções em proteção auditiva em nível internacional.\n\n“A oferta é grande, por isso é preciso ser exigente na hora da escolha”, ensina o especialista com mais de 40 anos de experiência na área de ruído e vibrações."
     },
-    // Adicione mais itens conforme necessário
   ];
+
   List<int> _getCtaPositions(int totalItems) {
     if (totalItems <= 10) {
       return [];
@@ -107,94 +106,62 @@ class _DdsRaizState extends State<DdsRaiz> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'DDS'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/dds.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'DDS'.toUpperCase(),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: primaryColor,
+            fontSize: 16,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                child: ListView.builder(
-                  itemCount: dds.length,
-                  itemBuilder: (context, index) {
-                    final ctaPositions = _getCtaPositions(dds.length);
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              itemCount: dds.length,
+              itemBuilder: (context, index) {
+                final ctaPositions = _getCtaPositions(dds.length);
 
-                    if (ctaPositions.contains(index)) {
-                      return const RewardCTAWidget();
-                    }
+                if (ctaPositions.contains(index)) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: const RewardCTAWidget(),
+                  );
+                }
 
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
-                      child: InkWell(
-                        onTap: () async {
-                          InterstitialAdManager.showInterstitialAd(
-                            context,
-                            DdsBase(
-                                title: dds[index]["title"]!,
-                                content: dds[index][
-                                    "content"]!), // Passa o título e o conteúdo
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.library_books),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                child: Text(
-                                  dds[index]["title"]!.toUpperCase(),
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
-                                  style: const TextStyle(
-                                    fontFamily: 'Segoe Bold',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                // ModernListTile aplicado
+                return ModernListTile(
+                  title: dds[index]["title"]!.toUpperCase(),
+                  subtitle: "Diálogo Diário de Segurança",
+                  icon: Icons.verified_user_outlined, // Ícone de segurança
+                  iconColor: primaryColor,
+                  onTap: () async {
+                    InterstitialAdManager.showInterstitialAd(
+                      context,
+                      DdsBase(
+                        title: dds[index]["title"]!,
+                        content: dds[index]["content"]!,
                       ),
                     );
                   },
-                ),
-              ),
+                );
+              },
             ),
           ),
-          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );
