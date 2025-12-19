@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,9 +23,10 @@ class _RewardAdsScreenState extends State<RewardAdsScreen>
   int _loadAttempts = 0;
   static const int maxLoadAttempts = 3;
   static const int pointsPerAd = 4;
+  final Color primaryColor = const Color(0xFF006837);
 
   late AnimationController _controller;
-  late Animation<Color?> _buttonGlow;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -36,81 +38,54 @@ class _RewardAdsScreenState extends State<RewardAdsScreen>
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
 
-    _buttonGlow = ColorTween(
-      begin: const Color.fromARGB(255, 0, 104, 55),
-      end: Colors.green[700],
-    ).animate(_controller);
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
   }
 
   void _loadRewardedAd() {
-    if (_isLoadingAd) return; // Evita múltiplas chamadas simultâneas
+    if (_isLoadingAd) return;
 
     setState(() {
       _isLoadingAd = true;
       _isAdLoaded = false;
     });
 
-    debugPrint(
-        'Tentando carregar anúncio (tentativa ${_loadAttempts + 1}/$maxLoadAttempts)...');
-
     RewardedAd.load(
       adUnitId: 'ca-app-pub-7979689703488774/6389624112',
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          debugPrint('✅ Anúncio carregado com sucesso');
           if (!mounted) return;
-
           setState(() {
             _rewardedAd = ad;
             _isAdLoaded = true;
             _isLoadingAd = false;
-            _loadAttempts = 0; // Reset contador de tentativas
+            _loadAttempts = 0;
           });
 
-          // Configura callback de quando o anúncio for fechado/dispensado
           _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
-              debugPrint('Anúncio fechado, carregando próximo...');
               ad.dispose();
               _loadRewardedAd();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
-              debugPrint('❌ Falha ao mostrar anúncio: $error');
               ad.dispose();
               _loadRewardedAd();
             },
           );
         },
         onAdFailedToLoad: (error) {
-          debugPrint(
-              '❌ Falha ao carregar anúncio: ${error.message} (código ${error.code})');
           if (!mounted) return;
-
           setState(() {
             _isLoadingAd = false;
             _isAdLoaded = false;
             _loadAttempts++;
           });
-
-          // Retry automático com backoff exponencial
           if (_loadAttempts < maxLoadAttempts) {
-            final delaySeconds = _loadAttempts * 2; // 2s, 4s, 6s
-            debugPrint('Tentando novamente em ${delaySeconds}s...');
-            Future.delayed(Duration(seconds: delaySeconds), () {
+            Future.delayed(Duration(seconds: _loadAttempts * 2), () {
               if (mounted) _loadRewardedAd();
             });
-          } else {
-            // Após 3 tentativas, permite retry manual
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'Não foi possível carregar o anúncio. Tente novamente em alguns instantes.'),
-                  duration: Duration(seconds: 4),
-                ),
-              );
-            }
           }
         },
       ),
@@ -123,9 +98,10 @@ class _RewardAdsScreenState extends State<RewardAdsScreen>
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Faça login para ganhar pontos.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Faça login para ganhar pontos.')));
+      }
       _isGranting = false;
       return;
     }
@@ -146,22 +122,14 @@ class _RewardAdsScreenState extends State<RewardAdsScreen>
       Provider.of<UserProvider>(context, listen: false).updateReward(
           points: newPoints, expiry: data?['rewardExpiryDate']?.toDate());
 
-      if (!mounted) {
-        _isGranting = false;
-        return;
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('🎉 Ganhou $pointsPerAd pontos! Total: $newPoints'),
-          backgroundColor: Colors.green));
+          backgroundColor: primaryColor));
     } catch (e) {
-      debugPrint('Erro ao conceder pontos: $e');
-      if (!mounted) {
-        _isGranting = false;
-        return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Erro ao conceder pontos. Tente novamente.')));
       }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Erro ao conceder pontos. Tente novamente.')));
     } finally {
       _isGranting = false;
     }
@@ -171,27 +139,17 @@ class _RewardAdsScreenState extends State<RewardAdsScreen>
     if (_rewardedAd == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Aguarde, carregando anúncio...')));
-
-      // Força reload se não estiver carregando
       if (!_isLoadingAd) {
-        _loadAttempts = 0; // Reset para tentar novamente
+        _loadAttempts = 0;
         _loadRewardedAd();
       }
       return;
     }
-
     _rewardedAd!.show(onUserEarnedReward: (_, __) => _onUserEarnedReward());
-
-    // Limpa referência imediatamente após chamar show
     setState(() {
       _rewardedAd = null;
       _isAdLoaded = false;
     });
-  }
-
-  void _retryManually() {
-    _loadAttempts = 0; // Reset contador
-    _loadRewardedAd();
   }
 
   @override
@@ -204,132 +162,179 @@ class _RewardAdsScreenState extends State<RewardAdsScreen>
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          'GANHAR PONTOS'.toUpperCase(),
-          style: const TextStyle(
-              fontFamily: 'Segoe Bold', color: Colors.white, fontSize: 16),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: primaryColor, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
-        backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+        title: Text(
+          'GANHAR PONTOS',
+          style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: primaryColor,
+              letterSpacing: 1.0),
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Ganhe pontos assistindo anúncios'.toUpperCase(),
-              style: const TextStyle(
-                  fontFamily: 'Segoe Bold',
-                  color: Color.fromARGB(255, 0, 104, 55),
-                  fontSize: 18),
+            // Placar de Pontos
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+                border: Border.all(color: Colors.grey.shade100),
+              ),
+              child: Column(
+                children: [
+                  Text("SEUS PONTOS",
+                      style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  Text(
+                    "${userProvider.rewardPoints}",
+                    style: GoogleFonts.poppins(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, size: 16, color: Colors.amber),
+                        const SizedBox(width: 4),
+                        Text(
+                          "Troque por Premium na Loja",
+                          style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.amber[800]),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Cada vídeo vale 4 pontos. Troque por benefícios como dias sem anúncios ou premium.',
-              style: TextStyle(
-                  fontFamily: 'Segoe', color: Colors.black87, fontSize: 14),
-            ),
-            const SizedBox(height: 20),
 
-            // Botão principal com estados visuais
-            Center(
-              child: AnimatedBuilder(
-                animation: _buttonGlow,
-                builder: (_, __) {
-                  if (_isLoadingAd) {
-                    // Estado: carregando
-                    return ElevatedButton.icon(
-                      onPressed: null,
-                      icon: const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+            const Spacer(),
+
+            // Botão Gigante Pulsante
+            ScaleTransition(
+              scale: _scaleAnimation,
+              child: GestureDetector(
+                onTap: _isAdLoaded ? _showRewardedAd : null,
+                child: Container(
+                  height: 160,
+                  width: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: _isAdLoaded
+                          ? [primaryColor, Color(0xFF004D29)]
+                          : [Colors.grey.shade300, Colors.grey.shade400],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isAdLoaded ? primaryColor : Colors.grey)
+                            .withValues(alpha: 0.4),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_isLoadingAd)
+                        const SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 3),
+                        )
+                      else
+                        Icon(
+                          _isAdLoaded
+                              ? Icons.play_arrow_rounded
+                              : Icons.lock_clock,
+                          size: 60,
+                          color: Colors.white,
+                        ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _isLoadingAd
+                            ? "Carregando..."
+                            : (_isAdLoaded
+                                ? "ASSISTIR\n+4 Pontos"
+                                : "Carregando..."),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
-                      label: const Text('Carregando...',
-                          style: TextStyle(
-                              fontFamily: 'Segoe Bold', color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18)),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                      ),
-                    );
-                  } else if (_isAdLoaded) {
-                    // Estado: pronto para assistir
-                    return ElevatedButton.icon(
-                      onPressed: _showRewardedAd,
-                      icon: const Icon(Icons.play_circle,
-                          color: Colors.white, size: 28),
-                      label: const Text('Assistir e Ganhar',
-                          style: TextStyle(
-                              fontFamily: 'Segoe Bold',
-                              color: Colors.white,
-                              fontSize: 16)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _buttonGlow.value,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18)),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                        elevation: 4,
-                      ),
-                    );
-                  } else {
-                    // Estado: erro/falha
-                    return ElevatedButton.icon(
-                      onPressed: _retryManually,
-                      icon: const Icon(Icons.refresh, color: Colors.white),
-                      label: const Text('Tentar Novamente',
-                          style: TextStyle(
-                              fontFamily: 'Segoe Bold', color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18)),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                      ),
-                    );
-                  }
-                },
+                    ],
+                  ),
+                ),
               ),
             ),
 
-            const SizedBox(height: 20),
-            Center(
-              child: Text(
-                'Pontos atuais: ${userProvider.rewardPoints}',
-                style: const TextStyle(
-                    fontFamily: 'Segoe Bold',
-                    color: Color.fromARGB(255, 0, 104, 55),
-                    fontSize: 16),
+            const Spacer(),
+
+            // Botão Loja
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const RewardStoreScreen())),
+                icon: Icon(Icons.shopping_bag_outlined, color: primaryColor),
+                label: Text(
+                  "ABRIR LOJA DE PONTOS",
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600, color: primaryColor),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: primaryColor, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const RewardStoreScreen())),
-              icon: const Icon(Icons.store, color: Colors.white),
-              label: const Text('Loja de Recompensas',
-                  style:
-                      TextStyle(fontFamily: 'Segoe Bold', color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 0, 104, 55),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18)),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                minimumSize: const Size(double.infinity, 0),
-              ),
-            ),
           ],
         ),
       ),

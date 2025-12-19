@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-// MUDANÇA 1: Importar NavStation
+import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
-import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
-import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -20,6 +18,7 @@ class _PremiumPageState extends State<PremiumPage> {
   List<ProductDetails> products = [];
   bool isLoading = true;
   String? errorMessage;
+  final Color primaryColor = const Color(0xFF006837);
 
   @override
   void initState() {
@@ -30,7 +29,7 @@ class _PremiumPageState extends State<PremiumPage> {
   void _showSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(content: Text(message), backgroundColor: primaryColor),
       );
     }
   }
@@ -57,11 +56,7 @@ class _PremiumPageState extends State<PremiumPage> {
       }
 
       if (response.notFoundIDs.isNotEmpty) {
-        setState(() {
-          errorMessage = 'Nenhum plano disponível no momento.';
-          isLoading = false;
-        });
-        return;
+        // Se estiver vazio, pode ser erro de configuração da loja
       }
 
       setState(() {
@@ -83,20 +78,15 @@ class _PremiumPageState extends State<PremiumPage> {
       return;
     }
 
-    // MUDANÇA 2: Usar NavStation
     const Widget homePage = NavStation();
 
     try {
       final purchase =
           await _subscriptionService.purchaseProduct(product, homePage);
       if (purchase == null) {
-        _showSnackBar('Compra cancelada ou não iniciada.');
+        // Cancelado pelo usuário ou pendente
       } else if (purchase.status == PurchaseStatus.purchased) {
         _showSnackBar('Compra realizada com sucesso!');
-      } else if (purchase.status == PurchaseStatus.error) {
-        _showSnackBar('Erro na compra: ${purchase.error?.message}');
-      } else {
-        _showSnackBar('Compra não concluída.');
       }
     } catch (e) {
       _showSnackBar('Erro ao processar compra: $e');
@@ -109,42 +99,33 @@ class _PremiumPageState extends State<PremiumPage> {
         userProvider.hasActiveSubscription();
   }
 
-  bool _isPlanEnabled(String productId) {
-    return !_isPlanActive(productId);
-  }
-
-  bool _isAdFreeDisabled() {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    return userProvider.planType == 'monthly_full' &&
-        userProvider.hasActiveSubscription();
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+            child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(primaryColor))),
       );
     }
 
     if (errorMessage != null) {
       return Scaffold(
-        appBar: const CustomAppBar(
-          title: 'Planos',
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new, color: primaryColor),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                errorMessage!,
-                textAlign: TextAlign.center,
-              ),
+              Text(errorMessage!, textAlign: TextAlign.center),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _loadProducts,
@@ -157,78 +138,268 @@ class _PremiumPageState extends State<PremiumPage> {
     }
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Planos de Assinatura',
-        backgroundImageAsset: 'assets/images/compras.jpg',
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: primaryColor, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'PREMIUM',
+          style: GoogleFonts.poppins(
+            color: primaryColor,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
       ),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: ListView(
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18)),
-                    color: const Color.fromARGB(255, 0, 104, 55),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text(
-                        'Eleve sua experiência! Com nossos planos, remova anúncios e acesse conteúdos exclusivos de forma ilimitada. Imagine o app mais fluido e completo, pronto para te ajudar no dia a dia. Escolha o que melhor se adapta a você e comece agora!',
-                        style: TextStyle(
-                          fontFamily: 'Segoe',
-                          fontSize: 17,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                // Header de Valor
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        primaryColor,
+                        primaryColor.withValues(alpha: 0.8)
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.workspace_premium,
+                          size: 48, color: Colors.white),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Seja Premium',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Remova anúncios, desbloqueie conteúdo exclusivo e apoie o desenvolvimento.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                for (final product in products)
-                  CustomPlanCard(
-                    title: product.id == 'monthly_ad_free'
-                        ? 'Livre de Publicidade'.toUpperCase()
-                        : 'Premium'.toUpperCase(),
-                    description: _isPlanActive(product.id)
-                        ? null
-                        : product.id == 'monthly_ad_free'
-                            ? 'Remove a publicidade.'
-                            : 'Desbloqueie todo o conteúdo exclusivo e remova a publicidade.',
-                    price: _isPlanActive(product.id) ? null : product.price,
-                    isEnabled: product.id == 'monthly_ad_free'
-                        ? !_isAdFreeDisabled() && _isPlanEnabled(product.id)
-                        : _isPlanEnabled(product.id),
-                    infoText: _isPlanActive(product.id)
-                        ? 'Assinatura ativa até ${_formatDate(userProvider.expiryDate)}'
-                        : null,
-                    onPressed: _isPlanEnabled(product.id)
-                        ? () => _handlePurchase(context, product)
-                        : null,
-                    backgroundColor: _isPlanActive(product.id)
-                        ? const Color.fromARGB(255, 0, 104, 55)
-                        : product.id == 'monthly_ad_free' && _isAdFreeDisabled()
-                            ? const Color.fromARGB(20, 158, 158, 158)
-                            : Colors.transparent,
-                    textColor: _isPlanActive(product.id)
-                        ? Colors.white
-                        : product.id == 'monthly_ad_free' && _isAdFreeDisabled()
-                            ? Colors.grey
-                            : const Color.fromARGB(255, 0, 104, 55),
-                    borderColor: _isPlanActive(product.id)
-                        ? const Color.fromARGB(255, 0, 104, 55)
-                        : product.id == 'monthly_ad_free' && _isAdFreeDisabled()
-                            ? Colors.grey
-                            : const Color.fromARGB(255, 0, 104, 55),
+                const SizedBox(height: 30),
+
+                Text(
+                  "Escolha seu Plano",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
+                ),
+                const SizedBox(height: 16),
+
+                // Lista de Planos
+                if (products.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      "Nenhum plano disponível na loja no momento.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: Colors.grey),
+                    ),
+                  ),
+
+                for (final product in products) ...[
+                  _buildPlanCard(
+                    context: context,
+                    title: product.title.replaceAll(
+                        RegExp(r'\(.*\)'), ''), // Limpa nome da loja
+                    price: product.price,
+                    description: product.description,
+                    isPopular:
+                        product.id == 'monthly_full', // Exemplo: Full é popular
+                    isActive: _isPlanActive(product.id),
+                    onTap: () => _handlePurchase(context, product),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                const SizedBox(height: 20),
+                Text(
+                  "Gerenciar Assinatura",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildPlanCard({
+    required BuildContext context,
+    required String title,
+    required String price,
+    required String description,
+    required bool isPopular,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: isActive ? null : onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isActive ? Colors.green[50] : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive
+                ? primaryColor
+                : (isPopular ? primaryColor : Colors.grey[200]!),
+            width: isActive || isPopular ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      if (isActive)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "ATIVO",
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        price,
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                      if (!isActive)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            "Assinar",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (isPopular && !isActive)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(14),
+                      bottomLeft: Radius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    "POPULAR",
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
