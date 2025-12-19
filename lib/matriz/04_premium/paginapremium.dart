@@ -1,10 +1,6 @@
-// Código completo da tela PremiumPage
-// Adicionada seção explicativa no topo para "insinuar" a compra de forma humana e efetiva.
-// Mantida a consistência estética: Verde escuro, Segoe, arredondados.
-// Removido o botão "Ganhar Recompensa" daqui, já que movemos para o nav menu.
-
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
+// MUDANÇA 1: Importar NavStation
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_appBar.dart';
 import 'package:guarda_corpo_2024/components/customizacao/custom_planCard.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
@@ -47,15 +43,12 @@ class _PremiumPageState extends State<PremiumPage> {
 
     try {
       await _subscriptionService.initialize();
-
-      debugPrint('Carregando produtos...');
       final ProductDetailsResponse response =
           await InAppPurchase.instance.queryProductDetails(
         {'monthly_ad_free', 'monthly_full'}.toSet(),
       );
 
       if (response.error != null) {
-        debugPrint('Erro ao carregar assinaturas: ${response.error?.message}');
         setState(() {
           errorMessage = 'Falha ao carregar planos: ${response.error?.message}';
           isLoading = false;
@@ -64,7 +57,6 @@ class _PremiumPageState extends State<PremiumPage> {
       }
 
       if (response.notFoundIDs.isNotEmpty) {
-        debugPrint('Assinaturas não encontradas: ${response.notFoundIDs}');
         setState(() {
           errorMessage = 'Nenhum plano disponível no momento.';
           isLoading = false;
@@ -72,14 +64,11 @@ class _PremiumPageState extends State<PremiumPage> {
         return;
       }
 
-      debugPrint(
-          'Produtos encontrados: ${response.productDetails.map((p) => "${p.id}: ${p.price}").join(', ')}');
       setState(() {
         products = response.productDetails;
         isLoading = false;
       });
     } catch (e) {
-      debugPrint('Erro inesperado ao carregar produtos: $e');
       setState(() {
         errorMessage = 'Erro ao carregar planos: $e';
         isLoading = false;
@@ -94,9 +83,9 @@ class _PremiumPageState extends State<PremiumPage> {
       return;
     }
 
-    const Widget homePage = NavBarPage();
+    // MUDANÇA 2: Usar NavStation
+    const Widget homePage = NavStation();
 
-    debugPrint('Iniciando compra para produto: ${product.id}');
     try {
       final purchase =
           await _subscriptionService.purchaseProduct(product, homePage);
@@ -110,7 +99,6 @@ class _PremiumPageState extends State<PremiumPage> {
         _showSnackBar('Compra não concluída.');
       }
     } catch (e) {
-      debugPrint('Erro ao processar compra: $e');
       _showSnackBar('Erro ao processar compra: $e');
     }
   }
@@ -122,13 +110,11 @@ class _PremiumPageState extends State<PremiumPage> {
   }
 
   bool _isPlanEnabled(String productId) {
-    // Um plano só é clicável se não estiver ativo
     return !_isPlanActive(productId);
   }
 
   bool _isAdFreeDisabled() {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    // "Livre de Publicidade" fica desativado visualmente se Premium está ativo
     return userProvider.planType == 'monthly_full' &&
         userProvider.hasActiveSubscription();
   }
@@ -181,7 +167,6 @@ class _PremiumPageState extends State<PremiumPage> {
             padding: const EdgeInsets.only(top: 12),
             child: ListView(
               children: [
-                // Nova seção explicativa humana e efetiva para insinuar a compra
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -189,11 +174,11 @@ class _PremiumPageState extends State<PremiumPage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18)),
                     color: const Color.fromARGB(255, 0, 104, 55),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16),
                       child: Text(
                         'Eleve sua experiência! Com nossos planos, remova anúncios e acesse conteúdos exclusivos de forma ilimitada. Imagine o app mais fluido e completo, pronto para te ajudar no dia a dia. Escolha o que melhor se adapta a você e comece agora!',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Segoe',
                           fontSize: 17,
                           color: Colors.white,
@@ -204,8 +189,6 @@ class _PremiumPageState extends State<PremiumPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-
-                // LISTA DE PLANOS
                 for (final product in products)
                   CustomPlanCard(
                     title: product.id == 'monthly_ad_free'

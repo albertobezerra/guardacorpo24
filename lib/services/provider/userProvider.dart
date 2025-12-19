@@ -90,6 +90,12 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  // Em userProvider.dart
+  void setUserPhotoUrl(String? url) {
+    _userPhotoUrl = url;
+    notifyListeners();
+  }
+
   Future<void> loadFromCache() async {
     final prefs = await SharedPreferences.getInstance();
     _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;

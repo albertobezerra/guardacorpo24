@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/reset_password.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
+// MUDANÇA 1: Importar NavStation
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_login.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/UserStatusWrapper.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
@@ -43,7 +44,6 @@ class AuthPageState extends State<AuthPage> {
       final subscriptionInfo =
           await subscriptionService.getUserSubscriptionInfo(user.uid);
 
-      // Atualiza o estado no UserProvider
       if (mounted) {
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         userProvider.updateSubscription(
@@ -52,18 +52,14 @@ class AuthPageState extends State<AuthPage> {
           planType: subscriptionInfo['planType'] ?? '',
           expiryDate: subscriptionInfo['expiryDate']?.toDate(),
         );
-        debugPrint('Status do usuário após login:');
-        debugPrint('isLoggedIn: ${userProvider.isLoggedIn}');
-        debugPrint('isPremium: ${userProvider.isPremium}');
-        debugPrint('planType: ${userProvider.planType}');
-        debugPrint('expiryDate: ${userProvider.expiryDate}');
       }
 
       if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const UserStatusWrapper(child: NavBarPage()),
+            // MUDANÇA 2: Usar NavStation
+            builder: (context) => const UserStatusWrapper(child: NavStation()),
           ),
         );
       }
@@ -152,8 +148,9 @@ class AuthPageState extends State<AuthPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
+              // MUDANÇA 3: Usar NavStation
               builder: (context) =>
-                  const UserStatusWrapper(child: NavBarPage())),
+                  const UserStatusWrapper(child: NavStation())),
         );
       }
     } on FirebaseAuthException catch (e) {

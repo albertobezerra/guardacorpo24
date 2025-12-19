@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav.dart';
+// MUDANÇA 1: Importar NavStation
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 import 'package:guarda_corpo_2024/services/provider/userProvider.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -24,9 +25,6 @@ class PremiumButton extends StatelessWidget {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final canAccessPremium = userProvider.canAccessPremiumScreen();
-        debugPrint(
-            'PremiumButton - canAccessPremium: $canAccessPremium, planType: ${userProvider.planType}');
-
         return MaterialButton(
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
           onPressed: () => _handleButtonPress(context, canAccessPremium),
@@ -87,21 +85,17 @@ class PremiumButton extends StatelessWidget {
   }
 
   void _handleButtonPress(BuildContext context, bool canAccessPremium) {
-    debugPrint('handleButtonPress - canAccessPremium: $canAccessPremium');
     if (canAccessPremium) {
-      debugPrint('Acessando tela premium...');
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => destinationScreen),
       );
     } else {
-      debugPrint('Exibindo diálogo para assinar premium...');
       _showPremiumAlertDialog(context);
     }
   }
 
   void _showPremiumAlertDialog(BuildContext context) {
-    debugPrint('Mostrando diálogo de assinatura');
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -148,7 +142,6 @@ class PremiumButton extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  debugPrint('Iniciando compra de monthly_full');
                   Navigator.pop(dialogContext);
                   await _handlePurchase(context, 'monthly_full');
                 },
@@ -188,10 +181,9 @@ class PremiumButton extends StatelessWidget {
 
       final product = products.productDetails.first;
 
-      // Define a página inicial (substitua `HomePage` pelo nome correto da sua página inicial)
-      const Widget homePage = NavBarPage();
+      // MUDANÇA 2: Usar NavStation
+      const Widget homePage = NavStation();
 
-      // Passe o homePage como segundo argumento
       await subscriptionService.purchaseProduct(product, homePage);
     } catch (e) {
       if (!context.mounted) return;

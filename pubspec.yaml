@@ -51,6 +51,7 @@ dependencies:
   stack_trace: ^1.12.1
   web: ^1.1.1
   google_nav_bar: ^5.0.7
+  firebase_storage: ^13.0.5
 
 dev_dependencies:
   flutter_test:

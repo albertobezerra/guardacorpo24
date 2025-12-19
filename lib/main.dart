@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
 import 'package:guarda_corpo_2024/components/firebase_messaging_service.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
 import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
@@ -19,6 +18,10 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:guarda_corpo_2024/theme/app_theme.dart';
+
+// IMPORTS DA NOVA NAVEGAÇÃO
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart'; // Sua barra nova
+import 'package:guarda_corpo_2024/services/provider/navigation_provider.dart'; // O estado da navegação
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -90,9 +93,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _subscriptionService.startPurchaseListener(context, const NavBarPage());
+    // AQUI: Mudamos NavBarPage para NavStation
+    _subscriptionService.startPurchaseListener(context, const NavStation());
     checkForUpdate();
-    // Adiciona a verificação de review após o init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndRequestReview();
     });
@@ -100,7 +103,6 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _checkAndRequestReview() async {
     try {
-      // Só solicita review se o usuário completou o onboarding
       final hasCompletedOnboarding = await Preferences.hasCompletedOnboarding;
       if (hasCompletedOnboarding && await ReviewService.shouldRequestReview()) {
         await ReviewService.requestReview();
@@ -152,6 +154,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (_) => InspecaoProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        // Provider de navegação adicionado
         ChangeNotifierProvider(create: (_) => NavigationState()),
       ],
       child: MaterialApp(
@@ -222,7 +225,8 @@ class _MyAppState extends State<MyApp> {
                               ),
                             );
                           }
-                          return const NavBarPage();
+                          // AQUI: Trocamos NavBarPage por NavStation
+                          return const NavStation();
                         },
                       );
                     }

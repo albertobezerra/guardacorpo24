@@ -1,74 +1,125 @@
 import 'package:flutter/material.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:guarda_corpo_2024/theme/app_theme.dart';
+
+// Imports das Telas
 import 'package:guarda_corpo_2024/screens/home/home_screen.dart';
 import 'package:guarda_corpo_2024/screens/profile/profile_screen.dart';
 import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
-import 'package:guarda_corpo_2024/theme/app_theme.dart';
-import 'package:provider/provider.dart';
+import '../../services/provider/navigation_provider.dart';
 
-class NavigationState extends ChangeNotifier {
-  int _selectedIndex = 0;
-  int get selectedIndex => _selectedIndex;
-  void setIndex(int index) {
-    _selectedIndex = index;
-    notifyListeners();
-  }
-}
+class NavStation extends StatelessWidget {
+  const NavStation({super.key});
 
-class NavBarPage extends StatelessWidget {
-  const NavBarPage({super.key});
+  // Lista de Telas
+  static const List<Widget> _screens = [
+    HomeScreen(),
+    PremiumPage(), // Aba do meio
+    ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final navState = Provider.of<NavigationState>(context);
-    final List<Widget> pages = [
-      const HomeScreen(),
-      const ProfileScreen(),
-      const PremiumPage(),
-    ];
+    final nav = Provider.of<NavigationState>(context);
 
     return Scaffold(
-      extendBody: true, // Importante para o fundo passar por trás da barra
-      backgroundColor: Colors.white,
-      body: pages[navState.selectedIndex],
+      // O IndexedStack mantém o estado das telas
+      body: IndexedStack(
+        index: nav.currentIndex,
+        children: _screens,
+      ),
+
+      // Barra Flutuante
+      extendBody: true,
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.all(24), // Margem para flutuar
+        margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        height: 70,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(30), // Borda totalmente redonda
+          borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15), // Sombra destacada
-              blurRadius: 30,
+              // CORRIGIDO: withValues em vez de withOpacity
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
               offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
-          child: GNav(
-            rippleColor: Colors.grey[300]!,
-            hoverColor: Colors.grey[100]!,
-            gap: 8,
-            activeColor: Colors.white,
-            iconSize: 24,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            duration: const Duration(milliseconds: 400),
-            tabBackgroundColor: AppTheme.primaryColor,
-            color: Colors.grey[500],
-            tabs: const [
-              GButton(icon: Icons.home_rounded, text: 'Início'),
-              GButton(icon: Icons.person_rounded, text: 'Perfil'),
-              GButton(
-                  icon: Icons.workspace_premium_rounded,
-                  text: 'Premium',
-                  backgroundColor: Colors.amber), // Destaque Amarelo ou Rosa
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildNavItem(
+              context,
+              index: 0,
+              icon: Icons.home_rounded,
+              label: "Início",
+              isSelected: nav.currentIndex == 0,
+              onTap: () => nav.setIndex(0),
+            ),
+            _buildNavItem(
+              context,
+              index: 1,
+              icon: Icons.workspace_premium_rounded,
+              label: "Premium",
+              isSelected: nav.currentIndex == 1,
+              onTap: () => nav.setIndex(1),
+            ),
+            _buildNavItem(
+              context,
+              index: 2,
+              icon: Icons.person_rounded,
+              label: "Perfil",
+              isSelected: nav.currentIndex == 2,
+              onTap: () => nav.setIndex(2),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(BuildContext context,
+      {required int index,
+      required IconData icon,
+      required String label,
+      required bool isSelected,
+      required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding:
+            EdgeInsets.symmetric(horizontal: isSelected ? 16 : 8, vertical: 8),
+        decoration: BoxDecoration(
+          // CORRIGIDO: withValues em vez de withOpacity
+          color: isSelected
+              ? AppTheme.primaryColor.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 26,
+              color: isSelected ? AppTheme.primaryColor : Colors.grey[400],
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
             ],
-            selectedIndex: navState.selectedIndex,
-            onTabChange: (index) {
-              navState.setIndex(index);
-            },
-          ),
+          ],
         ),
       ),
     );
