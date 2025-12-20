@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:intl/intl.dart';
-
 import '../../../components/customizacao/outlined_text_field_inspecoes.dart';
 
 class CalculadoraAcidente extends StatefulWidget {
@@ -12,7 +12,6 @@ class CalculadoraAcidente extends StatefulWidget {
 }
 
 class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
-  // Controladores para os inputs
   final MoneyTextController _salarioController =
       MoneyTextController(text: '1518');
   final TextEditingController _horasPorDiaController =
@@ -24,21 +23,20 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
   final MoneyTextController _gastosAdicionaisController = MoneyTextController();
 
   double totalPrejuizo = 0;
-  int diasAfastamento = 1; // Inicia com 1 dia
+  int diasAfastamento = 1;
+  final Color primaryColor = const Color(0xFF006837);
 
   @override
   void initState() {
     super.initState();
-    calcularPrejuizo(); // Realiza o cálculo inicial ao carregar a tela
+    calcularPrejuizo();
   }
 
   void calcularPrejuizo() {
     try {
-      // Converte o salário para double, removendo formatação monetária
       String salarioRaw =
           _salarioController.text.replaceAll('.', '').replaceAll(',', '.');
       double salario = double.tryParse(salarioRaw) ?? 0;
-
       int horasPorDia = int.tryParse(_horasPorDiaController.text) ?? 0;
       double inssPercentual =
           double.tryParse(_inssPercentualController.text) ?? 9;
@@ -46,248 +44,193 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
           double.tryParse(_fgtsPercentualController.text) ?? 8;
       double gastosAdicionais = _gastosAdicionaisController.getDoubleValue();
 
-      if (salario == 0 || horasPorDia == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Preencha todos os campos corretamente.')),
-        );
-        return;
-      }
+      if (salario == 0 || horasPorDia == 0) return;
 
-      // Cálculo dos encargos sociais
-      double fgts = (salario * fgtsPercentual / 100); // FGTS (%)
-      double inss = (salario * inssPercentual / 100); // INSS (%)
-      double ferias = salario / 12; // Férias (1/12 do salário)
-
-      // Valor da hora trabalhada
-      int horasTotaisMes = horasPorDia * 30; // Considerando 30 dias no mês
+      double fgts = (salario * fgtsPercentual / 100);
+      double inss = (salario * inssPercentual / 100);
+      double ferias = salario / 12;
+      int horasTotaisMes = horasPorDia * 30;
       double valorHora = salario / horasTotaisMes;
-
-      // Cálculo do custo por dias de afastamento selecionados
-      int horasPerdidas = horasPorDia * diasAfastamento; // Horas perdidas
+      int horasPerdidas = horasPorDia * diasAfastamento;
       double custoAfastamento = horasPerdidas * valorHora;
 
-      // Total de prejuízo
-      double total = custoAfastamento + fgts + inss + ferias + gastosAdicionais;
-
       setState(() {
-        totalPrejuizo = total;
+        totalPrejuizo =
+            custoAfastamento + fgts + inss + ferias + gastosAdicionais;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao calcular prejuízo.')),
-      );
+      debugPrint("Erro no cálculo");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
-
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Cálculo de Prejuízo Acidente'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/acidente.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'CALCULADORA DE CUSTO',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: primaryColor,
+            fontSize: 16,
+            letterSpacing: 1.0,
           ),
         ),
       ),
-      resizeToAvoidBottomInset: true,
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Salário Mensal
+                  _buildSectionHeader('Dados do Funcionário'),
+                  const SizedBox(height: 16),
+
                   OutlinedTextField3(
                     controller: _salarioController,
                     labelText: 'Salário Mensal',
                     prefixText: 'R\$ ',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.none,
-                    keyboardType: TextInputType.number, // Teclado numérico
+                    keyboardType: TextInputType.number,
                     onChanged: (value) => calcularPrejuizo(),
+                    // Argumentos obrigatórios adicionados:
+                    textCapitalization: TextCapitalization.none,
+                    obscureText: false,
                     maxLines: 1,
                   ),
                   const SizedBox(height: 16),
 
-                  // Horas Trabalhadas por Dia
                   OutlinedTextField3(
                     controller: _horasPorDiaController,
-                    labelText: 'Horas Trabalhadas por Dia',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.none,
-                    keyboardType: TextInputType.number, // Teclado numérico
+                    labelText: 'Horas/Dia',
+                    keyboardType: TextInputType.number,
                     onChanged: (value) => calcularPrejuizo(),
+                    // Argumentos obrigatórios adicionados:
+                    textCapitalization: TextCapitalization.none,
+                    obscureText: false,
                     maxLines: 1,
                   ),
+
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Encargos (%)'),
                   const SizedBox(height: 16),
 
-                  // Percentual INSS
                   Row(
                     children: [
                       Expanded(
-                        flex: 2,
                         child: OutlinedTextField3(
                           controller: _inssPercentualController,
                           labelText: 'INSS (%)',
-                          obscureText: false,
-                          textCapitalization: TextCapitalization.none,
-                          keyboardType:
-                              TextInputType.number, // Teclado numérico
+                          keyboardType: TextInputType.number,
                           onChanged: (value) => calcularPrejuizo(),
+                          // Argumentos obrigatórios adicionados:
+                          textCapitalization: TextCapitalization.none,
+                          obscureText: false,
                           maxLines: 1,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Padrão: 9%',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Percentual FGTS
-                  Row(
-                    children: [
+                      const SizedBox(width: 16),
                       Expanded(
-                        flex: 2,
                         child: OutlinedTextField3(
                           controller: _fgtsPercentualController,
                           labelText: 'FGTS (%)',
-                          obscureText: false,
-                          textCapitalization: TextCapitalization.none,
-                          keyboardType:
-                              TextInputType.number, // Teclado numérico
+                          keyboardType: TextInputType.number,
                           onChanged: (value) => calcularPrejuizo(),
-                          maxLines: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Padrão: 8%',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Campo de Férias (somente leitura)
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: OutlinedTextField3(
-                          controller: TextEditingController(
-                              text: NumberFormat.currency(
-                                      locale: 'pt_BR', symbol: 'R\$ ')
-                                  .format(_salarioController.getDoubleValue() /
-                                      12)), // Calcula 1/12 do salário
-                          labelText: 'Férias (1/12)',
-                          obscureText: false,
+                          // Argumentos obrigatórios adicionados:
                           textCapitalization: TextCapitalization.none,
-                          enabled: false, // Campo desativado (somente leitura)
-                          keyboardType:
-                              TextInputType.number, // Teclado numérico
+                          obscureText: false,
                           maxLines: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        flex: 1,
-                        child: Text(
-                          'Valor Fixo: 1/12 do Salário',
-                          style: TextStyle(fontSize: 14),
                         ),
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Custos Extras'),
                   const SizedBox(height: 16),
 
-                  // Gastos Adicionais
                   OutlinedTextField3(
                     controller: _gastosAdicionaisController,
                     labelText: 'Gastos Adicionais',
                     prefixText: 'R\$ ',
-                    obscureText: false,
-                    textCapitalization: TextCapitalization.none,
-                    keyboardType: TextInputType.number, // Teclado numérico
+                    keyboardType: TextInputType.number,
                     onChanged: (value) => calcularPrejuizo(),
+                    // Argumentos obrigatórios adicionados:
+                    textCapitalization: TextCapitalization.none,
+                    obscureText: false,
                     maxLines: 1,
                   ),
-                  const SizedBox(height: 16),
 
-                  // Slider para Dias de Afastamento
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Slider(
-                          value: diasAfastamento.toDouble(),
-                          min: 1, // Inicia com 1 dia
-                          max: 15,
-                          divisions: 14, // 14 divisões entre 1 e 15
-                          label: '$diasAfastamento dias',
-                          activeColor: buttonColor,
-                          inactiveColor: Colors.grey,
-                          onChanged: (value) {
-                            setState(() {
-                              diasAfastamento = value.toInt();
-                              calcularPrejuizo(); // Atualiza o cálculo automaticamente
-                            });
-                          },
-                        ),
-                      ),
-                      Text(
-                        '$diasAfastamento dias',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
+                  const SizedBox(height: 32),
+
+                  // Slider
+                  Text(
+                    'Dias de Afastamento: $diasAfastamento',
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600, color: Colors.black87),
                   ),
+                  Slider(
+                    value: diasAfastamento.toDouble(),
+                    min: 1,
+                    max: 30,
+                    divisions: 29,
+                    activeColor: primaryColor,
+                    inactiveColor: Colors.grey[200],
+                    onChanged: (value) {
+                      setState(() {
+                        diasAfastamento = value.toInt();
+                        calcularPrejuizo();
+                      });
+                    },
+                  ),
+
                   const SizedBox(height: 24),
 
-                  // Resultado do Cálculo
-                  Card(
-                    color: buttonColor,
-                    margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Total de Prejuízo: ${NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(totalPrejuizo)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  // Card Resultado
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primaryColor.withValues(
+                              alpha: 0.3), // Corrigido para .withValues
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
                         ),
-                      ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'PREJUÍZO ESTIMADO',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$')
+                              .format(totalPrejuizo),
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -299,9 +242,20 @@ class CalculadoraAcidenteState extends State<CalculadoraAcidente> {
       ),
     );
   }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title.toUpperCase(),
+      style: GoogleFonts.poppins(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Colors.grey[500],
+        letterSpacing: 1.0,
+      ),
+    );
+  }
 }
 
-// Classe para controlador de texto monetário
 class MoneyTextController extends TextEditingController {
   MoneyTextController({String text = ''})
       : super(text: formatCurrency(double.tryParse(text) ?? 0));
@@ -322,22 +276,5 @@ class MoneyTextController extends TextEditingController {
     double? value =
         double.tryParse(newText.replaceAll('.', '').replaceAll(',', '.'));
     super.text = formatCurrency(value ?? 0);
-  }
-
-  void setValue(String value) {
-    double? newValue =
-        double.tryParse(value.replaceAll('.', '').replaceAll(',', '.'));
-    super.text = formatCurrency(newValue ?? 0);
-  }
-
-  void updateText(String? value) {
-    if (value != null) {
-      double? numericValue =
-          double.tryParse(value.replaceAll('.', '').replaceAll(',', '.'));
-      if (numericValue != null) {
-        super.text = formatCurrency(numericValue);
-        super.selection = TextSelection.collapsed(offset: super.text.length);
-      }
-    }
   }
 }
