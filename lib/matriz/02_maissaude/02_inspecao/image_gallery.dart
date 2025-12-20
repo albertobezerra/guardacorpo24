@@ -1,5 +1,3 @@
-// lib/matriz/02_maissaude/02_inspecao/image_gallery.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 
@@ -51,6 +49,11 @@ class _ImageGalleryState extends State<ImageGallery> {
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        centerTitle: true,
+        title: Text(
+          '${_currentIndex + 1} / ${widget.imagePaths.length}',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
       ),
       body: PageView.builder(
         controller: _controller,
@@ -61,22 +64,15 @@ class _ImageGalleryState extends State<ImageGallery> {
               child: Image.file(
                 File(widget.imagePaths[index]),
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.error, color: Colors.red, size: 60),
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.error,
+                  color: Colors.red,
+                  size: 60,
+                ),
               ),
             ),
           );
         },
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            '${_currentIndex + 1} / ${widget.imagePaths.length}',
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-        ),
       ),
     );
   }

@@ -1,146 +1,227 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_reco.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_incendio/incendio_rela.dart';
-import 'package:guarda_corpo_2024/services/premium/premium_button.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/theme/app_theme.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
 class IncendioRaiz extends StatelessWidget {
   const IncendioRaiz({super.key});
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-
-    double itemFontSize;
-    double tamanhoBotaoLista;
-
-    if (screenHeight < 800) {
-      itemFontSize = 12;
-      tamanhoBotaoLista = screenHeight * 0.10;
-    } else if (screenHeight < 1000) {
-      itemFontSize = 16;
-      tamanhoBotaoLista = screenHeight * 0.10;
-    } else {
-      itemFontSize = 16;
-      tamanhoBotaoLista = screenHeight * 0.12;
-    }
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(screenHeight * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Incêndio'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/incendio4.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new,
+              size: 20, color: AppTheme.primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'INCÊNDIO',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: AppTheme.primaryColor,
+            fontSize: 16,
+            letterSpacing: 1.0,
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(top: 9),
-              children: [
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _checkUserStatus(),
+        builder: (context, snapshot) {
+          final isPremium = snapshot.data?['isPremium'] ?? false;
+
+          return ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              _buildLargeTile(
+                context,
+                label: 'Sobre Incêndio',
+                icon: Icons.local_fire_department_outlined,
+                isPremium: false,
+                onTap: () {
+                  InterstitialAdManager.showInterstitialAd(
+                    context,
+                    const Incendio(),
+                  );
+                },
+              ),
+              _buildLargeTile(
+                context,
+                label: 'Relatório Técnico de Incêndio',
+                icon: Icons.picture_as_pdf_outlined,
+                isPremium: true,
+                onTap: () {
+                  if (isPremium) {
+                    Navigator.push(
                       context,
-                      const Incendio(),
+                      MaterialPageRoute(
+                          builder: (context) => const IncendioRela()),
                     );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/incendio2.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Sobre Incêndio'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                PremiumButton(
-                  buttonText: 'Relatório Técnico de Incêndio',
-                  imagePath:
-                      'assets/images/incendio3.jpg', // Caminho da imagem do botão
-                  destinationScreen: const IncendioRela(), // Tela premium
-                  buttonHeight: tamanhoBotaoLista,
-                ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const IncendioReco(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/menu.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Recomendações'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+                  } else {
+                    _showPremiumDialog(context);
+                  }
+                },
+              ),
+              _buildLargeTile(
+                context,
+                label: 'Recomendações',
+                icon: Icons.menu_book_outlined,
+                isPremium: false,
+                onTap: () {
+                  InterstitialAdManager.showInterstitialAd(
+                    context,
+                    const IncendioReco(),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLargeTile(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required bool isPremium,
+    required VoidCallback onTap,
+  }) {
+    final Color color = AppTheme.primaryColor;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: color, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Color(0xFF2D3436),
+                    ),
+                  ),
+                ),
+                if (isPremium)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.lock_outline_rounded,
+                        color: Colors.amber, size: 20),
+                  )
+                else
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 16, color: Colors.grey[300]),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
+  }
+
+  void _showPremiumDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.workspace_premium, color: Colors.amber),
+              SizedBox(width: 10),
+              Text("Conteúdo Exclusivo"),
+            ],
+          ),
+          content: const Text(
+            "Este recurso é exclusivo para assinantes Premium. Deseja desbloquear agora?",
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child:
+                  const Text("Cancelar", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PremiumPage()),
+                );
+              },
+              child: const Text(
+                "Assinar Agora",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> _checkUserStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return {'isPremium': false, 'planType': ''};
+    }
+    final subscriptionInfo =
+        await SubscriptionService().getUserSubscriptionInfo(user.uid);
+    return {
+      'isPremium': subscriptionInfo['isPremium'] ?? false,
+      'planType': subscriptionInfo['planType'] ?? '',
+    };
   }
 }

@@ -1,10 +1,8 @@
-// lib/matriz/02_maissaude/02_inspecao/inspecao_form.dart
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
 import 'package:provider/provider.dart';
 import 'inspecao_provider.dart';
 import 'dados_inspecao.dart';
@@ -67,17 +65,20 @@ class _InspecaoFormState extends State<InspecaoForm> {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (_) => Wrap(
         children: [
           ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Tirar foto'),
-              onTap: () => Navigator.pop(context, ImageSource.camera)),
+            leading: const Icon(Icons.camera_alt),
+            title: const Text('Tirar foto'),
+            onTap: () => Navigator.pop(context, ImageSource.camera),
+          ),
           ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Escolher da galeria'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery)),
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Escolher da galeria'),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
         ],
       ),
     );
@@ -98,8 +99,9 @@ class _InspecaoFormState extends State<InspecaoForm> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Erro: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e')),
+        );
       }
     }
   }
@@ -107,25 +109,31 @@ class _InspecaoFormState extends State<InspecaoForm> {
   void _abrirGaleriaTemporaria(int index) {
     final paths = _imagensPonto.map((f) => f.path).toList();
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) =>
-                ImageGallery(imagePaths: paths, initialIndex: index)));
+      context,
+      MaterialPageRoute(
+        builder: (_) => ImageGallery(imagePaths: paths, initialIndex: index),
+      ),
+    );
   }
 
   void _abrirGaleriaPonto(int pontoIndex, int imagemIndex) {
     final imagens = List<String>.from(_pontos[pontoIndex]['imagens']);
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) =>
-                ImageGallery(imagePaths: imagens, initialIndex: imagemIndex)));
+      context,
+      MaterialPageRoute(
+        builder: (_) => ImageGallery(
+          imagePaths: imagens,
+          initialIndex: imagemIndex,
+        ),
+      ),
+    );
   }
 
   void _adicionarPonto() {
     if (_pontoDescricaoController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Descrição obrigatória')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Descrição obrigatória')),
+      );
       return;
     }
 
@@ -154,18 +162,21 @@ class _InspecaoFormState extends State<InspecaoForm> {
     if (_tipoController.text.isEmpty ||
         _localController.text.isEmpty ||
         _selectedDate == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Campos obrigatórios')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Campos obrigatórios')),
+      );
       return;
     }
     if (_pontos.isEmpty && _pontoDescricaoController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Adicione pelo menos um ponto')));
+        const SnackBar(content: Text('Adicione pelo menos um ponto')),
+      );
       return;
     }
     if (_pontoDescricaoController.text.isNotEmpty || _imagensPonto.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Finalize o ponto em andamento')));
+        const SnackBar(content: Text('Finalize o ponto em andamento')),
+      );
       return;
     }
 
@@ -179,58 +190,75 @@ class _InspecaoFormState extends State<InspecaoForm> {
       local: _localController.text,
       data: _selectedDate!,
       pontos: _pontos,
-      anexos: [],
+      anexos: const [],
     );
 
     final provider = Provider.of<InspecaoProvider>(context, listen: false);
-    widget.index == null
-        ? await provider.saveInspecao(inspecao)
-        : await provider.updateInspecao(widget.index!, inspecao);
+    if (widget.index == null) {
+      await provider.saveInspecao(inspecao);
+    } else {
+      await provider.updateInspecao(widget.index!, inspecao);
+    }
 
     if (!mounted) return;
     setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Salvo com sucesso!')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Salvo com sucesso!')),
+    );
     Navigator.pop(context, inspecao);
   }
 
   Future<bool?> _confirmDeleteImage(File img) async {
     final del = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-              title: const Text('Excluir Imagem'),
-              content: const Text('Tem certeza?'),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancelar')),
-                TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Excluir',
-                        style: TextStyle(color: Colors.red))),
-              ],
-            ));
-    if (del == true && mounted) setState(() => _imagensPonto.remove(img));
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Excluir Imagem'),
+        content: const Text('Tem certeza?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Excluir',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (del == true && mounted) {
+      setState(() => _imagensPonto.remove(img));
+    }
     return del;
   }
 
   Future<bool?> _confirmDeletePonto(int i) async {
     final del = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-              title: const Text('Excluir Ponto'),
-              content: const Text('Tem certeza?'),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancelar')),
-                TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Excluir',
-                        style: TextStyle(color: Colors.red))),
-              ],
-            ));
-    if (del == true && mounted) setState(() => _pontos.removeAt(i));
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Excluir Ponto'),
+        content: const Text('Tem certeza?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Excluir',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (del == true && mounted) {
+      setState(() => _pontos.removeAt(i));
+    }
     return del;
   }
 
@@ -251,22 +279,22 @@ class _InspecaoFormState extends State<InspecaoForm> {
     const Color buttonColor = Color.fromARGB(255, 0, 104, 55);
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-              (widget.index == null ? 'NOVA INSPEÇÃO' : 'EDITAR INSPEÇÃO')
-                  .toUpperCase(),
-              style: const TextStyle(
-                  fontFamily: 'Segoe Bold', color: Colors.white, fontSize: 16)),
-          leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context)),
-          flexibleSpace: const Image(
-              image: AssetImage('assets/images/inspecao.jpg'),
-              fit: BoxFit.cover),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          (widget.index == null ? 'NOVA INSPEÇÃO' : 'EDITAR INSPEÇÃO'),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: Colors.black87,
+          ),
         ),
       ),
       resizeToAvoidBottomInset: true,
@@ -281,62 +309,80 @@ class _InspecaoFormState extends State<InspecaoForm> {
                   Row(
                     children: [
                       Expanded(
-                          child: OutlinedTextField3(
-                              controller: _tipoController,
-                              labelText: 'Tipo de Inspeção',
-                              obscureText: false,
-                              textCapitalization: TextCapitalization.sentences,
-                              onChanged: (_) {},
-                              maxLines: 1)),
+                        child: OutlinedTextField3(
+                          controller: _tipoController,
+                          labelText: 'Tipo de Inspeção',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.sentences,
+                          onChanged: (_) {},
+                          maxLines: 1,
+                        ),
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
-                          child: OutlinedTextField3(
-                              controller: _localController,
-                              labelText: 'Local',
-                              obscureText: false,
-                              textCapitalization: TextCapitalization.sentences,
-                              onChanged: (_) {},
-                              maxLines: 1)),
+                        child: OutlinedTextField3(
+                          controller: _localController,
+                          labelText: 'Local',
+                          obscureText: false,
+                          textCapitalization: TextCapitalization.sentences,
+                          onChanged: (_) {},
+                          maxLines: 1,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                      onPressed: _pickDate,
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                          foregroundColor: Colors.white),
-                      child: Text(DateFormat('dd/MM/yyyy')
+                    onPressed: _pickDate,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: buttonColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      DateFormat('dd/MM/yyyy')
                           .format(_selectedDate ?? DateTime.now())
-                          .toUpperCase())),
+                          .toUpperCase(),
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  const Text('Pontos de Verificação',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text(
+                    'Pontos de Verificação',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   IntrinsicHeight(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Expanded(
-                            flex: 3,
-                            child: OutlinedTextField3(
-                                controller: _pontoDescricaoController,
-                                labelText: 'Descrição do Ponto',
-                                obscureText: false,
-                                textCapitalization:
-                                    TextCapitalization.sentences,
-                                onChanged: (_) {},
-                                maxLines: 2)),
+                          flex: 3,
+                          child: OutlinedTextField3(
+                            controller: _pontoDescricaoController,
+                            labelText: 'Descrição do Ponto',
+                            obscureText: false,
+                            textCapitalization: TextCapitalization.sentences,
+                            onChanged: (_) {},
+                            maxLines: 2,
+                          ),
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                            flex: 1,
-                            child: ElevatedButton(
-                                onPressed: _pickImage,
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: buttonColor,
-                                    padding: EdgeInsets.zero),
-                                child: const Icon(Icons.add_a_photo,
-                                    color: Colors.white))),
+                          flex: 1,
+                          child: ElevatedButton(
+                            onPressed: _pickImage,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: buttonColor,
+                              padding: EdgeInsets.zero,
+                            ),
+                            child: const Icon(
+                              Icons.add_a_photo,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -358,49 +404,63 @@ class _InspecaoFormState extends State<InspecaoForm> {
                                   onTap: () => _abrirGaleriaTemporaria(i),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: buttonColor, width: 2),
-                                        borderRadius:
-                                            BorderRadius.circular(14)),
+                                      border: Border.all(
+                                        color: buttonColor,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
                                     child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child:
-                                            Image.file(img, fit: BoxFit.cover)),
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.file(
+                                        img,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: ClipOval(
-                                        child: Material(
-                                            color: Colors.red.withAlpha(180),
-                                            child: InkWell(
-                                                onTap: () =>
-                                                    _confirmDeleteImage(img),
-                                                child: const Padding(
-                                                    padding: EdgeInsets.all(4),
-                                                    child: Icon(Icons.delete,
-                                                        size: 16,
-                                                        color:
-                                                            Colors.white)))))),
+                                  top: 4,
+                                  right: 4,
+                                  child: ClipOval(
+                                    child: Material(
+                                      color: Colors.red.withAlpha(180),
+                                      child: InkWell(
+                                        onTap: () => _confirmDeleteImage(img),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(4),
+                                          child: Icon(
+                                            Icons.delete,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           );
                         },
                       ),
                     ),
-                  Row(children: [
-                    const Text('Conforme:', style: TextStyle(fontSize: 16)),
-                    Checkbox(
+                  Row(
+                    children: [
+                      const Text('Conforme:', style: TextStyle(fontSize: 16)),
+                      Checkbox(
                         activeColor: buttonColor,
                         value: _conformePonto,
                         onChanged: (v) =>
-                            setState(() => _conformePonto = v ?? true))
-                  ]),
+                            setState(() => _conformePonto = v ?? true),
+                      ),
+                    ],
+                  ),
                   if (!_conformePonto)
                     OutlinedTextField3(
-                      controller:
-                          TextEditingController(text: _inconformidadePonto),
+                      controller: TextEditingController(
+                        text: _inconformidadePonto,
+                      ),
                       labelText: 'Inconformidade',
                       obscureText: false,
                       textCapitalization: TextCapitalization.sentences,
@@ -409,14 +469,18 @@ class _InspecaoFormState extends State<InspecaoForm> {
                     ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                      onPressed: _adicionarPonto,
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                          foregroundColor: Colors.white),
-                      child: Text((_editingIndex == null
+                    onPressed: _adicionarPonto,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: buttonColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(
+                      (_editingIndex == null
                               ? 'ADICIONAR PONTO'
                               : 'ATUALIZAR PONTO')
-                          .toUpperCase())),
+                          .toUpperCase(),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   ListView.builder(
                     shrinkWrap: true,
@@ -425,50 +489,66 @@ class _InspecaoFormState extends State<InspecaoForm> {
                     itemBuilder: (ctx, i) {
                       final p = _pontos[i];
                       final imagens = List<String>.from(p['imagens'] ?? []);
+                      final conforme = p['conforme'] == true;
+
                       return Dismissible(
                         key: UniqueKey(),
                         background: Container(
-                            color: Colors.green,
-                            alignment: Alignment.centerLeft,
-                            padding: const EdgeInsets.only(left: 16),
-                            child: const Icon(Icons.edit,
-                                color: Colors.white, size: 30)),
+                          color: Colors.green,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.only(left: 16),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
                         secondaryBackground: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 16),
-                            child: const Icon(Icons.delete,
-                                color: Colors.white, size: 30)),
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
                         confirmDismiss: (dir) async {
                           if (dir == DismissDirection.startToEnd) {
                             _editarPonto(i);
                             return false;
                           }
-                          return await _confirmDeletePonto(i);
+                          return _confirmDeletePonto(i);
                         },
                         child: Card(
                           color: buttonColor,
                           margin: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 8),
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(p['descricao'],
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16)),
+                                Text(
+                                  p['descricao'],
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 Text(
-                                    p['conforme']
-                                        ? 'Conforme'
-                                        : 'Inconforme: ${p['inconformidade']}',
-                                    style:
-                                        const TextStyle(color: Colors.white)),
+                                  conforme
+                                      ? 'Conforme'
+                                      : 'Inconforme: ${p['inconformidade']}',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                                 if (imagens.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   SingleChildScrollView(
@@ -479,24 +559,30 @@ class _InspecaoFormState extends State<InspecaoForm> {
                                         final idx = e.key;
                                         final path = e.value;
                                         return Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 8),
+                                          padding: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
                                           child: GestureDetector(
-                                            onTap: () =>
-                                                _abrirGaleriaPonto(i, idx),
+                                            onTap: () => _abrirGaleriaPonto(
+                                              i,
+                                              idx,
+                                            ),
                                             child: Container(
                                               width: 50,
                                               height: 50,
                                               decoration: BoxDecoration(
                                                 border: Border.all(
-                                                    color: Colors.white,
-                                                    width: 2),
+                                                  color: Colors.white,
+                                                  width: 2,
+                                                ),
                                                 borderRadius:
                                                     BorderRadius.circular(8),
                                                 image: DecorationImage(
-                                                    image:
-                                                        FileImage(File(path)),
-                                                    fit: BoxFit.cover),
+                                                  image: FileImage(
+                                                    File(path),
+                                                  ),
+                                                  fit: BoxFit.cover,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -521,10 +607,11 @@ class _InspecaoFormState extends State<InspecaoForm> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _submitInspecao,
               style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(16),
-                  minimumSize: const Size(56, 56)),
+                backgroundColor: buttonColor,
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(16),
+                minimumSize: const Size(56, 56),
+              ),
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Icon(Icons.check, color: Colors.white, size: 28),

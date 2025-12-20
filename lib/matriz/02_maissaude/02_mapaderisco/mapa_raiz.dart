@@ -8,129 +8,118 @@ class MapaRaiz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
+    const Color primary = Color(0xFF006837);
 
-    double itemFontSize;
-    double tamanhoBotaoLista;
-
-    if (screenHeight < 800) {
-      itemFontSize = 12;
-      tamanhoBotaoLista = screenHeight * 0.10;
-    } else if (screenHeight < 1000) {
-      itemFontSize = 16;
-      tamanhoBotaoLista = screenHeight * 0.10;
-    } else {
-      itemFontSize = 16;
-      tamanhoBotaoLista = screenHeight * 0.12;
-    }
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(screenHeight * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Mapa de Risco'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/mapa.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'MAPA DE RISCO',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
-      body: Column(
+      body: ListView(
+        padding: const EdgeInsets.all(24),
         children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(top: 9),
+          _buildCard(
+            context,
+            label: 'Sobre Mapa de Risco',
+            icon: Icons.info_outline,
+            onTap: () {
+              InterstitialAdManager.showInterstitialAd(
+                context,
+                const MapaDaRisco(),
+              );
+            },
+          ),
+          _buildCard(
+            context,
+            label: 'Exemplo de Mapa de Risco',
+            icon: Icons.picture_as_pdf_outlined,
+            onTap: () {
+              InterstitialAdManager.showInterstitialAd(
+                context,
+                const Mapaexemplo(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    const Color primary = Color(0xFF006837);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
               children: [
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const MapaDaRisco(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/mapa01.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Sobre Mapa de Risco'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: primary, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Color(0xFF2D3436),
                     ),
                   ),
                 ),
-                MaterialButton(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-                  onPressed: () {
-                    InterstitialAdManager.showInterstitialAd(
-                      context,
-                      const Mapaexemplo(),
-                    );
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: tamanhoBotaoLista,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(18),
-                      ),
-                      image: DecorationImage(
-                        image: ExactAssetImage('assets/images/mapa02.jpg'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      alignment: AlignmentDirectional.bottomStart,
-                      margin: const EdgeInsets.only(left: 12, bottom: 8),
-                      child: Text(
-                        'Mapa de risco'.toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Bold',
-                          fontSize: itemFontSize,
-                        ),
-                      ),
-                    ),
-                  ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Colors.grey[300],
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

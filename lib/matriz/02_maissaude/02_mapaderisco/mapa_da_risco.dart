@@ -6,123 +6,163 @@ class MapaDaRisco extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Sobre Mapa de Risco'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/mapa.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'SOBRE MAPA DE RISCO',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.justify,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontFamily: 'Segoe',
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                          children: [
-                            TextSpan(
-                              text:
-                                  'O Mapa de Risco é uma maneira eficiente de proteger seus funcionários, mostrando claramente os riscos que o ambiente de trabalho pode apresentar.\n\n'
-                                  'Para conseguir essa visualização, é preciso estudar a empresa de forma efetiva para, assim, chegar a um diagnóstico sobre os perigos de cada setor.\n\n'
-                                  'O Mapa de Risco foi criado na década de 60, pelos italianos, e chegou em terras brasileiras apenas no fim dos anos 70.\n\n'
-                                  'Com o aumento da produção industrial e do índice de acidentes, logo em seguida, o método começou a ser utilizado nas fábricas e ambientes industriais e, em 1992, ele se tornou obrigatório.\n\n'
-                                  'Desde então, o Mapa de Risco é exigido em todos os países em que a CIPA (Comissão Interna de Prevenção de Acidentes) está presente, e sua ausência pode acarretar em multas de alto valor.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Como fazer um Mapa de Risco?\n\n',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'Cada empresa precisa de um Mapa de Risco adequado para seu segmento, mas alguns itens são comuns a todas, como:\n\n'
-                                  '- Reunir informações suficientes para o estabelecimento de um diagnóstico da situação de segurança e saúde no trabalho do estabelecimento.\n'
-                                  '- Possibilitar a troca e divulgação de informações entre os trabalhadores e estimular sua participação nas atividades de prevenção.\n'
-                                  '- Conhecer o processo de trabalho no local analisado:\n'
-                                  '  - Os trabalhadores: número, sexo, idade, treinamentos profissionais e de segurança e saúde.\n'
-                                  '  - Jornada de trabalho.\n'
-                                  '  - Os instrumentos e materiais de trabalho.\n'
-                                  '  - As atividades exercidas.\n'
-                                  '  - O ambiente.\n\n'
-                                  '- Identificar os riscos existentes no local analisado.\n\n'
-                                  '- Identificar as medidas preventivas existentes e sua eficácia, entre elas:\n'
-                                  '  - Medidas de proteção coletiva, de organização do trabalho, de proteção individual e de higiene e conforto.\n\n'
-                                  '- Descobrir as queixas mais comuns entre os funcionários expostos aos mesmos riscos, doenças profissionais já diagnosticadas e causas mais frequentes de ausência no trabalho.\n\n'
-                                  '- Ter conhecimento dos levantamentos ambientais já realizados no local.\n\n'
-                                  '- O número de trabalhadores expostos ao risco.\n\n'
-                                  '- Especificar os agentes, por exemplo: químicos, ergonômicos, biológicos ou de acidentes.\n\n'
-                                  '- Após a aprovação da CIPA, o Mapa de Risco deve ser exposto claramente em todos os setores analisados, de maneira que os funcionários possam facilmente ver.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Grupos de Risco\n\n',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'Para facilitar a visualização do mapa, os riscos são divididos em cinco grupos, representados por diferentes cores:\n\n'
-                                  '- Grupo 1 - Riscos Físicos (Verde): Vibração, radiação ionizante e não ionizante, frio, calor, pressões anormais e umidade.\n'
-                                  '- Grupo 2 - Riscos Químicos (Vermelho): Poeiras, fumos, neblinas, gases, vapores, substâncias compostas ou produtos químicos em geral.\n'
-                                  '- Grupo 3 - Riscos Biológicos (Marrom): Vírus, bactérias, fungos, parasitas e bacilos.\n'
-                                  '- Grupo 4 - Riscos Ergonômicos (Amarelo): Esforço físico intenso, levantamento e transporte manual de peso, controle rígido de produtividade, imposição de ritmos excessivos, trabalho em turno noturno, jornadas de trabalho prolongadas, monotonia e repetitividade e outras situações provocadoras de estresses psíquico e físico.\n'
-                                  '- Grupo 5 - Riscos de Acidentes (Azul): Arranjo físico inadequado, máquinas e equipamentos sem proteção, iluminação inadequada, probabilidade de incêndios ou explosões, animais peçonhentos, armazenamento inadequado e outras situações que possam acabar em acidentes.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Quantificação dos Riscos\n\n',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'Com os riscos qualificados, o próximo passo é fazer a quantificação dos mesmos. A quantificação dos riscos é feita com equipamentos específicos para as classes de risco.\n\n'
-                                  'Na maioria das vezes, os mapas de riscos são elaborados com base na planta baixa da empresa; no entanto, a maioria dos colaboradores não compreende.\n\n'
-                                  'Para uma melhor compreensão, pode ser usada uma foto do local de trabalho. O Mapa de Risco reduz significativamente as doenças e os acidentes porque conscientiza todos os envolvidos dos perigos apresentados.',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: const _MapaContent(),
             ),
           ),
           const ConditionalBannerAdWidget(),
         ],
       ),
+    );
+  }
+}
+
+class _MapaContent extends StatelessWidget {
+  const _MapaContent();
+
+  Widget _title(String text) => Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      );
+
+  Widget _body(String text) => Text(
+        text,
+        textAlign: TextAlign.justify,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.black87,
+          height: 1.6,
+        ),
+      );
+
+  Widget _bullet(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('• ',
+                style:
+                    TextStyle(fontSize: 16, height: 1.4, color: Colors.black)),
+            Expanded(
+              child: Text(
+                text,
+                textAlign: TextAlign.justify,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _body(
+          'O Mapa de Risco é uma ferramenta que representa visualmente os riscos existentes no ambiente de trabalho, '
+          'facilitando a identificação de perigos e a conscientização dos trabalhadores.\n',
+        ),
+        _body(
+          'Para construí‑lo, é necessário estudar cada setor da empresa, identificar agentes de risco e sua intensidade, '
+          'e registrar essas informações de forma simples e objetiva.\n',
+        ),
+        _body(
+          'Criado na década de 60 na Itália, o método chegou ao Brasil no fim dos anos 70 e passou a ser amplamente utilizado '
+          'em função do aumento dos acidentes de trabalho e da necessidade de prevenção.\n',
+        ),
+        _body(
+          'Com a NR‑5, o Mapa de Risco se consolidou como instrumento obrigatório em locais onde há CIPA, '
+          'sendo exigido pelos órgãos de fiscalização de segurança e saúde no trabalho.\n',
+        ),
+        _title('Como fazer um Mapa de Risco?'),
+        _body(
+          'Embora cada empresa tenha suas particularidades, alguns passos são comuns ao processo de elaboração:',
+        ),
+        const SizedBox(height: 8),
+        _bullet(
+            'Reunir informações suficientes para diagnosticar a situação de segurança e saúde no trabalho do estabelecimento.'),
+        _bullet(
+            'Estimular a participação dos trabalhadores, promovendo troca e divulgação de informações sobre riscos e prevenção.'),
+        _bullet('Conhecer o processo de trabalho no local analisado:'),
+        _bullet(
+            'Número de trabalhadores, distribuição por sexo e idade, formação profissional e treinamentos de SST.'),
+        _bullet('Jornada de trabalho e organização das atividades.'),
+        _bullet('Instrumentos, máquinas, equipamentos e materiais utilizados.'),
+        _bullet('Características do ambiente físico.'),
+        _bullet('Identificar os riscos existentes em cada posto ou setor.'),
+        _bullet(
+            'Mapear medidas de prevenção já existentes (coletivas, organizacionais, individuais, higiene e conforto) e sua eficácia.'),
+        _bullet(
+            'Levantar queixas mais frequentes, doenças ocupacionais relacionadas e principais causas de afastamento.'),
+        _bullet('Verificar levantamentos ambientais já realizados.'),
+        _bullet('Quantificar o número de trabalhadores expostos a cada risco.'),
+        _bullet(
+            'Classificar os agentes de risco (químicos, físicos, biológicos, ergonômicos ou de acidentes).'),
+        _bullet(
+            'Após aprovação da CIPA, fixar o Mapa de Risco em locais de fácil visualização para todos os trabalhadores.'),
+        _title('Grupos de Risco'),
+        _body(
+          'Para facilitar a leitura, os riscos são agrupados por tipo e representados por cores padronizadas:',
+        ),
+        const SizedBox(height: 8),
+        _bullet(
+            'Grupo 1 – Riscos Físicos (Verde): ruído, vibração, radiações, frio, calor, pressões anormais e umidade.'),
+        _bullet(
+            'Grupo 2 – Riscos Químicos (Vermelho): poeiras, fumos, neblinas, gases, vapores e substâncias químicas em geral.'),
+        _bullet(
+            'Grupo 3 – Riscos Biológicos (Marrom): vírus, bactérias, fungos, parasitas e outros microrganismos.'),
+        _bullet(
+            'Grupo 4 – Riscos Ergonômicos (Amarelo): esforço físico intenso, levantamento de peso, postura inadequada, ritmos excessivos, turnos noturnos, monotonia e fatores de estresse.'),
+        _bullet(
+            'Grupo 5 – Riscos de Acidentes (Azul): arranjo físico inadequado, máquinas sem proteção, iluminação deficiente, risco de incêndio ou explosão, armazenamento inadequado, entre outros.'),
+        _title('Quantificação dos Riscos'),
+        _body(
+          'Depois de qualificar e localizar os riscos, a etapa seguinte é quantificá‑los. Isso é feito, sempre que possível, '
+          'por meio de medições com equipamentos específicos para cada agente (por exemplo, dosímetros, decibelímetros, bombas de amostragem).\n',
+        ),
+        _body(
+          'O Mapa de Risco pode ser construído sobre a planta baixa da empresa ou sobre fotos dos ambientes, o que facilita a compreensão dos trabalhadores. '
+          'Quando bem elaborado e divulgado, contribui para reduzir acidentes e doenças ocupacionais, reforçando a cultura de prevenção.\n',
+        ),
+      ],
     );
   }
 }
