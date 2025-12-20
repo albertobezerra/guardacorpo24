@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/components/carregamento/barradecarregamento.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -14,7 +15,10 @@ class ConsultaCa extends StatefulWidget {
 
 class _ConsultaCaState extends State<ConsultaCa> {
   late final WebViewController _controller;
-  bool _isLoading = true; // Declaração de Variável de Estado
+  bool _isLoading = true;
+
+  // Cor principal do tema
+  final Color primaryColor = const Color(0xFF006837);
 
   @override
   void initState() {
@@ -35,14 +39,18 @@ class _ConsultaCaState extends State<ConsultaCa> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-            });
+            if (mounted) {
+              setState(() {
+                _isLoading = true;
+              });
+            }
           },
           onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-            });
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
           },
         ),
       )
@@ -58,51 +66,56 @@ class _ConsultaCaState extends State<ConsultaCa> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Consulta de C.A'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/epi.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white, // Fundo Clean
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'CONSULTA DE C.A',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: primaryColor,
+            fontSize: 16,
+            letterSpacing: 1.0,
           ),
         ),
+        actions: [
+          // Botão de Refresh útil para WebViews
+          IconButton(
+            icon: Icon(Icons.refresh, color: primaryColor),
+            onPressed: () {
+              _controller.reload();
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
+          // Barra de progresso linear opcional no topo (estilo navegador)
+          if (_isLoading)
+            LinearProgressIndicator(
+              color: primaryColor,
+              backgroundColor: Colors.white,
+              minHeight: 2,
+            ),
+
+          Expanded(
             child: Stack(
               children: [
                 WebViewWidget(controller: _controller),
-                _isLoading
-                    ? const Center(child: CustomLoadingIndicator())
-                    : Container(),
+                if (_isLoading) const Center(child: CustomLoadingIndicator()),
               ],
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: ConditionalBannerAdWidget(),
-          ),
+
+          // Anúncio Fixo na base
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );
