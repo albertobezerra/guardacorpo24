@@ -1,5 +1,4 @@
 // lib/services/provider/userProvider.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +10,10 @@ class UserProvider with ChangeNotifier {
   String? _userName;
   String? _userPhotoUrl;
 
-  // Dados de Assinatura
+  // Dados de Assinatura / Benefício
   bool _isPremium = false;
-  String _planType = '';
+  String _planType =
+      ''; // monthly_full, monthly_ad_free, reward_full_access, ad_free_reward
   DateTime? _expiryDate;
   String? _errorMessage;
   bool _hasEverSubscribedPremium = false;
@@ -26,7 +26,7 @@ class UserProvider with ChangeNotifier {
   int _screenCountSinceLastAd = 0;
   final int _adFrequency = 4;
 
-  // Getters Públicos
+  // Getters
   bool get isLoggedIn => _isLoggedIn;
   String? get userName => _userName;
   String? get userPhotoUrl => _userPhotoUrl;
@@ -49,16 +49,17 @@ class UserProvider with ChangeNotifier {
     loadFromCache();
   }
 
+  // Nome amigável do benefício
   String get planDisplayName {
     switch (_planType) {
       case 'monthly_full':
-        return 'Premium';
+        return 'Premium (mensal)';
       case 'monthly_ad_free':
-        return 'Livre de Publicidade';
+        return 'Sem anúncios (mensal)';
       case 'reward_full_access':
-        return 'Premium via Recompensa';
+        return 'Premium (via pontos)';
       case 'ad_free_reward':
-        return 'Sem Anúncios via Recompensa';
+        return 'Sem anúncios (via pontos)';
       default:
         return 'Nenhum benefício ativo';
     }
@@ -80,8 +81,10 @@ class UserProvider with ChangeNotifier {
     } else {
       await prefs.remove('expiryDate');
     }
+
     await prefs.setBool('hasEverSubscribedPremium', _hasEverSubscribedPremium);
     await prefs.setInt('rewardPoints', _rewardPoints);
+
     if (_rewardExpiryDate != null) {
       await prefs.setInt(
           'rewardExpiryDate', _rewardExpiryDate!.millisecondsSinceEpoch);
@@ -90,7 +93,6 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  // Em userProvider.dart
   void setUserPhotoUrl(String? url) {
     _userPhotoUrl = url;
     notifyListeners();
@@ -109,9 +111,11 @@ class UserProvider with ChangeNotifier {
     _expiryDate = expiryMillis != null
         ? DateTime.fromMillisecondsSinceEpoch(expiryMillis)
         : null;
+
     _hasEverSubscribedPremium =
         prefs.getBool('hasEverSubscribedPremium') ?? false;
     _rewardPoints = prefs.getInt('rewardPoints') ?? 0;
+
     final rewardExpiryMillis = prefs.getInt('rewardExpiryDate');
     _rewardExpiryDate = rewardExpiryMillis != null
         ? DateTime.fromMillisecondsSinceEpoch(rewardExpiryMillis)
@@ -135,7 +139,10 @@ class UserProvider with ChangeNotifier {
     bool? hasEverSubscribedPremium,
   }) {
     _isLoggedIn = isLoggedIn;
-    _isPremium = isPremium || planType == 'reward_full_access';
+    // premium completo: full mensal ou via pontos
+    _isPremium = isPremium ||
+        planType == 'reward_full_access' ||
+        planType == 'monthly_full';
     _planType = planType;
     _expiryDate = expiryDate;
     _hasEverSubscribedPremium =
@@ -170,7 +177,7 @@ class UserProvider with ChangeNotifier {
 
   Future<void> activateReward({
     required int cost,
-    required String type,
+    required String type, // 'reward_full_access' ou 'ad_free_reward'
     required int days,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -200,8 +207,9 @@ class UserProvider with ChangeNotifier {
 
     if (type == 'reward_full_access') {
       _expiryDate = newExpiry;
-      _isPremium = true;
+      _isPremium = true; // premium via pontos
     } else {
+      // ad_free_reward: apenas remove anúncios
       _isPremium = false;
     }
 
@@ -217,6 +225,7 @@ class UserProvider with ChangeNotifier {
   }
 
   bool hasPremiumPlan() => _planType == 'monthly_full';
+
   bool canAccessPremiumScreen() =>
       _isPremium &&
       (_planType == 'monthly_full' || _planType == 'reward_full_access');
@@ -255,7 +264,6 @@ class UserProvider with ChangeNotifier {
       if (user == null) {
         resetSubscription();
       } else {
-        // Atualiza dados básicos do Auth
         _userName = user.displayName;
         _userPhotoUrl = user.photoURL;
 
@@ -267,7 +275,6 @@ class UserProvider with ChangeNotifier {
           if (snapshot.exists) {
             final data = snapshot.data()!;
 
-            // Atualiza nome se vier do Firestore também
             if (data.containsKey('name')) {
               _userName = data['name'];
             }
@@ -275,9 +282,11 @@ class UserProvider with ChangeNotifier {
             final expiryDate = (data['expiryDate'] as Timestamp?)?.toDate();
             final planType = data['planType'] ?? '';
             final subscriptionStatus = data['subscriptionStatus'] ?? 'inactive';
+
             final isPremium = subscriptionStatus == 'active' &&
                 expiryDate != null &&
                 expiryDate.isAfter(DateTime.now());
+
             final hasEverSubscribedPremium =
                 data['hasEverSubscribedPremium'] == true;
             final rewardPoints = data['rewardPoints'] ?? 0;
@@ -301,6 +310,7 @@ class UserProvider with ChangeNotifier {
   void checkSubscriptionAndRewards() {
     final now = DateTime.now();
 
+    // Expirou assinatura mensal
     if (_expiryDate != null && _expiryDate!.isBefore(now)) {
       if (_planType == 'monthly_full' || _planType == 'monthly_ad_free') {
         _planType = '';
@@ -309,6 +319,7 @@ class UserProvider with ChangeNotifier {
       }
     }
 
+    // Expirou recompensa
     if (_rewardExpiryDate != null && _rewardExpiryDate!.isBefore(now)) {
       _rewardExpiryDate = null;
       if (_planType == 'reward_full_access' || _planType == 'ad_free_reward') {
@@ -317,13 +328,14 @@ class UserProvider with ChangeNotifier {
       }
     }
 
+    // Se recompensa premium ainda válida
     if (_planType == 'reward_full_access' &&
         _rewardExpiryDate != null &&
         _rewardExpiryDate!.isAfter(now)) {
       _isPremium = true;
     }
 
+    // Premium completo: mensal full ou via pontos
     if (_planType == 'monthly_full') _isPremium = true;
-    if (_planType == 'monthly_ad_free') _isPremium = false;
   }
 }

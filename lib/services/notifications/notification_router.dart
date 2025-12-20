@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:guarda_corpo_2024/main.dart';
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/01_nrs/01_nr_base.dart';
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/04_dds/01_dds_base.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/02_inspecao/view_inspecoes.dart';
+import 'package:guarda_corpo_2024/matriz/04_premium/subscription_service.dart';
 
 void handleNotificationNavigation(Map<String, dynamic> data) {
   final context = navigatorKey.currentContext;

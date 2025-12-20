@@ -6,115 +6,125 @@ class Cipa extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: const Text(
-            'CIPA',
-            style: TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/treinamentos.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'CIPA',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.justify,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontFamily: 'Segoe',
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                          children: [
-                            TextSpan(
-                              text:
-                                  'A CIPA (Comissão Interna de Prevenção de Acidentes) é composta por colaboradores que visam promover a saúde e a segurança no trabalho, prevenindo acidentes e doenças ocupacionais. A comissão é formada por representantes dos empregados e do empregador.\n\n'
-                                  'O principal objetivo da CIPA é observar e relatar condições de risco no ambiente de trabalho, além de solicitar medidas para reduzir, eliminar ou neutralizar esses riscos.\n\n'
-                                  'O mandato dos membros da CIPA dura um ano, com possibilidade de reeleição por mais um ano. O número de membros é determinado pelo dimensionamento previsto na NR 5, considerando o número de empregados e o CNAE da empresa.\n\n'
-                                  'O treinamento dos membros da CIPA pode ser ministrado por técnicos em segurança do trabalho, engenheiros de segurança, membros do SESMT, profissionais de entidades sindicais, ou outros com conhecimento nos temas listados na NR 5, item 5.32.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Atribuições da CIPA\n',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            TextSpan(
-                              text:
-                                  '• Auxiliar na investigação de acidentes de trabalho;\n'
-                                  '• Sugerir medidas de prevenção e neutralização de riscos;\n'
-                                  '• Divulgar e zelar pela observância das normas de segurança;\n'
-                                  '• Incentivar a conscientização sobre a segurança no trabalho;\n'
-                                  '• Realizar inspeções periódicas e relatar riscos ao SESMT;\n'
-                                  '• Promover anualmente a Semana Interna de Prevenção de Acidentes (SIPAT);\n'
-                                  '• Participar de campanhas de prevenção à AIDS;\n'
-                                  '• Participar das reuniões mensais e extraordinárias;\n'
-                                  '• Registrar reuniões e compartilhar as atas com os membros;\n'
-                                  '• Discutir CATs emitidas e sugerir melhorias no ambiente de trabalho;\n'
-                                  '• Investigar acidentes e acompanhar medidas corretivas;\n'
-                                  '• Solicitar paralisação de atividades em caso de risco grave;\n'
-                                  '• Colaborar na implementação de programas de saúde no trabalho (PPRA, PCMSO);\n'
-                                  '• Elaborar o Mapa de Riscos da empresa junto ao SESMT.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Funções na CIPA\n',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            TextSpan(
-                              text:
-                                  '• Presidente: Representante do empregador, indicado por ele.\n'
-                                  '• Vice-Presidente: Representante dos empregados, eleito.\n'
-                                  '• Secretário e Vice-Secretário: Escolhidos em comum acordo entre representantes eleitos e indicados.\n'
-                                  '• Membros da CIPA: Representantes eleitos pelos empregados e indicados pelo empregador.\n\n',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: const _CipaContent(),
             ),
           ),
           const ConditionalBannerAdWidget(),
         ],
       ),
+    );
+  }
+}
+
+class _CipaContent extends StatelessWidget {
+  const _CipaContent();
+
+  Widget _title(String text) => Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      );
+
+  Widget _body(String text) => Text(
+        text,
+        textAlign: TextAlign.justify,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.black87,
+          height: 1.6,
+        ),
+      );
+
+  Widget _bullet(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('• ',
+                style:
+                    TextStyle(fontSize: 16, height: 1.4, color: Colors.black)),
+            Expanded(
+              child: Text(
+                text,
+                textAlign: TextAlign.justify,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _body(
+          'A Comissão Interna de Prevenção de Acidentes (CIPA) é formada por representantes dos empregados e do empregador, '
+          'com o objetivo de promover a saúde e a segurança no trabalho, prevenindo acidentes e doenças ocupacionais.\n',
+        ),
+        _body(
+          'Entre suas atribuições está observar e relatar condições de risco, propor melhorias, acompanhar medidas de prevenção '
+          'e contribuir para a criação de uma cultura de segurança no ambiente de trabalho.\n',
+        ),
+        _title('Principais atribuições da CIPA'),
+        _bullet(
+            'Auxiliar na investigação e análise de acidentes e incidentes.'),
+        _bullet(
+            'Sugerir medidas para redução, eliminação ou neutralização de riscos.'),
+        _bullet('Divulgar e zelar pelo cumprimento das normas de segurança.'),
+        _bullet('Realizar inspeções periódicas nos locais de trabalho.'),
+        _bullet(
+            'Promover e organizar a SIPAT – Semana Interna de Prevenção de Acidentes.'),
+        _bullet('Acompanhar a implementação de programas como PGR e PCMSO.'),
+        _bullet('Colaborar na elaboração e atualização do Mapa de Riscos.'),
+        _title('Composição da CIPA'),
+        _body(
+          'A composição da CIPA é definida pela NR 5, considerando o CNAE e o número de empregados. '
+          'Os membros são representantes do empregador (indicados) e dos empregados (eleitos).\n',
+        ),
+        _bullet('Presidente: indicado pelo empregador.'),
+        _bullet(
+            'Vice‑presidente: eleito entre os representantes dos empregados.'),
+        _bullet('Secretário e vice‑secretário: escolhidos em comum acordo.'),
+      ],
     );
   }
 }

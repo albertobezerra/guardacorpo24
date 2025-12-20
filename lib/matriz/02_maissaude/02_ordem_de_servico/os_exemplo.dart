@@ -22,39 +22,34 @@ class OrdemExemploState extends State<OrdemExemplo> {
 
   Future<void> _loadPDF() async {
     await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Modelo de Ordem de Serviço'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/menu.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'MODELO DE ORDEM DE SERVIÇO',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),

@@ -6,106 +6,102 @@ class Os extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Ordem de Serviço'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/menu.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'ORDEM DE SERVIÇO',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.justify,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontFamily: 'Segoe',
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                          children: [
-                            TextSpan(
-                              text:
-                                  'A Ordem de Serviço é um documento importante que, quando assinado pelo colaborador, confirma que ele tem ciência dos riscos associados à sua atividade, bem como das responsabilidades tanto do empregado quanto do empregador.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Obrigações do Empregador\n\n',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextSpan(
-                              text:
-                                  'De acordo com a NR 1 (Norma Regulamentadora 1), no item 1.7, letra "B", é obrigação do empregador elaborar Ordens de Serviço para informar os colaboradores sobre os riscos presentes no ambiente de trabalho. Ao assinar esse documento, o funcionário reconhece que recebeu todas as informações sobre os possíveis riscos de sua função, bem como suas responsabilidades e as do empregador.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Responsabilidades do Empregado\n\n',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextSpan(
-                              text:
-                                  'No item 1.8, letra "A", a NR 1 também estabelece que é dever do empregado cumprir as normas de Segurança do Trabalho, assim como as Ordens de Serviço emitidas pelo empregador. O descumprimento dessas normas pode sujeitar o colaborador a medidas disciplinares.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Importância da Ordem de Serviço\n\n',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextSpan(
-                              text:
-                                  'A Ordem de Serviço é essencial para a proteção e conscientização dos trabalhadores em relação aos riscos do ambiente de trabalho. Além de proteger a integridade física dos colaboradores, ela estabelece um compromisso mútuo entre empregador e empregado para a segurança e saúde no ambiente laboral.\n\n',
-                            ),
-                            TextSpan(
-                              text:
-                                  'Com a assinatura da Ordem de Serviço, o colaborador declara estar ciente dos riscos e das medidas de segurança exigidas para o desempenho seguro de suas funções. Isso assegura que, em caso de acidentes, tanto empregador quanto empregado saibam exatamente suas responsabilidades, contribuindo para um ambiente de trabalho mais seguro e responsável.',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: const _OsContent(),
             ),
           ),
           const ConditionalBannerAdWidget(),
         ],
       ),
+    );
+  }
+}
+
+class _OsContent extends StatelessWidget {
+  const _OsContent();
+
+  Widget _title(String text) => Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      );
+
+  Widget _body(String text) => Text(
+        text,
+        textAlign: TextAlign.justify,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.black87,
+          height: 1.6,
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _body(
+          'A Ordem de Serviço (OS) é um documento formal que registra as orientações de segurança relativas a uma atividade, '
+          'deixando claro para o trabalhador quais são os riscos envolvidos e quais medidas de prevenção devem ser adotadas.\n',
+        ),
+        _title('Obrigações do empregador'),
+        _body(
+          'A NR 1 estabelece que o empregador deve elaborar Ordens de Serviço para informar os empregados sobre riscos '
+          'ocupacionais e medidas de proteção. Ao assinar a OS, o trabalhador declara ter recebido essas informações e '
+          'estar ciente das condições em que sua atividade será realizada.\n',
+        ),
+        _title('Responsabilidades do empregado'),
+        _body(
+          'Também é obrigação do empregado cumprir as normas de segurança e as Ordens de Serviço estabelecidas pela empresa. '
+          'O descumprimento pode acarretar medidas disciplinares e aumenta o risco de acidentes.\n',
+        ),
+        _title('Importância da Ordem de Serviço'),
+        _body(
+          'A OS é essencial para registrar a comunicação entre empregador e empregado sobre segurança. '
+          'Ela contribui para:\n'
+          '• Fortalecer a cultura de prevenção.\n'
+          '• Deixar claras as responsabilidades de cada parte.\n'
+          '• Reduzir a subnotificação de riscos e incidentes.\n'
+          '• Servir como evidência documental em auditorias e investigações de acidentes.\n',
+        ),
+        _body(
+          'Quando bem elaborada e explicada, a Ordem de Serviço reforça o compromisso da empresa com a saúde e a segurança '
+          'dos trabalhadores, auxiliando no cumprimento das normas legais e na proteção da vida.',
+        ),
+      ],
     );
   }
 }

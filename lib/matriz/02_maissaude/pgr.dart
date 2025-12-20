@@ -6,141 +6,61 @@ class Pgr extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: const Text(
-            'PPRA vs PGR',
-            style: TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/treinamentos.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'PPRA VS PGR',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.all(30),
-              alignment: AlignmentDirectional.topStart,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    RichText(
-                      textAlign: TextAlign.justify,
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontFamily: 'Segoe',
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Entendendo a Transição\n\n',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          TextSpan(
-                            text:
-                                'O Programa de Gerenciamento de Riscos (PGR) substituiu o Programa de Prevenção de Riscos Ambientais (PPRA) a partir de 3 de janeiro de 2022. Esta mudança marca uma evolução na gestão de Saúde e Segurança do Trabalho (SST) no Brasil, com foco em uma abordagem mais sistêmica e completa.\n\n',
-                          ),
-                          TextSpan(
-                            text: 'Diferenças Chave: PPRA x PGR\n\n',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Tabela de Comparação
-                    _buildComparisonTable(),
-
-                    const SizedBox(height: 20),
-
-                    RichText(
-                      textAlign: TextAlign.justify,
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontFamily: 'Segoe',
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                        children: [
-                          TextSpan(
-                            text:
-                                'Atualização Recente: Riscos Psicossociais\n\n',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          TextSpan(
-                            text:
-                                'A partir de **maio de 2025**, todas as empresas devem incluir a análise e controle de riscos psicossociais em seu PGR. Embora o Ministério do Trabalho tenha adiado a fiscalização para **maio de 2026** para dar tempo de adaptação, a inclusão desses riscos (como assédio, burnout e estresse) já é obrigatória.\n\n',
-                          ),
-                          TextSpan(
-                            text: 'Componentes de um PGR Robusto\n\n',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Lista numerada
-                    _buildNumberedList([
-                      '**Inventário de Riscos:** Detalhamento completo dos perigos e riscos ocupacionais.',
-                      '**Plano de Ação:** Estratégia para eliminar, minimizar ou controlar os riscos identificados.',
-                      '**Integração:** Articulação com outros programas de SST (PCMSO, CIPA, etc.).',
-                      '**Avaliação Contínua:** Revisões periódicas para assegurar a eficácia das medidas.',
-                    ]),
-                  ],
-                ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _PgrIntro(),
+                  const SizedBox(height: 12),
+                  _buildComparisonTable(),
+                  const SizedBox(height: 20),
+                  const _PgrPsychosocial(),
+                  const SizedBox(height: 8),
+                  _buildNumberedList([
+                    'Inventário de Riscos: Detalhamento dos perigos e riscos ocupacionais.',
+                    'Plano de Ação: Estratégias para eliminar, minimizar ou controlar riscos.',
+                    'Integração: Articulação com PCMSO, CIPA e demais programas de SST.',
+                    'Avaliação contínua: Revisões periódicas para manter a eficácia das medidas.',
+                  ]),
+                ],
               ),
             ),
           ),
-
-          // Banner de anúncio
           const ConditionalBannerAdWidget(),
         ],
       ),
     );
   }
 
-  // Tabela de comparação
   Widget _buildComparisonTable() {
     return Table(
-      border: TableBorder.all(color: Colors.grey),
+      border: TableBorder.all(color: Colors.grey.shade300),
       columnWidths: const {
         0: FlexColumnWidth(1),
         1: FlexColumnWidth(2),
@@ -148,7 +68,7 @@ class Pgr extends StatelessWidget {
       },
       children: [
         const TableRow(
-          decoration: BoxDecoration(color: Color.fromARGB(255, 230, 230, 230)),
+          decoration: BoxDecoration(color: Color(0xFFECECEC)),
           children: [
             _TableHeader('Característica'),
             _TableHeader('PPRA (extinto)'),
@@ -156,17 +76,30 @@ class Pgr extends StatelessWidget {
           ],
         ),
         _buildTableRow(
-            'Escopo',
-            'Riscos ambientais (físicos, químicos, biológicos)',
-            'Todos os riscos ocupacionais (ambientais, ergonômicos, acidentes, psicossociais)'),
-        _buildTableRow('Metodologia', 'Identificação e antecipação estática',
-            'Avaliação contínua de probabilidade e severidade'),
-        _buildTableRow('Documentação', 'Documento único (anual)',
-            'Inventário de Riscos e Plano de Ação (bienal ou trienal)'),
-        _buildTableRow('Intega', 'Não exigida',
-            'Integrado com outros programas de SST (PCMSO, AET)'),
+          'Escopo',
+          'Riscos ambientais (físicos, químicos, biológicos).',
+          'Todos os riscos ocupacionais (ambientais, ergonômicos, acidentes, psicossociais).',
+        ),
         _buildTableRow(
-            'Gestão', 'Burocrática', 'Sistêmica, focada em melhoria contínua'),
+          'Metodologia',
+          'Identificação e antecipação mais estática.',
+          'Avaliação contínua com foco em probabilidade e severidade.',
+        ),
+        _buildTableRow(
+          'Documentação',
+          'Documento único, geralmente anual.',
+          'Inventário de Riscos e Plano de Ação, com revisões periódicas.',
+        ),
+        _buildTableRow(
+          'Integração',
+          'Pouca integração formal com outros programas.',
+          'Integrado com demais instrumentos de SST (PCMSO, AET, etc.).',
+        ),
+        _buildTableRow(
+          'Gestão',
+          'Mais burocrática e reativa.',
+          'Sistêmica, orientada à melhoria contínua.',
+        ),
       ],
     );
   }
@@ -182,7 +115,36 @@ class Pgr extends StatelessWidget {
   }
 }
 
-// Widgets auxiliares para tabela
+class _PgrIntro extends StatelessWidget {
+  const _PgrIntro();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'O Programa de Gerenciamento de Riscos (PGR) substituiu o Programa de Prevenção de Riscos Ambientais (PPRA) em 2022, '
+      'representando uma mudança de foco: sai uma visão restrita a riscos ambientais e entra uma abordagem integrada de '
+      'todos os riscos ocupacionais.\n',
+      textAlign: TextAlign.justify,
+      style: TextStyle(fontSize: 14, height: 1.6),
+    );
+  }
+}
+
+class _PgrPsychosocial extends StatelessWidget {
+  const _PgrPsychosocial();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'Atualização recente: as empresas precisam incluir riscos psicossociais (como assédio, burnout e estresse) no PGR, '
+      'com prazo definido em norma para revisão do programa a partir de 2025, e fiscalização plena prevista para 2026, '
+      'segundo orientações do Ministério do Trabalho e de publicações especializadas. [web:139][web:142]\n',
+      textAlign: TextAlign.justify,
+      style: TextStyle(fontSize: 14, height: 1.6),
+    );
+  }
+}
+
 class _TableHeader extends StatelessWidget {
   final String text;
   const _TableHeader(this.text);
@@ -190,13 +152,12 @@ class _TableHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8),
       child: Text(
         text,
         style: const TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: 14.0,
-          fontFamily: 'Segoe Bold',
+          fontSize: 13,
         ),
         textAlign: TextAlign.center,
       ),
@@ -212,20 +173,18 @@ class _TableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 13.0,
+          fontSize: 13,
           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          fontFamily: 'Segoe',
         ),
       ),
     );
   }
 }
 
-// Lista numerada
 Widget _buildNumberedList(List<String> items) {
   return ListView.builder(
     shrinkWrap: true,
@@ -233,25 +192,21 @@ Widget _buildNumberedList(List<String> items) {
     itemCount: items.length,
     itemBuilder: (context, index) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 12.0),
+        padding: const EdgeInsets.only(bottom: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '${index + 1}. ',
               style: const TextStyle(
-                fontSize: 14.0,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Segoe Bold',
+                fontSize: 14,
               ),
             ),
             Expanded(
               child: Text(
                 items[index],
-                style: const TextStyle(
-                  fontSize: 14.0,
-                  fontFamily: 'Segoe',
-                ),
+                style: const TextStyle(fontSize: 14),
               ),
             ),
           ],

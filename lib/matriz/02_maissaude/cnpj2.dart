@@ -5,7 +5,6 @@ import 'package:guarda_corpo_2024/components/carregamento/barradecarregamento.da
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-// Formatador personalizado para aplicar a máscara de CNPJ
 class CnpjInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -44,9 +43,7 @@ class _CnpjState2 extends State<Cnpj2> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Função para consultar o CNPJ na BrasilAPI
   Future<void> _consultarCNPJ() async {
-    // Fecha o teclado
     FocusScope.of(context).unfocus();
 
     final cnpj = _cnpjController.text.replaceAll(RegExp(r'[^0-9]'), '');
@@ -72,7 +69,7 @@ class _CnpjState2 extends State<Cnpj2> {
         setState(() {
           _cnpjData = jsonDecode(response.body);
           _isLoading = false;
-          _cnpjController.clear(); // Limpa o TextField após busca bem-sucedida
+          _cnpjController.clear();
         });
       } else {
         setState(() {
@@ -90,7 +87,6 @@ class _CnpjState2 extends State<Cnpj2> {
     }
   }
 
-  // Função para copiar todos os dados consultados
   void _copiarTodosOsDados() {
     if (_cnpjData == null) return;
     final buffer = StringBuffer();
@@ -130,41 +126,33 @@ class _CnpjState2 extends State<Cnpj2> {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Consulta de CNPJ'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/menu.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'CONSULTA DE CNPJ',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
+          Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   TextField(
@@ -172,20 +160,18 @@ class _CnpjState2 extends State<Cnpj2> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                          18), // Máximo com máscara
-                      CnpjInputFormatter(), // Aplica a máscara
+                      LengthLimitingTextInputFormatter(18),
+                      CnpjInputFormatter(),
                     ],
-                    onSubmitted: (value) =>
-                        _consultarCNPJ(), // Chama a consulta ao pressionar Enter
+                    onSubmitted: (_) => _consultarCNPJ(),
                     decoration: InputDecoration(
                       labelText: 'Digite o CNPJ',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       prefixIcon: const Icon(
                         Icons.search,
-                        color: Color.fromARGB(255, 0, 104, 55),
+                        color: primary,
                       ),
                     ),
                   ),
@@ -193,11 +179,11 @@ class _CnpjState2 extends State<Cnpj2> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _consultarCNPJ,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 0, 104, 55),
+                      backgroundColor: primary,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
+                        borderRadius: BorderRadius.circular(18),
                       ),
                     ),
                     child: const Text(
@@ -205,7 +191,6 @@ class _CnpjState2 extends State<Cnpj2> {
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Segoe',
                       ),
                     ),
                   ),
@@ -217,7 +202,6 @@ class _CnpjState2 extends State<Cnpj2> {
                       _errorMessage!,
                       style: const TextStyle(
                         color: Colors.red,
-                        fontFamily: 'Segoe',
                         fontSize: 14,
                       ),
                     )
@@ -225,11 +209,12 @@ class _CnpjState2 extends State<Cnpj2> {
                     Expanded(
                       child: SingleChildScrollView(
                         child: Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          margin: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -240,43 +225,48 @@ class _CnpjState2 extends State<Cnpj2> {
                                 _buildInfoRow(
                                     'CNPJ', _cnpjData!['cnpj'] ?? 'N/A'),
                                 _buildInfoRow(
-                                    'Situação Cadastral',
-                                    _cnpjData![
-                                            'descricao_situacao_cadastral'] ??
-                                        'N/A'),
+                                  'Situação Cadastral',
+                                  _cnpjData!['descricao_situacao_cadastral'] ??
+                                      'N/A',
+                                ),
                                 _buildInfoRow(
-                                    'Data de Início',
-                                    _cnpjData!['data_inicio_atividade'] ??
-                                        'N/A'),
-                                _buildInfoRow('Endereço',
-                                    '${_cnpjData!['descricao_tipo_de_logradouro'] ?? ''} ${_cnpjData!['logradouro'] ?? ''}, ${_cnpjData!['numero'] ?? ''}, ${_cnpjData!['bairro'] ?? ''}, ${_cnpjData!['municipio'] ?? ''} - ${_cnpjData!['uf'] ?? ''}, CEP: ${_cnpjData!['cep'] ?? ''}'),
+                                  'Data de Início',
+                                  _cnpjData!['data_inicio_atividade'] ?? 'N/A',
+                                ),
                                 _buildInfoRow(
-                                    'CNAE Principal',
-                                    _cnpjData!['cnae_fiscal_descricao'] ??
-                                        'N/A'),
-                                _buildInfoRow('Natureza Jurídica',
-                                    _cnpjData!['natureza_juridica'] ?? 'N/A'),
-                                _buildInfoRow('Telefone',
-                                    _cnpjData!['ddd_telefone_1'] ?? 'N/A'),
+                                  'Endereço',
+                                  '${_cnpjData!['descricao_tipo_de_logradouro'] ?? ''} ${_cnpjData!['logradouro'] ?? ''}, ${_cnpjData!['numero'] ?? ''}, ${_cnpjData!['bairro'] ?? ''}, ${_cnpjData!['municipio'] ?? ''} - ${_cnpjData!['uf'] ?? ''}, CEP: ${_cnpjData!['cep'] ?? ''}',
+                                ),
+                                _buildInfoRow(
+                                  'CNAE Principal',
+                                  _cnpjData!['cnae_fiscal_descricao'] ?? 'N/A',
+                                ),
+                                _buildInfoRow(
+                                  'Natureza Jurídica',
+                                  _cnpjData!['natureza_juridica'] ?? 'N/A',
+                                ),
+                                _buildInfoRow(
+                                  'Telefone',
+                                  _cnpjData!['ddd_telefone_1'] ?? 'N/A',
+                                ),
                                 if (_cnpjData!['qsa'] != null &&
                                     (_cnpjData!['qsa'] as List).isNotEmpty)
                                   _buildInfoRow(
-                                      'Sócio Principal',
-                                      (_cnpjData!['qsa'] as List)
-                                              .first['nome_socio'] ??
-                                          'N/A'),
+                                    'Sócio Principal',
+                                    (_cnpjData!['qsa'] as List)
+                                            .first['nome_socio'] ??
+                                        'N/A',
+                                  ),
                                 const SizedBox(height: 16),
                                 Center(
                                   child: ElevatedButton(
                                     onPressed: _copiarTodosOsDados,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          const Color.fromARGB(255, 0, 104, 55),
+                                      backgroundColor: primary,
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 20, vertical: 12),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(18.0),
+                                        borderRadius: BorderRadius.circular(18),
                                       ),
                                     ),
                                     child: const Text(
@@ -284,7 +274,6 @@ class _CnpjState2 extends State<Cnpj2> {
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
-                                        fontFamily: 'Segoe',
                                       ),
                                     ),
                                   ),
@@ -299,10 +288,7 @@ class _CnpjState2 extends State<Cnpj2> {
               ),
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: ConditionalBannerAdWidget(),
-          ),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );
@@ -310,16 +296,15 @@ class _CnpjState2 extends State<Cnpj2> {
 
   Widget _buildInfoRow(String title, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: const TextStyle(
-              fontFamily: 'Segoe',
               fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 0, 104, 55),
+              color: Color(0xFF006837),
               fontSize: 16,
             ),
           ),
@@ -327,8 +312,8 @@ class _CnpjState2 extends State<Cnpj2> {
           SelectableText(
             value,
             style: const TextStyle(
-              fontFamily: 'Segoe',
               fontSize: 14,
+              color: Colors.black87,
             ),
           ),
         ],

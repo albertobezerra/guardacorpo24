@@ -1,3 +1,4 @@
+// lib/main.dart
 // ignore_for_file: use_build_context_synchronously
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:guarda_corpo_2024/theme/app_theme.dart';
 
-// IMPORTS DA NOVA NAVEGAÇÃO
-import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart'; // Sua barra nova
-import 'package:guarda_corpo_2024/services/provider/navigation_provider.dart'; // O estado da navegação
+// NOVA NAVEGAÇÃO
+import 'package:guarda_corpo_2024/components/barradenav/nav_station.dart';
+import 'package:guarda_corpo_2024/services/provider/navigation_provider.dart';
+
+// navigatorKey vem do SubscriptionService
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,11 +43,11 @@ void main() async {
 
   // Configuração global da status bar e navigation bar
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.white, // Fundo branco
-    statusBarIconBrightness: Brightness.dark, // Ícones pretos
-    statusBarBrightness: Brightness.light, // Para iOS: fundo claro
-    systemNavigationBarColor: Colors.white, // Navigation bar branca
-    systemNavigationBarIconBrightness: Brightness.dark, // Ícones pretos
+    statusBarColor: Colors.white,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.white,
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   runApp(const MyApp());
@@ -93,8 +96,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // AQUI: Mudamos NavBarPage para NavStation
-    _subscriptionService.startPurchaseListener(context, const NavStation());
+    // Listener de compras agora NÃO recebe context
+    _subscriptionService.startPurchaseListener(const NavStation());
     checkForUpdate();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndRequestReview();
@@ -119,7 +122,8 @@ class _MyAppState extends State<MyApp> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Atualização disponível. Baixando...')),
+              content: Text('Atualização disponível. Baixando...'),
+            ),
           );
         }
         if (info.immediateUpdateAllowed) {
@@ -154,7 +158,6 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (_) => InspecaoProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        // Provider de navegação adicionado
         ChangeNotifierProvider(create: (_) => NavigationState()),
       ],
       child: MaterialApp(
@@ -188,9 +191,11 @@ class _MyAppState extends State<MyApp> {
                 }
                 final hasCompletedOnboarding = snapshot.data![0];
                 final hasShownSplash = snapshot.data![1];
+
                 if (!hasCompletedOnboarding) {
                   return const OnboardingPage();
                 }
+
                 return StreamBuilder<User?>(
                   stream: FirebaseAuth.instance.authStateChanges(),
                   builder: (context, userSnapshot) {
@@ -198,6 +203,7 @@ class _MyAppState extends State<MyApp> {
                         ConnectionState.waiting) {
                       return const SplashScreen();
                     }
+
                     if (userSnapshot.hasData) {
                       final user = userSnapshot.data!;
                       return FutureBuilder<Map<String, dynamic>>(
@@ -215,7 +221,8 @@ class _MyAppState extends State<MyApp> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                        'Ocorreu um erro ao carregar suas informações.'),
+                                      'Ocorreu um erro ao carregar suas informações.',
+                                    ),
                                     ElevatedButton(
                                       onPressed: () => setState(() {}),
                                       child: const Text('Tentar Novamente'),
@@ -225,11 +232,12 @@ class _MyAppState extends State<MyApp> {
                               ),
                             );
                           }
-                          // AQUI: Trocamos NavBarPage por NavStation
+                          // Tela principal com a nova navegação
                           return const NavStation();
                         },
                       );
                     }
+
                     if (hasShownSplash) {
                       return const AuthPage();
                     }
@@ -243,29 +251,4 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
-}
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-// Função para criar MaterialColor personalizado
-MaterialColor createMaterialColor(Color color) {
-  List strengths = <double>[.05];
-  Map<int, Color> swatch = {};
-  // ignore: deprecated_member_use
-  final int r = color.red, g = color.green, b = color.blue;
-
-  for (int i = 1; i < 10; i++) {
-    strengths.add(0.1 * i);
-  }
-  for (var strength in strengths) {
-    final double ds = 0.5 - strength;
-    swatch[(strength * 1000).round()] = Color.fromRGBO(
-      r + ((ds < 0 ? r : (255 - r)) * ds).round(),
-      g + ((ds < 0 ? g : (255 - g)) * ds).round(),
-      b + ((ds < 0 ? b : (255 - b)) * ds).round(),
-      1,
-    );
-  }
-  // ignore: deprecated_member_use
-  return MaterialColor(color.value, swatch);
 }

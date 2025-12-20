@@ -6,52 +6,34 @@ class Nbrs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'NBRs relevantes'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/nbr.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'NBRS RELEVANTES',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: const SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ImportantDatesText(),
-                    ],
-                  ),
-                ),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: const _NbrsContent(),
             ),
           ),
           const ConditionalBannerAdWidget(),
@@ -61,56 +43,64 @@ class Nbrs extends StatelessWidget {
   }
 }
 
-class ImportantDatesText extends StatelessWidget {
-  const ImportantDatesText({super.key});
+class _NbrsContent extends StatelessWidget {
+  const _NbrsContent();
 
   @override
   Widget build(BuildContext context) {
-    const List<Map<String, String>> dates = [
+    const List<Map<String, String>> items = [
       {
-        "date": "NBR 9050",
-        "description":
-            "Acessibilidade a edificações, mobiliário, espaços e equipamentos urbanos."
+        'code': 'NBR 9050',
+        'desc':
+            'Acessibilidade a edificações, mobiliário, espaços e equipamentos urbanos.'
       },
       {
-        "date": "NBR 18801",
-        "description": "Sistemas de Gestão de Segurança e Saúde no Trabalho."
+        'code': 'NBR 18801',
+        'desc': 'Sistemas de gestão de segurança e saúde no trabalho.'
       },
       {
-        "date": "NBR 6493",
-        "description": "Emprego de Cores para identificação de tubulações"
+        'code': 'NBR 6493',
+        'desc': 'Emprego de cores para identificação de tubulações.'
       },
-      {"date": "NBR 7195", "description": "Cores para Sinalização."},
+      {'code': 'NBR 7195', 'desc': 'Cores para sinalização de segurança.'},
       {
-        "date": "NBR 13434",
-        "description":
-            "Sinalização de Seguraça conta Incêndio e Pânico - Simbolos e suas formas, dimensões e cores."
+        'code': 'NBR 13434',
+        'desc':
+            'Sinalização de segurança contra incêndio e pânico – símbolos, formas, dimensões e cores.'
       },
       {
-        "date": "NBR 13966",
-        "description": "Ergonomia - Móveis para escritórios - Mesas."
+        'code': 'NBR 13966',
+        'desc': 'Ergonomia – móveis para escritórios – mesas.'
       },
     ];
 
-    return RichText(
-      textAlign: TextAlign.justify,
-      text: TextSpan(
-        style: const TextStyle(
-          fontSize: 14,
-          color: Colors.black,
-        ),
-        children: dates
-            .map((dateMap) => TextSpan(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items
+          .map(
+            (e) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RichText(
+                textAlign: TextAlign.justify,
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
                   children: [
                     TextSpan(
-                      text: '${dateMap["date"]} - ',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      text: '${e['code']} - ',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    TextSpan(text: '${dateMap["description"]}\n\n'),
+                    TextSpan(text: e['desc']),
                   ],
-                ))
-            .toList(),
-      ),
+                ),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }

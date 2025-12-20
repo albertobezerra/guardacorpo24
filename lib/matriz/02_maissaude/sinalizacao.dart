@@ -6,207 +6,105 @@ class Sinalizacao extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Sinalização de Segurança'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/treinamentos.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'SINALIZAÇÃO DE SEGURANÇA',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: const SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'A sinalização de segurança é essencial para orientar e proteger os colaboradores no ambiente de trabalho. Abaixo estão as principais categorias de sinalização e suas especificações:',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        'Sinalização de Perigo',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'Esta categoria adverte sobre situações, objetos ou ações que possam causar dano ou lesão pessoal, além de afetar as instalações.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '\nCaracterísticas dos sinais de perigo:',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '• Forma triangular;\n'
-                        '• Pictograma negro sobre fundo amarelo, com margem negra;\n'
-                        '• A cor amarela deve cobrir pelo menos 50% da superfície da placa.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '\nSinalização de Proibição',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'Os sinais desta categoria têm como objetivo impedir comportamentos que possam colocar em risco a segurança de indivíduos.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '\nCaracterísticas dos sinais de proibição:',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '• Forma redonda;\n'
-                        '• Pictograma negro sobre fundo branco, com margem e faixa vermelhas;\n'
-                        '• A faixa diagonal vermelha deve estar a 45º, descendo da esquerda para a direita sobre o pictograma.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        'Sinalização de Salvamento ou Emergência',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'Estes sinais indicam, em caso de perigo, as saídas de emergência, o caminho para o posto de socorro ou o local onde estão disponíveis dispositivos de salvamento.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '\nCaracterísticas dos sinais de salvamento ou emergência:',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '• Forma retangular ou quadrada;\n'
-                        '• Pictograma branco sobre fundo verde;\n'
-                        '• A cor verde deve cobrir pelo menos 50% da superfície da placa.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        'Sinalização de Material de Combate a Incêndio',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'Os sinais desta categoria indicam a localização de equipamentos de combate a incêndio, para utilização em caso de emergência.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '\nCaracterísticas dos sinais de combate a incêndio:',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '• Forma retangular ou quadrada;\n'
-                        '• Pictograma branco sobre fundo vermelho;\n'
-                        '• A cor vermelha deve cobrir pelo menos 50% da superfície da placa.',
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: const _SinalizacaoContent(),
             ),
           ),
           const ConditionalBannerAdWidget(),
         ],
       ),
+    );
+  }
+}
+
+class _SinalizacaoContent extends StatelessWidget {
+  const _SinalizacaoContent();
+
+  Widget _title(String text) => Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      );
+
+  Widget _body(String text) => Text(
+        text,
+        textAlign: TextAlign.justify,
+        style: const TextStyle(fontSize: 14, height: 1.6),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _body(
+          'A sinalização de segurança orienta e protege trabalhadores, indicando perigos, proibições, rotas de fuga e equipamentos de emergência.\n',
+        ),
+        _title('Sinalização de perigo'),
+        _body(
+          'Adverte sobre situações, objetos ou ações que possam causar danos às pessoas ou às instalações.\n\n'
+          'Características:\n'
+          '• Forma triangular.\n'
+          '• Pictograma preto sobre fundo amarelo, com borda preta.\n'
+          '• A cor amarela deve ocupar pelo menos 50% da área da placa.\n',
+        ),
+        _title('Sinalização de proibição'),
+        _body(
+          'Visa impedir comportamentos que possam gerar riscos à segurança.\n\n'
+          'Características:\n'
+          '• Forma circular.\n'
+          '• Pictograma preto sobre fundo branco, com borda e faixa vermelhas.\n'
+          '• Faixa diagonal vermelha a 45°, descendo da esquerda para a direita.\n',
+        ),
+        _title('Sinalização de salvamento / emergência'),
+        _body(
+          'Indica saídas de emergência, rotas de fuga, locais de primeiros socorros e dispositivos de resgate.\n\n'
+          'Características:\n'
+          '• Forma retangular ou quadrada.\n'
+          '• Pictograma branco sobre fundo verde.\n'
+          '• O verde deve ocupar pelo menos 50% da área da placa.\n',
+        ),
+        _title('Sinalização de combate a incêndio'),
+        _body(
+          'Mostra a localização de equipamentos de combate a incêndio, como extintores, hidrantes e alarmes.\n\n'
+          'Características:\n'
+          '• Forma retangular ou quadrada.\n'
+          '• Pictograma branco sobre fundo vermelho.\n'
+          '• O vermelho deve ocupar pelo menos 50% da área da placa.\n',
+        ),
+      ],
     );
   }
 }

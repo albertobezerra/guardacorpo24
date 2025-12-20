@@ -14,7 +14,7 @@ class Esocial extends StatefulWidget {
 
 class _EsocialState extends State<Esocial> {
   late final WebViewController _controller;
-  bool _isLoading = true; // Declaração de Variável de Estado
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -34,16 +34,8 @@ class _EsocialState extends State<Esocial> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-            });
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-            });
-          },
+          onPageStarted: (_) => setState(() => _isLoading = true),
+          onPageFinished: (_) => setState(() => _isLoading = false),
         ),
       )
       ..loadRequest(Uri.parse('https://www.gov.br/esocial/pt-br'));
@@ -57,52 +49,39 @@ class _EsocialState extends State<Esocial> {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'e-Social'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/esocial.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'E-SOCIAL',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
+          Expanded(
             child: Stack(
               children: [
                 WebViewWidget(controller: _controller),
-                _isLoading
-                    ? const Center(child: CustomLoadingIndicator())
-                    : Container(),
+                if (_isLoading) const Center(child: CustomLoadingIndicator()),
               ],
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: ConditionalBannerAdWidget(),
-          ),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

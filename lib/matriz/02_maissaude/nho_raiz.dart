@@ -73,6 +73,7 @@ class _NhoState extends State<Nho> {
       "pdf": "assets/nho/NHO11.pdf"
     },
   ];
+
   List<int> _getCtaPositions(int totalItems) {
     if (totalItems <= 10) {
       return [];
@@ -94,81 +95,101 @@ class _NhoState extends State<Nho> {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
+    final ctaPositions = _getCtaPositions(nho.length);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Normas de Higiene Ocupacional'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'NORMAS DE HIGIENE OCUPACIONAL',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/normas.jpg'),
-            fit: BoxFit.cover,
-          ),
+          textAlign: TextAlign.center,
         ),
       ),
       body: Column(
         children: [
-          Flexible(
-            flex: 12,
+          Expanded(
             child: MediaQuery.removePadding(
               context: context,
               removeTop: true,
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                child: ListView.builder(
-                  itemCount: nho.length,
-                  itemBuilder: (context, index) {
-                    final ctaPositions = _getCtaPositions(nho.length);
+              child: ListView.builder(
+                padding: const EdgeInsets.all(24),
+                itemCount: nho.length,
+                itemBuilder: (context, index) {
+                  if (ctaPositions.contains(index)) {
+                    return const RewardCTAWidget();
+                  }
 
-                    if (ctaPositions.contains(index)) {
-                      return const RewardCTAWidget();
-                    }
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
+                  final item = nho[index];
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: Colors.grey.withValues(alpha: 0.15)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
                       child: InkWell(
-                        onTap: () async {
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () {
                           InterstitialAdManager.showInterstitialAd(
                             context,
                             NhoBase(
-                                title: nho[index]["title"]!,
-                                pdfPath: nho[index][
-                                    "pdf"]!), // Passa o título e o caminho do PDF
+                              title: item["title"]!,
+                              pdfPath: item["pdf"]!,
+                            ),
                           );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
                           child: Row(
                             children: [
-                              const Icon(Icons.library_books),
-                              const SizedBox(width: 20),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: primary.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.library_books,
+                                  color: primary,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
-                                  nho[index]["title"]!.toUpperCase(),
+                                  item["title"]!.toUpperCase(),
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
                                   style: const TextStyle(
-                                    fontFamily: 'Segoe Bold',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: Color(0xFF2D3436),
                                   ),
                                 ),
                               ),
@@ -176,16 +197,13 @@ class _NhoState extends State<Nho> {
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-          const Flexible(
-            flex: 1,
-            child: ConditionalBannerAdWidget(),
-          ),
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

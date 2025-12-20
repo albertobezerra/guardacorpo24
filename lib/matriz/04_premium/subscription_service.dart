@@ -1,9 +1,13 @@
+// lib/matriz/04_premium/subscription_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
+
 import '../../services/provider/userProvider.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class SubscriptionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,11 +20,12 @@ class SubscriptionService {
     }
   }
 
-  void startPurchaseListener(BuildContext context, Widget homePage) {
+  /// Escuta global das compras (restauração/assinaturas em segundo plano).
+  /// NÃO recebe BuildContext, usa sempre navigatorKey.currentContext.
+  void startPurchaseListener(Widget homePage) {
     _inAppPurchase.purchaseStream.listen((purchaseDetailsList) {
       for (final purchase in purchaseDetailsList) {
-        if (!context.mounted) return;
-        _handlePurchase(purchase, context, homePage);
+        _handlePurchase(purchase, homePage);
       }
     }, onError: (error) {
       debugPrint('Erro ao ouvir stream de compras: $error');
@@ -28,16 +33,19 @@ class SubscriptionService {
   }
 
   Future<void> _handlePurchase(
-      PurchaseDetails purchase, BuildContext context, Widget homePage) async {
+    PurchaseDetails purchase,
+    Widget homePage,
+  ) async {
     if (purchase.status == PurchaseStatus.purchased ||
         purchase.status == PurchaseStatus.restored) {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        DateTime? transactionDate = purchase.transactionDate != null
+        final transactionDate = purchase.transactionDate != null
             ? DateTime.fromMillisecondsSinceEpoch(
-                int.parse(purchase.transactionDate!))
+                int.parse(purchase.transactionDate!),
+              )
             : DateTime.now();
-        DateTime expiryDate = transactionDate.add(const Duration(days: 30));
+        final expiryDate = transactionDate.add(const Duration(days: 30));
 
         final currentHasEverSubscribed =
             await _getCurrentHasEverSubscribedPremium(user.uid);
@@ -55,9 +63,9 @@ class SubscriptionService {
           SetOptions(merge: true),
         );
 
-        if (context.mounted) {
-          final userProvider =
-              Provider.of<UserProvider>(context, listen: false);
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          final userProvider = Provider.of<UserProvider>(ctx, listen: false);
           userProvider.updateSubscription(
             isLoggedIn: true,
             isPremium: purchase.productID == 'monthly_full',
@@ -71,23 +79,27 @@ class SubscriptionService {
           await _inAppPurchase.completePurchase(purchase);
         }
 
-        if (context.mounted) {
-          await _showSuccessAlert(context, purchase.productID);
-          if (context.mounted) {
+        final ctx2 = navigatorKey.currentContext;
+        if (ctx2 != null && ctx2.mounted) {
+          await _showSuccessAlert(ctx2, purchase.productID);
+          if (ctx2.mounted) {
             Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => homePage),
+              ctx2,
+              MaterialPageRoute(builder: (_) => homePage),
               (route) => false,
             );
           }
         }
       }
     } else if (purchase.status == PurchaseStatus.error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
-              content:
-                  Text('Erro ao processar compra: ${purchase.error?.message}')),
+            content: Text(
+              'Erro ao processar compra: ${purchase.error?.message}',
+            ),
+          ),
         );
       }
     }
@@ -102,8 +114,11 @@ class SubscriptionService {
         : false;
   }
 
+  /// Fluxo de compra normal chamado pela PremiumPage.
   Future<PurchaseDetails?> purchaseProduct(
-      ProductDetails product, Widget homePage) async {
+    ProductDetails product,
+    Widget homePage,
+  ) async {
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
     debugPrint('Iniciando compra do produto: ${product.id}');
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
@@ -115,11 +130,12 @@ class SubscriptionService {
             purchase.status == PurchaseStatus.restored) {
           final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
-            DateTime? transactionDate = purchase.transactionDate != null
+            final transactionDate = purchase.transactionDate != null
                 ? DateTime.fromMillisecondsSinceEpoch(
-                    int.parse(purchase.transactionDate!))
+                    int.parse(purchase.transactionDate!),
+                  )
                 : DateTime.now();
-            DateTime expiryDate = transactionDate.add(const Duration(days: 30));
+            final expiryDate = transactionDate.add(const Duration(days: 30));
 
             final currentHasEverSubscribed =
                 await _getCurrentHasEverSubscribedPremium(user.uid);
@@ -127,7 +143,9 @@ class SubscriptionService {
                 product.id == 'monthly_full' || currentHasEverSubscribed;
 
             debugPrint(
-                'Compra confirmada - planType: ${product.id}, expiryDate: $expiryDate');
+              'Compra confirmada - planType: ${product.id}, expiryDate: $expiryDate',
+            );
+
             await _firestore.collection('users').doc(user.uid).set(
               {
                 'planType': product.id,
@@ -139,10 +157,10 @@ class SubscriptionService {
               SetOptions(merge: true),
             );
 
-            final context = navigatorKey.currentContext;
-            if (context != null && context.mounted) {
+            final ctx = navigatorKey.currentContext;
+            if (ctx != null && ctx.mounted) {
               final userProvider =
-                  Provider.of<UserProvider>(context, listen: false);
+                  Provider.of<UserProvider>(ctx, listen: false);
               userProvider.updateSubscription(
                 isLoggedIn: true,
                 isPremium: product.id == 'monthly_full',
@@ -151,13 +169,12 @@ class SubscriptionService {
                 hasEverSubscribedPremium: hasEverSubscribedPremium,
               );
 
-              await _showSuccessAlert(context, product.id);
+              await _showSuccessAlert(ctx, product.id);
 
-              // Redirecionamento adicionado aqui
-              if (context.mounted) {
+              if (ctx.mounted) {
                 Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => homePage),
+                  ctx,
+                  MaterialPageRoute(builder: (_) => homePage),
                   (route) => false,
                 );
               }
@@ -166,19 +183,24 @@ class SubscriptionService {
             if (purchase.pendingCompletePurchase) {
               await _inAppPurchase.completePurchase(purchase);
             }
+
+            return purchase;
           }
-          return purchase;
         } else if (purchase.status == PurchaseStatus.error) {
           debugPrint('Erro na compra: ${purchase.error?.message}');
           throw Exception(
-              'Erro ao processar compra: ${purchase.error?.message}');
+            'Erro ao processar compra: ${purchase.error?.message}',
+          );
         }
       }
     }
     return null;
   }
 
-  Future<void> _showSuccessAlert(BuildContext context, String productId) async {
+  Future<void> _showSuccessAlert(
+    BuildContext context,
+    String productId,
+  ) async {
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -239,5 +261,3 @@ class SubscriptionService {
     }
   }
 }
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

@@ -6,125 +6,65 @@ class Riscoamb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Riscos Ambientais'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/riscos.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'RISCOS AMBIENTAIS',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.justify,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontFamily: 'Segoe',
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                          children: [
-                            TextSpan(
-                              text:
-                                  'Os agentes ambientais ou riscos ambientais são elementos ou substâncias presentes em diversos ambientes, que, acima dos limites de tolerância, podem ocasionar danos à saúde das pessoas.\n\n',
-                            ),
-                            TextSpan(
-                              text:
-                                  'Os agentes ambientais ou riscos ambientais são bastante debatidos e estudados na área de segurança e saúde do trabalho, principalmente na elaboração e implementação dos programas, como: Programa de Controle Médico de Saúde Ocupacional – PCMSO, Programa de Gerenciamento de Riscos – PGR, entre outros.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Os riscos são:\n\n',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text: 'Riscos Físicos - ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'São diversas formas de energia a que possam estar expostos os trabalhadores, tais como: ruído, vibrações, pressões anormais, temperaturas extremas, radiações ionizantes, radiações não ionizantes, bem como o infra-som e o ultra-som.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Riscos Químicos - ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'São as substâncias, compostos ou produtos que possam penetrar no organismo pela via respiratória, nas formas de poeiras, fumos, névoas, neblinas, gases ou vapores, ou que, pela natureza da atividade de exposição, possam ter contato ou ser absorvidos pelo organismo através da pele ou por ingestão;\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Riscos Biológicos - ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'São riscos oferecidos por diversos tipos de micro-organismos que possam infectar o indivíduo por vias respiratórias, contato com a pele ou ingestão. São as bactérias, fungos, bacilos, parasitas, protozoários, vírus, entre outros;\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Riscos de Acidentes - ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'Arranjo físico inadequado, Máquinas e equipamentos sem proteção, Ferramentas inadequadas ou defeituosas, Iluminação inadequada, Eletricidade, Probabilidade de incêndio ou explosão, Armazenamento inadequado, Animais peçonhentos, Outras situações de risco que poderão contribuir para a ocorrência de acidentes;\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Riscos Ergonômicos - ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'Esforço físico intenso, Levantamento e transporte manual de peso, Exigência de postura inadequada, Controle rígido de produtividade, Imposição de ritmos excessivos, Trabalho em turno e noturno, Jornadas de trabalho prolongadas, Monotonia e repetitividade, Outras situações causadoras de stress físico e/ou psíquico.\n\n',
-                            ),
-                            TextSpan(
-                              text:
-                                  'No PGR esses riscos ambientais ganham cores: riscos físicos (verde), químicos (vermelho), biológico (marrom), acidente (azul) e ergonômico (amarelo)',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: const _RiscoContent(),
             ),
           ),
           const ConditionalBannerAdWidget(),
         ],
       ),
+    );
+  }
+}
+
+class _RiscoContent extends StatelessWidget {
+  const _RiscoContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'Os agentes ou riscos ambientais são elementos ou substâncias presentes nos ambientes de trabalho que, acima dos limites de tolerância, '
+      'podem causar danos à saúde dos trabalhadores.\n\n'
+      'Esses riscos são a base de programas como o PGR e o PCMSO, pois orientam as medidas de prevenção e controle.\n\n'
+      'Riscos físicos: diversas formas de energia, como ruído, vibrações, pressões anormais, temperaturas extremas, radiações ionizantes e não ionizantes, '
+      'infra-som e ultra-som.\n\n'
+      'Riscos químicos: substâncias, compostos ou produtos que possam penetrar no organismo pela via respiratória (poeiras, fumos, névoas, neblinas, gases ou vapores) '
+      'ou por contato com a pele e ingestão.\n\n'
+      'Riscos biológicos: micro-organismos capazes de causar doenças, como bactérias, fungos, bacilos, parasitas, protozoários e vírus.\n\n'
+      'Riscos de acidentes: arranjo físico inadequado, máquinas e equipamentos sem proteção, ferramentas defeituosas, iluminação inadequada, eletricidade, '
+      'probabilidade de incêndio ou explosão, armazenamento inadequado, presença de animais peçonhentos e outras situações que favorecem acidentes.\n\n'
+      'Riscos ergonômicos: esforço físico intenso, levantamento e transporte manual de cargas, posturas inadequadas, ritmos excessivos, trabalho em turnos e noturno, '
+      'jornadas prolongadas, monotonia, repetitividade e demais fatores que geram estresse físico e/ou psíquico.\n\n'
+      'No PGR e nos mapas de risco, esses grupos costumam ser representados por cores: físicos (verde), químicos (vermelho), biológicos (marrom), '
+      'acidentes (azul) e ergonômicos (amarelo).',
+      textAlign: TextAlign.justify,
+      style: TextStyle(fontSize: 14, height: 1.6, color: Colors.black87),
     );
   }
 }

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/matriz/02_maissaude/primeiros_soc_base.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
-
-import '../../services/admob/conf/interstitial_ad_manager.dart';
+import 'package:guarda_corpo_2024/services/admob/conf/interstitial_ad_manager.dart';
 
 class PrimeirosSocRz extends StatefulWidget {
   const PrimeirosSocRz({super.key});
@@ -53,32 +52,25 @@ class _PrimeirosSocRzState extends State<PrimeirosSocRz> {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Primeiros Socorros'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/cid.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'PRIMEIROS SOCORROS',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: primary,
+            letterSpacing: 1.0,
           ),
         ),
       ),
@@ -88,40 +80,66 @@ class _PrimeirosSocRzState extends State<PrimeirosSocRz> {
             child: MediaQuery.removePadding(
               context: context,
               removeTop: true,
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                child: ListView.builder(
-                  itemCount: socorros.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 5,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(24),
+                itemCount: socorros.length,
+                itemBuilder: (context, index) {
+                  final item = socorros[index];
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: Colors.grey.withValues(alpha: 0.15)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
                       child: InkWell(
-                        onTap: () async {
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () {
                           InterstitialAdManager.showInterstitialAd(
                             context,
                             PrimeirosSocBase(
-                                title: socorros[index]["title"]!,
-                                content: socorros[index][
-                                    "content"]!), // Passa o título e o conteúdo
+                              title: item["title"]!,
+                              content: item["content"]!,
+                            ),
                           );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
                           child: Row(
                             children: [
-                              const Icon(Icons.library_books),
-                              const SizedBox(width: 20),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: primary.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.medical_services_outlined,
+                                  color: primary,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
-                                  socorros[index]["title"]!.toUpperCase(),
-                                  maxLines: 3,
+                                  item["title"]!.toUpperCase(),
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  softWrap: false,
                                   style: const TextStyle(
-                                    fontFamily: 'Segoe Bold',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: Color(0xFF2D3436),
                                   ),
                                 ),
                               ),
@@ -129,13 +147,13 @@ class _PrimeirosSocRzState extends State<PrimeirosSocRz> {
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-          const ConditionalBannerAdWidget(), // Mantém o BannerAdWidget fixo na parte inferior
+          const ConditionalBannerAdWidget(),
         ],
       ),
     );

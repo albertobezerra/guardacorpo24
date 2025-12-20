@@ -6,103 +6,100 @@ class Tecnico extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Técnico em Segurança do Trabalho'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'TÉCNICO EM SEGURANÇA DO TRABALHO',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            color: primary,
+            letterSpacing: 1.0,
           ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/tecnico.jpg'),
-            fit: BoxFit.cover,
-          ),
+          textAlign: TextAlign.center,
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.justify,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontFamily: 'Segoe',
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                          children: [
-                            TextSpan(
-                              text:
-                                  'O profissional de Segurança do Trabalho atua conforme sua formação, seja médico, enfermeiro, engenheiro ou técnico.\n\n'
-                                  'De modo geral, o técnico de segurança e o engenheiro atuam no desenvolvimento dos programas de prevenção de acidentes, CIPA, uso correto dos EPI\'s, na elaboração de planos de prevenção a riscos ambientais, inspeções de segurança, laudos técnicos e organização de palestras e treinamentos.\n\n'
-                                  'O médico e o enfermeiro do trabalho se dedicam à prevenção de doenças, realizando consultas, tratamentos e os exames ocupacionais.\n\n'
-                                  'O Ministério do Trabalho e Emprego (MTE) descreve a ocupação do Técnico em Segurança do Trabalho: Participam da elaboração e implementam políticas de saúde e segurança do trabalho, realizam diagnóstico da situação de SST da instituição, identificam variáveis de controle de doenças, acidentes, qualidade de vida e meio ambiente.\n\n'
-                                  'Desenvolvem ações educativas na área de saúde e segurança do trabalho; integram processos de negociação. Participam da adoção de tecnologias e processos de trabalho; investigam, analisam acidentes de trabalho e recomendam medidas de prevenção e controle.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Novas Tecnologias e Desafios\n\n',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'Com a evolução tecnológica, o campo de Segurança do Trabalho também se adapta a novos desafios. A introdução de tecnologias como a Internet das Coisas (IoT) e a Inteligência Artificial (IA) tem permitido monitorar condições de trabalho em tempo real, identificar potenciais riscos e agir preventivamente.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Importância da Cultura de Segurança\n\n',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  'Além das medidas técnicas, a criação de uma cultura de segurança no ambiente de trabalho é fundamental. Isso envolve conscientização contínua, engajamento dos funcionários e lideranças comprometidas. Workshops, campanhas de conscientização e programas de incentivo ajudam a manter a segurança como uma prioridade diária.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Exemplos Práticos\n\n',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text:
-                                  '- Engenharia de Segurança: Desenvolvimento de sistemas de ventilação em minas para evitar a exposição a gases tóxicos.\n'
-                                  '- Medicina do Trabalho: Implementação de programas de vacinação contra doenças ocupacionais.\n'
-                                  '- Ergonomia: Projeto de estações de trabalho que reduzam o esforço físico e previnam lesões por movimentos repetitivos.\n\n'
-                                  'O campo de Segurança do Trabalho está em constante evolução, exigindo dos profissionais uma atualização constante e um compromisso contínuo com a saúde e o bem-estar dos trabalhadores.',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: const _TecnicoContent(),
             ),
           ),
           const ConditionalBannerAdWidget(),
         ],
       ),
+    );
+  }
+}
+
+class _TecnicoContent extends StatelessWidget {
+  const _TecnicoContent();
+
+  Widget _title(String text) => Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      );
+
+  Widget _body(String text) => Text(
+        text,
+        textAlign: TextAlign.justify,
+        style: const TextStyle(fontSize: 14, height: 1.6),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _body(
+          'O profissional de Segurança do Trabalho pode atuar como técnico, engenheiro, médico ou enfermeiro, conforme a formação. '
+          'O técnico em segurança do trabalho tem papel central no dia a dia das empresas, apoiando a prevenção de acidentes e doenças ocupacionais.\n',
+        ),
+        _title('Atuação do técnico'),
+        _body(
+          'Entre as principais atividades estão:\n'
+          '• Desenvolver e acompanhar programas de prevenção de acidentes e doenças.\n'
+          '• Apoiar a CIPA e demais comissões de segurança.\n'
+          '• Orientar sobre uso adequado de EPI e EPC.\n'
+          '• Realizar inspeções de segurança, registrar não conformidades e propor melhorias.\n'
+          '• Elaborar relatórios, laudos básicos e participar de treinamentos e campanhas.\n',
+        ),
+        _title('Trabalho em equipe multiprofissional'),
+        _body(
+          'O técnico atua em conjunto com engenheiros de segurança, médicos e enfermeiros do trabalho, bem como com gestores e RH. '
+          'Enquanto a área médica foca em prevenção de doenças e exames ocupacionais, o técnico concentra-se nas condições de ambiente, '
+          'organização do trabalho e comportamentos seguros.\n',
+        ),
+        _title('Novos desafios e tecnologias'),
+        _body(
+          'A evolução tecnológica trouxe recursos como monitoramento em tempo real, sensores, análises de dados e sistemas digitais de gestão de SST. '
+          'Cabe ao técnico atualizar-se continuamente para usar essas ferramentas e melhorar a prevenção.\n',
+        ),
+        _title('Cultura de segurança'),
+        _body(
+          'Mais do que cumprir normas, o técnico contribui para construir uma cultura de segurança, estimulando a participação dos trabalhadores, '
+          'a comunicação aberta sobre riscos e o aprendizado com incidentes. Essa abordagem reduz acidentes e fortalece o bem-estar no trabalho.\n',
+        ),
+      ],
     );
   }
 }

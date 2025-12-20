@@ -6,6 +6,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 class NhoBase extends StatefulWidget {
   final String title;
   final String pdfPath;
+
   const NhoBase({
     super.key,
     required this.title,
@@ -18,60 +19,51 @@ class NhoBase extends StatefulWidget {
 
 class _NhoBaseState extends State<NhoBase> {
   final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
-  bool _isLoading = true; // Declaração de Variável de Estado
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadPDF(); // Método chamado na inicialização
+    _loadPDF();
   }
 
   Future<void> _loadPDF() async {
-    // Simulate a delay for loading
     await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      _isLoading = false; // Atualiza o estado após o carregamento
-    });
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    const primary = Color(0xFF006837);
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            widget.title.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          widget.title.toUpperCase(),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            color: primary,
+            letterSpacing: 1.0,
           ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/normas.jpg'),
-            fit: BoxFit.cover,
-          ),
+          textAlign: TextAlign.center,
         ),
       ),
       body: Column(
         children: [
           Expanded(
             child: _isLoading
-                ? const Center(
-                    child:
-                        CustomLoadingIndicator()) // Indicador de Carregamento
+                ? const Center(child: CustomLoadingIndicator())
                 : SfPdfViewer.asset(
                     widget.pdfPath,
                     key: _pdfViewerKey,
