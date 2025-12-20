@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart'; // Importação da tela de autenticação
+import 'package:google_fonts/google_fonts.dart';
+import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
+import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart'; // Importe sua tela de onboarding se existir
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -10,115 +12,104 @@ class SplashScreen extends StatefulWidget {
   SplashScreenState createState() => SplashScreenState();
 }
 
-Future<void> saveSharedPreferences({
-  required bool isLoggedIn,
-  required bool isPremium,
-  required String planType,
-  required bool hasShownSplash,
-}) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('isLoggedIn', isLoggedIn);
-  await prefs.setBool('isPremium', isPremium);
-  await prefs.setString('planType', planType);
-  await prefs.setBool('hasShownSplash', hasShownSplash);
-}
+class SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnimation;
+  late Animation<double> _scaleAnimation;
 
-class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _startSplashScreenTimer();
+
+    // Configuração da animação
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    );
+
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
+
+    _controller.forward();
+
+    // Inicia a verificação de navegação
+    _navigateNext();
   }
 
-  Future<void> _startSplashScreenTimer() async {
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _navigateNext() async {
+    // Aguarda um tempo mínimo para exibir a marca (2 a 3 segundos)
     await Future.delayed(const Duration(seconds: 3));
 
-    // Define que o splash já foi mostrado
-    await saveSharedPreferences(
-      isLoggedIn: false, // O usuário ainda pode não estar logado
-      isPremium: false,
-      planType: '',
-      hasShownSplash: true,
-    );
+    final prefs = await SharedPreferences.getInstance();
+    final bool hasCompletedOnboarding =
+        prefs.getBool('hasCompletedOnboarding') ?? false;
 
     if (!mounted) return;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const AuthPage()),
-    );
+    if (hasCompletedOnboarding) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthPage()),
+      );
+    } else {
+      // Se não viu o onboarding, vai para ele primeiro
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const OnboardingPage()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-
-    double textoPrincipalResponsivo;
-    FontWeight fonteNegrito;
-
-    if (screenHeight < 800) {
-      textoPrincipalResponsivo = 20;
-      fonteNegrito = FontWeight.normal;
-    } else if (screenHeight < 1000) {
-      textoPrincipalResponsivo = 30;
-      fonteNegrito = FontWeight.bold;
-    } else {
-      textoPrincipalResponsivo = 37;
-      fonteNegrito = FontWeight.normal;
-    }
-
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/index.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withValues(alpha: .9),
-                Colors.black.withValues(alpha: .8),
-                Colors.black.withValues(alpha: .2),
-              ],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Center(
-                  child: Text(
-                    'Saúde e Segurança\ndo Trabalho na\npalma da mão.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: textoPrincipalResponsivo,
-                      fontFamily: 'Segoe Black',
-                    ),
-                  ),
+      backgroundColor: Colors.white, // Fundo Clean
+      body: Center(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Opacity(
+              opacity: _opacityAnimation.value,
+              child: Transform.scale(
+                scale: _scaleAnimation.value,
+                child: child,
+              ),
+            );
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo Central
+              Image.asset(
+                'assets/images/logo_horizontal.png', // Seu logo principal (sem fundo ou fundo branco)
+                width: 250,
+                height: 250,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 24),
+              // Nome do App (Opcional, se já não estiver no logo)
+
+              Text(
+                'Saúde e Segurança do Trabalho',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  letterSpacing: 1.0,
                 ),
-                const SizedBox(height: 20),
-                Center(
-                  child: Text(
-                    'Tudo a um clique de distância!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      height: 1.4,
-                      fontSize: 13,
-                      fontWeight: fonteNegrito,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

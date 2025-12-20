@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guarda_corpo_2024/components/customizacao/outlined_text_field_login.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   const ResetPasswordPage({super.key});
@@ -14,6 +14,9 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
 
+  // Cor principal do tema
+  final Color primaryColor = const Color(0xFF006837);
+
   void _closeKeyboard() {
     FocusScope.of(context).unfocus();
   }
@@ -25,34 +28,24 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
 
   Future<void> _resetPassword() async {
     if (_emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira um email.')),
-      );
+      _showSnackBar('Por favor, insira um email.', isError: true);
       return;
     }
 
     if (!_isValidEmail(_emailController.text.trim())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira um email válido.')),
-      );
+      _showSnackBar('Por favor, insira um email válido.', isError: true);
       return;
     }
 
     try {
-      setState(() => _isLoading = true); // Habilita o estado de carregamento
-
-      // Tenta enviar o email de redefinição de senha
+      setState(() => _isLoading = true);
       await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Um email foi enviado para o endereço fornecido. '
-              'Se o email estiver cadastrado, você receberá instruções para redefinir sua senha.',
-            ),
-          ),
+        _showSnackBar(
+          'Email enviado! Verifique sua caixa de entrada.',
         );
+        Navigator.pop(context); // Voltar para login após sucesso
       }
     } on FirebaseAuthException catch (e) {
       String errorMessage;
@@ -60,154 +53,129 @@ class ResetPasswordPageState extends State<ResetPasswordPage> {
         case 'invalid-email':
           errorMessage = 'Email inválido.';
           break;
+        case 'user-not-found':
+          errorMessage = 'Usuário não encontrado.';
+          break;
         default:
-          errorMessage = 'Ocorreu um erro. Tente novamente.';
+          errorMessage = 'Erro ao enviar email. Tente novamente.';
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+        _showSnackBar(errorMessage, isError: true);
       }
     } finally {
-      setState(() =>
-          _isLoading = false); // Sempre desabilita o estado de carregamento
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.poppins()),
+        backgroundColor: isError ? Colors.red[700] : primaryColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   void _handleSubmit() {
     _closeKeyboard();
-    setState(() => _isLoading = true); // Habilita o estado de carregamento
-    Future.delayed(const Duration(milliseconds: 300), () async {
-      if (mounted) {
-        await _resetPassword();
-        setState(
-            () => _isLoading = false); // Desabilita o estado de carregamento
-      }
-    });
+    _resetPassword();
   }
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
-    double logoHeight = screenHeight * 0.14;
-    double titleFontSize = screenHeight * 0.04;
-
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: primaryColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: GestureDetector(
         onTap: _closeKeyboard,
-        child: Stack(
-          children: [
-            Container(
-              height: screenHeight,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/index.jpg'),
-                  fit: BoxFit.cover,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              Icon(Icons.lock_reset, size: 60, color: primaryColor),
+              const SizedBox(height: 20),
+              Text(
+                'Redefinir Senha',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
-              child: Container(
+              const SizedBox(height: 8),
+              Text(
+                'Digite seu email abaixo e enviaremos um link para você criar uma nova senha.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // CAMPO EMAIL
+              Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withAlpha(230),
-                      Colors.black.withAlpha(180),
-                      Colors.black.withAlpha(50),
-                    ],
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: GoogleFonts.poppins(color: Colors.black87),
+                  onSubmitted: (_) => _handleSubmit(),
+                  decoration: InputDecoration(
+                    hintText: 'Seu e-mail cadastrado',
+                    hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                    prefixIcon: Icon(Icons.email_outlined, color: primaryColor),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 16),
                   ),
                 ),
               ),
-            ),
-            SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: screenHeight,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
+
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleSubmit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    elevation: 4,
+                    shadowColor: primaryColor.withValues(alpha: 0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(height: screenHeight * 0.1),
-                      Image(
-                        height: logoHeight,
-                        width: screenWidth,
-                        image: const AssetImage('assets/images/logo.png'),
-                      ),
-                      Text(
-                        'Redefinir Senha',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Segoe Black',
-                          fontSize: titleFontSize,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 10.0,
-                        ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: OutlinedTextField(
-                            controller: _emailController,
-                            labelText: 'Email',
-                            onSubmitted: (value) => _handleSubmit(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: _isLoading ? null : _handleSubmit,
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.white),
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white)
-                                : const Text(
-                                    'Enviar email de redefinição',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          'Voltar ao Login',
-                          style: TextStyle(
-                            color: Colors.white,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          'ENVIAR LINK',
+                          style: GoogleFonts.poppins(
                             fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.0,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
