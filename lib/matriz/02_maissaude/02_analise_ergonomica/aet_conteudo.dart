@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
+import 'package:guarda_corpo_2024/theme/app_theme.dart';
 
 class AetConteudo extends StatelessWidget {
   const AetConteudo({super.key});
@@ -7,85 +9,104 @@ class AetConteudo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize:
-            Size.fromHeight(MediaQuery.of(context).size.height * 0.09),
-        child: AppBar(
-          toolbarHeight: 200,
-          title: Text(
-            'Sobre a Análise Ergonômica do Trabalho'.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Segoe Bold',
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          flexibleSpace: const Image(
-            image: AssetImage('assets/images/cid.jpg'),
-            fit: BoxFit.cover,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new,
+              size: 20, color: AppTheme.primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'SOBRE A ANÁLISE ERGONÔMICA',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: AppTheme.primaryColor,
+            fontSize: 14,
+            letterSpacing: 1.0,
           ),
         ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: Container(
-                margin: const EdgeInsets.all(30),
-                alignment: AlignmentDirectional.topStart,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.justify,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontFamily: 'Segoe',
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                          children: [
-                            TextSpan(
-                              text:
-                                  'A ergonomia é a ciência que estuda a interação entre os trabalhadores e seus ambientes de trabalho, visando otimizar o bem-estar e o desempenho. A Análise Ergonômica do Trabalho (AET) é uma ferramenta essencial para identificar, avaliar e corrigir problemas ergonômicos, prevenindo lesões e promovendo a saúde no local de trabalho.\n\n',
-                            ),
-                            TextSpan(
-                              text: 'Para que Serve a AET?\n\n',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'A AET ajuda a:\n\n'
-                                  '• Identificar Riscos Ergonômicos: Avaliar o ambiente de trabalho para detectar posturas inadequadas, movimentos repetitivos, e outros fatores que possam causar desconforto ou lesões.\n'
-                                  '• Melhorar a Postura e a Conforto: Proporcionar recomendações práticas para ajustes no local de trabalho, como a altura da mesa, posição do monitor, e uso de cadeiras ergonômicas.\n'
-                                  '• Aumentar a Produtividade: Um ambiente de trabalho ergonomicamente adequado reduz a fadiga e aumenta a eficiência dos trabalhadores.\n'
-                                  '• Reduzir Absenteísmo: Prevenir problemas de saúde relacionados ao trabalho diminui o número de faltas e melhora a satisfação dos funcionários.\n'
-                                  '• Cumprir Regulamentações: Aderir às normas e regulamentações de segurança e saúde no trabalho, evitando penalidades e promovendo um ambiente de trabalho seguro.\n\n',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            child: SingleChildScrollView(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'O que é AET?',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'A ergonomia estuda a interação entre trabalhadores e ambiente de trabalho, buscando otimizar bem‑estar e desempenho. '
+                    'A Análise Ergonômica do Trabalho (AET) é uma ferramenta fundamental para identificar, avaliar e corrigir problemas ergonômicos, '
+                    'prevenindo lesões e promovendo saúde no trabalho.\n',
+                    textAlign: TextAlign.justify,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey[800],
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Para que serve a AET?',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildBullet(
+                      'Identificar riscos ergonômicos: posturas inadequadas, movimentos repetitivos e fatores que geram desconforto ou lesões.'),
+                  _buildBullet(
+                      'Melhorar postura e conforto: propor ajustes em mobiliário, layout e organização do trabalho.'),
+                  _buildBullet(
+                      'Aumentar produtividade: reduzir fadiga e esforço desnecessário.'),
+                  _buildBullet(
+                      'Reduzir absenteísmo: prevenir adoecimentos relacionados ao trabalho.'),
+                  _buildBullet(
+                      'Cumprir normas e regulamentações de SST, evitando penalidades.'),
+                ],
               ),
             ),
           ),
           const ConditionalBannerAdWidget(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBullet(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• ',
+              style: TextStyle(fontSize: 16, height: 1.4, color: Colors.black)),
+          Expanded(
+            child: Text(
+              text,
+              textAlign: TextAlign.justify,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey[800],
+                height: 1.5,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/components/autenticacao/auth_page.dart';
-import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart'; // Importe sua tela de onboarding se existir
+import 'package:guarda_corpo_2024/components/onboarding/onboarding.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -100,15 +99,6 @@ class SplashScreenState extends State<SplashScreen>
               ),
               const SizedBox(height: 24),
               // Nome do App (Opcional, se já não estiver no logo)
-
-              Text(
-                'Saúde e Segurança do Trabalho',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  letterSpacing: 1.0,
-                ),
-              ),
             ],
           ),
         ),
