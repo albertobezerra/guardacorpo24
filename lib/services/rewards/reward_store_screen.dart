@@ -11,18 +11,33 @@ class RewardStoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-
     bool canActivateAdFree() {
-      return userProvider.rewardPoints >= 100 &&
-          !(userProvider.hasRewardActive &&
-              userProvider.planType == 'ad_free_reward') &&
-          !userProvider.hasActivePremiumReward;
+      // já tem pontos?
+      if (userProvider.rewardPoints < 100) return false;
+
+      // já tem recompensa ad-free ativa?
+      if (userProvider.hasRewardActive &&
+          userProvider.planType == 'ad_free_reward') {
+        return false;
+      }
+
+      // já é premium (mensal ou via pontos)?
+      if (userProvider.isPremium) return false;
+
+      return true;
     }
 
     bool canActivatePremium() {
-      return userProvider.rewardPoints >= 400 &&
-          !(userProvider.hasRewardActive &&
-              userProvider.planType == 'reward_full_access');
+      // já tem pontos?
+      if (userProvider.rewardPoints < 400) return false;
+
+      // já tem recompensa premium ativa?
+      if (userProvider.hasActivePremiumReward) return false;
+
+      // já é premium (mensal ou via pontos)?
+      if (userProvider.isPremium) return false;
+
+      return true;
     }
 
     String formatDate(DateTime? date) {
