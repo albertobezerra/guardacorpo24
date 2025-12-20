@@ -38,7 +38,6 @@ class EpiRaiz extends StatelessWidget {
         future: _checkUserStatus(),
         builder: (context, snapshot) {
           final isPremium = snapshot.data?['isPremium'] ?? false;
-          final planType = snapshot.data?['planType'] ?? '';
 
           return ListView(
             padding: const EdgeInsets.all(24),
