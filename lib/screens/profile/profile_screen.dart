@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:guarda_corpo_2024/screens/faq/simple_faq_screen.dart';
 import 'package:guarda_corpo_2024/screens/settings/settings_screen.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:guarda_corpo_2024/theme/app_theme.dart';
@@ -25,10 +27,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   User? get _currentUser => FirebaseAuth.instance.currentUser;
 
-  // UPLOAD FOTO PARA STORAGE
+  // UPLOAD FOTO PARA STORAGE (COM COMPRESSÃO)
   Future<void> _pickAndUploadImage(ImageSource source) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source, imageQuality: 70);
+    final pickedFile = await picker.pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
 
     if (pickedFile == null) return;
 
@@ -41,36 +48,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final user = _currentUser;
-      if (user == null) return;
+      if (user == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      // Comprime a imagem antes do upload
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        imageFile.absolute.path,
+        quality: 70,
+        minWidth: 512,
+        minHeight: 512,
+      );
+
+      if (compressedBytes == null) {
+        throw Exception('Erro ao comprimir imagem');
+      }
 
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('profile_photos')
           .child('${user.uid}.jpg');
 
-      await storageRef.putFile(imageFile);
+      // Upload da imagem comprimida
+      await storageRef.putData(
+        compressedBytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
 
       final downloadUrl = await storageRef.getDownloadURL();
 
+      // Atualiza no Firebase Auth
       await user.updatePhotoURL(downloadUrl);
+
+      // Atualiza no Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update({'photoUrl': downloadUrl});
+          .set({'photoURL': downloadUrl}, SetOptions(merge: true));
 
+      // Atualiza no Provider
       if (!mounted) return;
       Provider.of<UserProvider>(context, listen: false)
           .setUserPhotoUrl(downloadUrl);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto de perfil atualizada!')),
+        const SnackBar(
+          content: Text('Foto de perfil atualizada!'),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
-      // ignore: use_build_context_synchronously
+      debugPrint('Erro ao enviar foto: $e');
+
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao enviar foto: $e'),
+          content: Text('Erro ao enviar foto: ${e.toString()}'),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
         ),
       );
       setState(() => _localImagePreview = null);
@@ -85,19 +120,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final user = _currentUser;
       if (user == null) return;
 
+      // Tenta deletar do Storage (ignora se não existir)
       try {
         await FirebaseStorage.instance
             .ref()
             .child('profile_photos')
             .child('${user.uid}.jpg')
             .delete();
-      } catch (_) {}
+      } catch (_) {
+        // Arquivo pode não existir, ignora erro
+      }
 
+      // Remove do Firebase Auth
       await user.updatePhotoURL(null);
+
+      // Remove do Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update({'photoUrl': FieldValue.delete()});
+          .update({'photoURL': FieldValue.delete()});
 
       if (!mounted) return;
       Provider.of<UserProvider>(context, listen: false).setUserPhotoUrl(null);
@@ -108,8 +149,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SnackBar(content: Text('Foto removida!')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: $e')),
+        SnackBar(
+          content: Text('Erro ao remover foto: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -135,9 +180,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final userProvider = Provider.of<UserProvider>(context);
     final user = _currentUser;
 
-    // Regra alinhada:
-    // hasActiveSubscription -> mensal (full ou sem anúncios)
-    // canAccessPremiumScreen -> premium completo (full ou reward_full_access)
     final hasPremium = userProvider.canAccessPremiumScreen();
     final hasAdFreeOnly = userProvider.isAdFree() && !hasPremium;
 
@@ -319,7 +361,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     icon: Icons.help_outline,
                     title: "Suporte",
                     subtitle: "Ajuda e FAQ",
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const SimpleFAQScreen()),
+                    ),
                   ),
 
                   const SizedBox(height: 30),
@@ -344,7 +390,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ImageProvider? imageProvider;
     if (_localImagePreview != null) {
       imageProvider = FileImage(_localImagePreview!);
-    } else if (provider.userPhotoUrl != null) {
+    } else if (provider.userPhotoUrl != null &&
+        provider.userPhotoUrl!.isNotEmpty) {
       imageProvider = NetworkImage(provider.userPhotoUrl!);
     }
 
@@ -479,9 +526,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             if (_localImagePreview != null ||
-                Provider.of<UserProvider>(context, listen: false)
-                        .userPhotoUrl !=
-                    null)
+                (Provider.of<UserProvider>(context, listen: false)
+                            .userPhotoUrl !=
+                        null &&
+                    Provider.of<UserProvider>(context, listen: false)
+                        .userPhotoUrl!
+                        .isNotEmpty))
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text('Remover Foto'),

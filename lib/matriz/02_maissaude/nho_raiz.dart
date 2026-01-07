@@ -93,11 +93,24 @@ class _NhoState extends State<Nho> {
     }
   }
 
+  int _dataIndexFromDisplayIndex(int displayIndex, List<int> ctaPositions) {
+    int dataIndex = displayIndex;
+    for (final ctaIndex in ctaPositions) {
+      if (ctaIndex < displayIndex) {
+        dataIndex--;
+      } else {
+        break;
+      }
+    }
+    return dataIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xFF006837);
 
     final ctaPositions = _getCtaPositions(nho.length);
+    final int displayItemCount = nho.length + ctaPositions.length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -128,13 +141,18 @@ class _NhoState extends State<Nho> {
               removeTop: true,
               child: ListView.builder(
                 padding: const EdgeInsets.all(24),
-                itemCount: nho.length,
-                itemBuilder: (context, index) {
-                  if (ctaPositions.contains(index)) {
+                itemCount: displayItemCount,
+                itemBuilder: (context, displayIndex) {
+                  // 1. Se for CTA, renderiza e sai
+                  if (ctaPositions.contains(displayIndex)) {
                     return const RewardCTAWidget();
                   }
 
-                  final item = nho[index];
+                  // 2. Mapear índice de exibição -> índice real
+                  final int dataIndex =
+                      _dataIndexFromDisplayIndex(displayIndex, ctaPositions);
+
+                  final item = nho[dataIndex];
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -157,6 +175,8 @@ class _NhoState extends State<Nho> {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(20),
                         onTap: () {
+                          if (!context.mounted) return;
+
                           InterstitialAdManager.showInterstitialAd(
                             context,
                             NhoBase(

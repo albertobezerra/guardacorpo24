@@ -17,12 +17,10 @@ class NrsRaiz extends StatefulWidget {
 }
 
 class _NrsRaizState extends State<NrsRaiz> {
-  // --- LÓGICA DE DADOS (Mantida) ---
   final Set<int> _recentlyUpdatedNrs = {38};
   final Map<String, bool> _favoritesCache = {};
-  final TextEditingController _searchController =
-      TextEditingController(); // Novo: Controller de busca
-  List<Map<String, String>> _filteredNrs = []; // Novo: Lista filtrada
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, String>> _filteredNrs = [];
 
   final List<Map<String, String>> nrs = [
     {
@@ -176,22 +174,26 @@ class _NrsRaizState extends State<NrsRaiz> {
   @override
   void initState() {
     super.initState();
-    _filteredNrs = nrs; // Inicializa filtro com tudo
+    _filteredNrs = nrs;
     _loadFavorites();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFavorites() async {
     for (var nr in nrs) {
       final isFav = await FavoritesService.isFavorite(nr['pdf']!);
-      if (mounted) {
-        setState(() {
-          _favoritesCache[nr['pdf']!] = isFav;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _favoritesCache[nr['pdf']!] = isFav;
+      });
     }
   }
 
-  // Lógica de Filtro
   void _filterNrs(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -213,7 +215,7 @@ class _NrsRaizState extends State<NrsRaiz> {
     return [
       (totalItems * 0.25).round(),
       (totalItems * 0.5).round(),
-      (totalItems * 0.75).round()
+      (totalItems * 0.75).round(),
     ];
   }
 
@@ -223,23 +225,40 @@ class _NrsRaizState extends State<NrsRaiz> {
     return null;
   }
 
-  // --- UI NOVA ---
+  int _dataIndexFromDisplayIndex(int displayIndex, List<int> ctaPositions) {
+    int dataIndex = displayIndex;
+    for (final ctaIndex in ctaPositions) {
+      if (ctaIndex < displayIndex) {
+        dataIndex--;
+      } else {
+        break;
+      }
+    }
+    return dataIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Se estiver filtrando, não mostramos os Ads no meio da lista para não quebrar a lógica de posição
     final bool isSearching = _searchController.text.isNotEmpty;
-    final ctaPositions = isSearching ? <int>[] : _getCtaPositions(nrs.length);
+
+    // Importante: CTA baseado na lista original (nrs) para manter as posições fixas
+    final List<int> ctaPositions =
+        isSearching ? <int>[] : _getCtaPositions(nrs.length);
+
+    final int displayItemCount =
+        isSearching ? _filteredNrs.length : nrs.length + ctaPositions.length;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Fundo claro moderno
-
-      // 1. AppBar Limpa e Branca
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text("Normas Regulamentadoras",
-            style: GoogleFonts.poppins(
-                color: const Color(0xFF2D3436),
-                fontWeight: FontWeight.w600,
-                fontSize: 18)),
+        title: Text(
+          "Normas Regulamentadoras",
+          style: GoogleFonts.poppins(
+            color: const Color(0xFF2D3436),
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -249,10 +268,8 @@ class _NrsRaizState extends State<NrsRaiz> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-
       body: Column(
         children: [
-          // 2. Barra de Pesquisa
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -275,111 +292,118 @@ class _NrsRaizState extends State<NrsRaiz> {
               ),
             ),
           ),
-
-          // 3. Lista Moderna
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(20),
-              // Se estiver buscando, usa filtered. Se não, usa nrs (para manter lógica de CTA)
-              itemCount: isSearching ? _filteredNrs.length : nrs.length,
-              itemBuilder: (context, index) {
-                // Inserção de ADs (CTA)
-                if (!isSearching && ctaPositions.contains(index)) {
+              itemCount: displayItemCount,
+              itemBuilder: (context, displayIndex) {
+                // 1) Se for CTA, renderiza e sai
+                if (!isSearching && ctaPositions.contains(displayIndex)) {
                   return const Padding(
                     padding: EdgeInsets.only(bottom: 12),
                     child: RewardCTAWidget(),
                   );
                 }
 
-                final nr = isSearching ? _filteredNrs[index] : nrs[index];
+                // 2) Caso contrário, mapear índice de exibição -> índice real
+                final int dataIndex = isSearching
+                    ? displayIndex
+                    : _dataIndexFromDisplayIndex(displayIndex, ctaPositions);
+
+                final nr =
+                    isSearching ? _filteredNrs[dataIndex] : nrs[dataIndex];
+
                 final nrNumber = _getNrNumber(nr['title']!);
                 final isNew =
                     nrNumber != null && _recentlyUpdatedNrs.contains(nrNumber);
                 final isFavorite = _favoritesCache[nr['pdf']!] ?? false;
 
-                // Título formatado: remove "NR X - " para ficar limpo no card, já que temos o badge
                 String cleanTitle = nr['title']!;
-                // Opcional: Logica de string para limpar se quiser
 
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ModernListTile(
-                      badgeText: nrNumber != null ? "NR $nrNumber" : "NR",
-                      icon: Icons.article,
-                      title: cleanTitle,
-                      subtitle:
-                          "Toque para ler o documento completo", // Subtítulo padrão ou extraído
-                      onTap: () async {
-                        await HistoryService.addToHistory(
-                          type: 'nr',
-                          title: nr['title']!,
-                          path: nr['pdf']!,
-                        );
-                        InterstitialAdManager.showInterstitialAd(
-                          // ignore: use_build_context_synchronously
-                          context,
-                          NrBase(title: nr['title']!, pdfPath: nr['pdf']!),
-                        );
-                      },
-                      // Botão Favorito no Trailing
-                      trailing: IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.star : Icons.star_border,
-                          color: isFavorite
-                              ? const Color(0xFFD32F2F)
-                              : Colors.grey,
-                        ),
-                        onPressed: () async {
-                          if (isFavorite) {
-                            await FavoritesService.removeFavorite(nr['pdf']!);
-                          } else {
-                            await FavoritesService.addFavorite(
-                              type: 'nr',
-                              title: nr['title']!,
-                              path: nr['pdf']!,
-                            );
-                          }
-                          setState(() {
-                            _favoritesCache[nr['pdf']!] = !isFavorite;
-                          });
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      ModernListTile(
+                        badgeText: nrNumber != null ? "NR $nrNumber" : "NR",
+                        icon: Icons.article,
+                        title: cleanTitle,
+                        subtitle: "Toque para ler o documento completo",
+                        onTap: () async {
+                          await HistoryService.addToHistory(
+                            type: 'nr',
+                            title: nr['title']!,
+                            path: nr['pdf']!,
+                          );
+
+                          if (!context.mounted) return; // <- resolve o lint
+                          //TODO: Verificar se é melhor usar Navigator.push aqui
+
+                          InterstitialAdManager.showInterstitialAd(
+                            context,
+                            NrBase(title: nr['title']!, pdfPath: nr['pdf']!),
+                          );
                         },
-                      ),
-                    ),
+                        trailing: IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.star : Icons.star_border,
+                            color: isFavorite
+                                ? const Color(0xFFD32F2F)
+                                : Colors.grey,
+                          ),
+                          onPressed: () async {
+                            if (isFavorite) {
+                              await FavoritesService.removeFavorite(nr['pdf']!);
+                            } else {
+                              await FavoritesService.addFavorite(
+                                type: 'nr',
+                                title: nr['title']!,
+                                path: nr['pdf']!,
+                              );
+                            }
+                            if (!mounted) return; // <- importante após awaits
 
-                    // Badge "NOVO" (Sobreposto no canto)
-                    if (isNew)
-                      Positioned(
-                        right: -5,
-                        top: -5,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
+                            setState(() {
+                              _favoritesCache[nr['pdf']!] = !isFavorite;
+                            });
+                          },
+                        ),
+                      ),
+                      if (isNew)
+                        Positioned(
+                          right: -5,
+                          top: -5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
                               color: const Color(0xFFD32F2F),
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: const [
                                 BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2))
-                              ]),
-                          child: const Text(
-                            'NOVO',
-                            style: TextStyle(
+                                  color: Colors.black26,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                )
+                              ],
+                            ),
+                            child: const Text(
+                              'NOVO',
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
-                                fontWeight: FontWeight.bold),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),
           ),
-
-          // 4. Banner Ad (Fixo na base)
           const ConditionalBannerAdWidget(),
         ],
       ),

@@ -6,7 +6,7 @@ import '../../../services/provider/userProvider.dart';
 import '../../../services/admob/conf/interstitial_ad_manager.dart';
 import '../../../components/reward_cta_widget.dart';
 
-// Imports "Mais Buscados" (ADICIONADOS AQUI)
+// Imports "Mais Buscados"
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/01_nrs/00_raizdasnrs.dart';
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/02_consultaCa/consulta_ca.dart';
 import 'package:guarda_corpo_2024/matriz/01_maisbuscados/03_treinamentos/00_treinamento_raiz.dart';
@@ -63,11 +63,23 @@ class SafetyList extends StatelessWidget {
     return normalized;
   }
 
+  int _dataIndexFromDisplayIndex(int displayIndex, List<int> ctaPositions) {
+    int dataIndex = displayIndex;
+    for (final ctaIndex in ctaPositions) {
+      if (ctaIndex < displayIndex) {
+        dataIndex--;
+      } else {
+        break;
+      }
+    }
+    return dataIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    // Lista "Mais Buscados" (Invisíveis na lista principal, mas visíveis na busca)
+    // Lista "Mais Buscados"
     final List<Map<String, dynamic>> quickAccessItems = [
       {
         'icon': Icons.gavel,
@@ -183,14 +195,11 @@ class SafetyList extends StatelessWidget {
       },
     ];
 
-    // Lógica para Exibir:
-    // Se estiver buscando: junta tudo (Quick + Original) e filtra
-    // Se não estiver buscando: mostra só a lista Original (pois Quick já aparece no carrossel)
-
+    // Lógica de exibição
     List<Map<String, dynamic>> itemsToShow;
 
     if (searchQuery.isNotEmpty) {
-      // BUSCA ATIVA: Junta tudo para procurar em todos
+      // BUSCA ATIVA: junta tudo
       final allItemsCombined = [...quickAccessItems, ...originalItems];
       itemsToShow = allItemsCombined.where((item) {
         final String label = _normalizeText(item['label'].toString());
@@ -198,61 +207,65 @@ class SafetyList extends StatelessWidget {
         return label.contains(query);
       }).toList();
     } else {
-      // SEM BUSCA: Mostra só a lista original (o carrossel cuida dos outros)
+      // SEM BUSCA: mostra só original
       itemsToShow = originalItems;
     }
 
+    // CTAs apenas quando NÃO está buscando
     final ctaPositions =
-        searchQuery.isEmpty ? _getCtaPositions(itemsToShow.length) : [];
+        searchQuery.isEmpty ? _getCtaPositions(itemsToShow.length) : <int>[];
+
+    // itemCount ajustado: dados + CTAs
+    final int displayItemCount = itemsToShow.length + ctaPositions.length;
 
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index >= itemsToShow.length) return null;
+          (context, displayIndex) {
+            // 1. Se for CTA, renderiza e sai
+            if (ctaPositions.contains(displayIndex)) {
+              return const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: RewardCTAWidget(),
+              );
+            }
 
-            final item = itemsToShow[index];
-            final bool showCta = ctaPositions.contains(index);
+            // 2. Mapear displayIndex -> dataIndex
+            final int dataIndex =
+                _dataIndexFromDisplayIndex(displayIndex, ctaPositions);
 
-            return Column(
-              children: [
-                if (showCta)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: RewardCTAWidget(),
-                  ),
-                _buildLargeListTile(
-                  context,
-                  label: item['label'],
-                  icon: item['icon'],
-                  color: AppTheme.primaryColor,
-                  isPremium: item['isPremium'] == true,
-                  onTap: () async {
-                    onItemTap?.call(); // Fecha teclado
+            if (dataIndex >= itemsToShow.length) return null;
 
-                    if (item['isPremium'] == true) {
-                      if (userProvider.canAccessPremiumScreen()) {
-                        // Usuário TEM acesso, entra na tela
-                        await Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => item['screen']));
-                      } else {
-                        // Usuário NÃO tem acesso -> Mostrar Dialog ou ir para Premium
-                        _showPremiumDialog(context);
-                      }
-                    } else {
-                      // Item Grátis (com anúncio)
-                      InterstitialAdManager.showInterstitialAd(
-                          context, item['screen']);
-                    }
+            final item = itemsToShow[dataIndex];
 
-                    onSearchClear?.call();
-                  },
-                ),
-              ],
+            return _buildLargeListTile(
+              context,
+              label: item['label'],
+              icon: item['icon'],
+              color: AppTheme.primaryColor,
+              isPremium: item['isPremium'] == true,
+              onTap: () async {
+                onItemTap?.call();
+
+                if (item['isPremium'] == true) {
+                  if (userProvider.canAccessPremiumScreen()) {
+                    await Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => item['screen']));
+                  } else {
+                    _showPremiumDialog(context);
+                  }
+                } else {
+                  if (!context.mounted) return;
+                  InterstitialAdManager.showInterstitialAd(
+                      context, item['screen']);
+                }
+
+                onSearchClear?.call();
+              },
             );
           },
-          childCount: itemsToShow.length,
+          childCount: displayItemCount, // CORRIGIDO: dados + CTAs
         ),
       ),
     );
@@ -331,22 +344,19 @@ class SafetyList extends StatelessWidget {
   List<int> _getCtaPositions(int totalItems) {
     if (totalItems <= 10) {
       return [];
-    } else if (totalItems <= 20)
-      // ignore: curly_braces_in_flow_control_structures
+    } else if (totalItems <= 20) {
       return [totalItems ~/ 2];
-    else if (totalItems <= 50)
-      // ignore: curly_braces_in_flow_control_structures
+    } else if (totalItems <= 50) {
       return [(totalItems * 0.3).round(), (totalItems * 0.7).round()];
-    else
-      // ignore: curly_braces_in_flow_control_structures
+    } else {
       return [
         (totalItems * 0.25).round(),
         (totalItems * 0.5).round(),
         (totalItems * 0.75).round()
       ];
+    }
   }
 
-  // Função para mostrar o Dialog de Premium
   void _showPremiumDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -367,7 +377,7 @@ class SafetyList extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Fechar
+              onPressed: () => Navigator.of(context).pop(),
               child:
                   const Text("Cancelar", style: TextStyle(color: Colors.grey)),
             ),
@@ -378,21 +388,11 @@ class SafetyList extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o dialog
-                // Navega para a tela de venda (PremiumPage)
-                // Certifique-se de importar sua PremiumPage no topo se não estiver
-                // import 'package:guarda_corpo_2024/matriz/04_premium/paginapremium.dart';
-
-                // Se você usa navegação por índice na BottomBar (Recomendado):
-                // Provider.of<NavigationState>(context, listen: false).setIndex(2);
-
-                // OU Navegação direta (Mais simples):
+                Navigator.of(context).pop();
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            const PremiumPage()) // Certifique-se que PremiumPage existe
-                    );
+                        builder: (context) => const PremiumPage()));
               },
               child: const Text("Assinar Agora",
                   style: TextStyle(color: Colors.white)),

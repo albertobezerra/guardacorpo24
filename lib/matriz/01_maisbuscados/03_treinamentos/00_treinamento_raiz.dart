@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // Certifique-se de ter este pacote
+import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/components/customizacao/modern_list_tile.dart';
 import 'package:guarda_corpo_2024/components/reward_cta_widget.dart';
 import 'package:guarda_corpo_2024/services/admob/components/banner.dart';
@@ -14,7 +14,6 @@ class TreinamentoRaiz extends StatefulWidget {
 }
 
 class _TreinamentoRaizState extends State<TreinamentoRaiz> {
-  // Cor padrão do tema
   final Color primaryColor = const Color(0xFF006837);
 
   final List<Map<String, String>> treinamentos = [
@@ -99,10 +98,25 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
     }
   }
 
+  int _dataIndexFromDisplayIndex(int displayIndex, List<int> ctaPositions) {
+    int dataIndex = displayIndex;
+    for (final ctaIndex in ctaPositions) {
+      if (ctaIndex < displayIndex) {
+        dataIndex--;
+      } else {
+        break;
+      }
+    }
+    return dataIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ctaPositions = _getCtaPositions(treinamentos.length);
+    final int displayItemCount = treinamentos.length + ctaPositions.length;
+
     return Scaffold(
-      backgroundColor: Colors.white, // Fundo Clean
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -113,7 +127,7 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Treinamentos'.toUpperCase(),
+          'TREINAMENTOS'.toUpperCase(),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
             color: primaryColor,
@@ -127,30 +141,33 @@ class _TreinamentoRaizState extends State<TreinamentoRaiz> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              itemCount: treinamentos.length,
-              itemBuilder: (context, index) {
-                final ctaPositions = _getCtaPositions(treinamentos.length);
-
-                // Widget de Recompensa intercalado
-                if (ctaPositions.contains(index)) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: const RewardCTAWidget(),
+              itemCount: displayItemCount,
+              itemBuilder: (context, displayIndex) {
+                // 1. Se for CTA, renderiza e sai
+                if (ctaPositions.contains(displayIndex)) {
+                  return const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: RewardCTAWidget(),
                   );
                 }
 
-                // Usando o novo Componente Padrão
+                // 2. Mapear índice de exibição -> índice real
+                final int dataIndex =
+                    _dataIndexFromDisplayIndex(displayIndex, ctaPositions);
+
                 return ModernListTile(
-                  title: treinamentos[index]["title"]!.toUpperCase(),
+                  title: treinamentos[dataIndex]["title"]!.toUpperCase(),
                   subtitle: "Toque para ver o conteúdo programático",
                   icon: Icons.menu_book_rounded,
                   iconColor: primaryColor,
                   onTap: () async {
+                    if (!context.mounted) return;
+
                     InterstitialAdManager.showInterstitialAd(
                       context,
                       TreinamentoBase(
-                        title: treinamentos[index]["title"]!,
-                        content: treinamentos[index]["content"]!,
+                        title: treinamentos[dataIndex]["title"]!,
+                        content: treinamentos[dataIndex]["content"]!,
                       ),
                     );
                   },

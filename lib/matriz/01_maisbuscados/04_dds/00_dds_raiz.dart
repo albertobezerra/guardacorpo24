@@ -103,8 +103,23 @@ class _DdsRaizState extends State<DdsRaiz> {
     }
   }
 
+  int _dataIndexFromDisplayIndex(int displayIndex, List<int> ctaPositions) {
+    int dataIndex = displayIndex;
+    for (final ctaIndex in ctaPositions) {
+      if (ctaIndex < displayIndex) {
+        dataIndex--;
+      } else {
+        break;
+      }
+    }
+    return dataIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ctaPositions = _getCtaPositions(dds.length);
+    final int displayItemCount = dds.length + ctaPositions.length;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -131,29 +146,33 @@ class _DdsRaizState extends State<DdsRaiz> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              itemCount: dds.length,
-              itemBuilder: (context, index) {
-                final ctaPositions = _getCtaPositions(dds.length);
-
-                if (ctaPositions.contains(index)) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: const RewardCTAWidget(),
+              itemCount: displayItemCount,
+              itemBuilder: (context, displayIndex) {
+                // 1. Se for CTA, renderiza e sai
+                if (ctaPositions.contains(displayIndex)) {
+                  return const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: RewardCTAWidget(),
                   );
                 }
 
-                // ModernListTile aplicado
+                // 2. Mapear índice de exibição -> índice real
+                final int dataIndex =
+                    _dataIndexFromDisplayIndex(displayIndex, ctaPositions);
+
                 return ModernListTile(
-                  title: dds[index]["title"]!.toUpperCase(),
+                  title: dds[dataIndex]["title"]!.toUpperCase(),
                   subtitle: "Diálogo Diário de Segurança",
-                  icon: Icons.verified_user_outlined, // Ícone de segurança
+                  icon: Icons.verified_user_outlined,
                   iconColor: primaryColor,
                   onTap: () async {
+                    if (!context.mounted) return;
+
                     InterstitialAdManager.showInterstitialAd(
                       context,
                       DdsBase(
-                        title: dds[index]["title"]!,
-                        content: dds[index]["content"]!,
+                        title: dds[dataIndex]["title"]!,
+                        content: dds[dataIndex]["content"]!,
                       ),
                     );
                   },
