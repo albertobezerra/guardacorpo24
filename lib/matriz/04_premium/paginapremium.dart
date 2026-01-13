@@ -232,15 +232,25 @@ class _PremiumPageState extends State<PremiumPage> {
                     ),
                   ),
 
-                for (final product in products) ...[
+                // Lista de Planos (FILTRADA)
+                if (products.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      "Nenhum plano disponível na loja no momento.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: Colors.grey),
+                    ),
+                  ),
+
+                for (final product
+                    in _getFilteredProducts(products, userProvider)) ...[
                   _buildPlanCard(
                     context: context,
-                    title: product.title.replaceAll(
-                        RegExp(r'\(.*\)'), ''), // Limpa nome da loja
+                    title: product.title.replaceAll(RegExp(r'\(.*\)'), ''),
                     price: product.price,
                     description: product.description,
-                    isPopular:
-                        product.id == 'monthly_full', // Exemplo: Full é popular
+                    isPopular: product.id == 'monthly_full',
                     isActive: _isPlanActive(product.id),
                     onTap: () => _handlePurchase(context, product),
                   ),
@@ -249,11 +259,12 @@ class _PremiumPageState extends State<PremiumPage> {
 
                 const SizedBox(height: 20),
                 Text(
-                  "Gerenciar Assinatura",
+                  "Cancelamento: Gerenciado pela Google Play Store",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey,
+                    fontSize: 11,
+                    color: Colors.grey[500],
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
@@ -262,6 +273,24 @@ class _PremiumPageState extends State<PremiumPage> {
         },
       ),
     );
+  }
+
+  /// Filtra produtos para esconder plano "ad-free" se o usuário já for Premium
+  List<ProductDetails> _getFilteredProducts(
+    List<ProductDetails> allProducts,
+    UserProvider userProvider,
+  ) {
+    // Se o usuário já é Premium (monthly_full), não mostra "monthly_ad_free"
+    if (userProvider.planType == 'monthly_full' &&
+        userProvider.hasActiveSubscription()) {
+      return allProducts
+          .where((product) => product.id != 'monthly_ad_free')
+          .toList();
+    }
+
+    // Se o usuário já tem "ad-free" ativo, pode ver o upgrade para Premium
+    // Caso contrário, mostra todos
+    return allProducts;
   }
 
   Widget _buildPlanCard({

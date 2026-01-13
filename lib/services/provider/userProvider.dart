@@ -275,6 +275,11 @@ class UserProvider with ChangeNotifier {
           if (snapshot.exists) {
             final data = snapshot.data()!;
 
+            // ✅ Sincroniza photoURL do Firestore
+            if (data.containsKey('photoURL')) {
+              _userPhotoUrl = data['photoURL'];
+            }
+
             if (data.containsKey('name')) {
               _userName = data['name'];
             }
@@ -305,6 +310,29 @@ class UserProvider with ChangeNotifier {
         });
       }
     });
+  }
+
+  DateTime? getActiveExpiryDate() {
+    final now = DateTime.now();
+
+    // Lista de datas válidas
+    List<DateTime> validDates = [];
+
+    // Adiciona expiryDate se for válida
+    if (_expiryDate != null && _expiryDate!.isAfter(now)) {
+      validDates.add(_expiryDate!);
+    }
+
+    // Adiciona rewardExpiryDate se for válida
+    if (_rewardExpiryDate != null && _rewardExpiryDate!.isAfter(now)) {
+      validDates.add(_rewardExpiryDate!);
+    }
+
+    // Retorna a data mais distante (maior validade)
+    if (validDates.isEmpty) return null;
+
+    validDates.sort((a, b) => b.compareTo(a)); // Ordena decrescente
+    return validDates.first;
   }
 
   void checkSubscriptionAndRewards() {

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:guarda_corpo_2024/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -174,14 +173,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsTile(
               icon: Icons.info_outline,
               title: "Termos de Uso",
-              /*onTap: () => _launchURL(
-                  'https://guardacorpoapp.com.br/termos-de-uso'),*/ // Substitua pela sua URL real
+              onTap: () => _showTermsDialog(context),
             ),
             _buildSettingsTile(
               icon: Icons.privacy_tip_outlined,
               title: "Política de Privacidade",
-              /*onTap: () => _launchURL(
-                  'https://guardacorpoapp.com.br/privacidade'),*/ // Substitua pela sua URL real
+              onTap: () => _showPrivacyDialog(context),
             ),
             _buildSettingsTile(
               icon: Icons.perm_device_information,
@@ -236,6 +233,277 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // DIALOG TERMOS DE USO
+  void _showTermsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.article, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            const Text("Termos de Uso", style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Última atualização: 13 de janeiro de 2026",
+                style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: 16),
+              _buildSectionTitle("1. Aceitação dos Termos"),
+              _buildParagraph(
+                "Ao criar uma conta no GuardaCorpo, você aceita estes termos. Se não concordar, não utilize o aplicativo.",
+              ),
+              _buildSectionTitle("2. Cadastro e Responsabilidades"),
+              _buildParagraph(
+                "• Você deve ter 18 anos ou mais para usar o app\n"
+                "• Forneça informações verdadeiras ao se cadastrar\n"
+                "• Mantenha sua senha segura e confidencial\n"
+                "• Você é responsável por todas as atividades em sua conta",
+              ),
+              _buildSectionTitle("3. Planos Disponíveis"),
+              _buildParagraph(
+                "Plano Gratuito:\n"
+                "• Acesso básico com anúncios\n"
+                "• Ganhe pontos assistindo anúncios de recompensa\n\n"
+                "Plano Premium (Mensal):\n"
+                "• Sem anúncios\n"
+                "• Acesso a recursos exclusivos\n"
+                "• Renovação automática via Google Play\n"
+                "• Cancelamento a qualquer momento nas Assinaturas da Play Store",
+              ),
+              _buildSectionTitle("4. Sistema de Pontos"),
+              _buildParagraph(
+                "• Pontos são ganhos visualizando anúncios de recompensa\n"
+                "• Podem ser trocados por dias de acesso Premium\n"
+                "• Não têm valor monetário e não podem ser transferidos\n"
+                "• Não são reembolsáveis",
+              ),
+              _buildSectionTitle("5. Proibições de Uso"),
+              _buildParagraph(
+                "É estritamente proibido:\n"
+                "• Usar o app para fins ilegais ou fraudulentos\n"
+                "• Tentar hackear, burlar ou explorar vulnerabilidades\n"
+                "• Criar múltiplas contas para obter vantagens indevidas\n"
+                "• Compartilhar conteúdo ofensivo, discriminatório ou prejudicial\n"
+                "• Revender, redistribuir ou comercializar o acesso ao app",
+              ),
+              _buildSectionTitle("6. Suspensão e Cancelamento"),
+              _buildParagraph(
+                "Podemos suspender ou encerrar sua conta imediatamente se:\n"
+                "• Violar qualquer um destes termos\n"
+                "• Usar o app de forma abusiva ou fraudulenta\n"
+                "• Houver atividade suspeita em sua conta",
+              ),
+              _buildSectionTitle("7. Modificações no Serviço"),
+              _buildParagraph(
+                "Reservamo-nos o direito de:\n"
+                "• Modificar, suspender ou descontinuar recursos\n"
+                "• Alterar preços de planos (com aviso prévio de 30 dias)\n"
+                "• Atualizar estes termos (você será notificado)",
+              ),
+              _buildSectionTitle("8. Isenção de Garantias"),
+              _buildParagraph(
+                "O GuardaCorpo é fornecido 'como está'. Não garantimos:\n"
+                "• Funcionamento ininterrupto ou sem erros\n"
+                "• Que atenderá todas as suas expectativas\n"
+                "• Compatibilidade com todos os dispositivos",
+              ),
+              _buildSectionTitle("9. Lei Aplicável"),
+              _buildParagraph(
+                "Estes termos são regidos pelas leis brasileiras. Disputas serão resolvidas nos tribunais competentes do Brasil.",
+              ),
+              _buildSectionTitle("10. Contato"),
+              _buildParagraph(
+                "Dúvidas sobre os Termos de Uso?\n📧 albertofbezerra@gmail.com",
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Fechar", style: TextStyle(fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
+
+// DIALOG POLÍTICA DE PRIVACIDADE
+  void _showPrivacyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.privacy_tip, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            const Flexible(
+              child: Text(
+                "Política de Privacidade",
+                style: TextStyle(fontSize: 17),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Última atualização: 13 de janeiro de 2026",
+                style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: 16),
+              _buildSectionTitle("1. Introdução"),
+              _buildParagraph(
+                "Esta política explica como coletamos, usamos, armazenamos e protegemos seus dados pessoais no GuardaCorpo. Respeitamos sua privacidade e cumprimos a LGPD (Lei Geral de Proteção de Dados).",
+              ),
+              _buildSectionTitle("2. Dados que Coletamos"),
+              _buildParagraph(
+                "Informações de Cadastro:\n"
+                "• Nome completo\n"
+                "• Endereço de e-mail\n"
+                "• Senha (armazenada com criptografia)\n\n"
+                "Dados de Uso do App:\n"
+                "• Histórico de login e acessos\n"
+                "• Pontos de recompensa acumulados\n"
+                "• Status de assinatura (gratuito/premium)\n"
+                "• Preferências de notificações\n\n"
+                "Dados Técnicos Automáticos:\n"
+                "• Modelo do dispositivo\n"
+                "• Versão do sistema operacional\n"
+                "• Endereço IP (para segurança)\n"
+                "• Identificador único do dispositivo",
+              ),
+              _buildSectionTitle("3. Como Usamos Seus Dados"),
+              _buildParagraph(
+                "• Autenticar seu acesso ao app\n"
+                "• Gerenciar sua conta e assinatura Premium\n"
+                "• Processar pagamentos via Google Play\n"
+                "• Enviar notificações importantes (apenas se você autorizar)\n"
+                "• Melhorar a experiência e funcionalidades do app\n"
+                "• Prevenir fraudes e garantir segurança\n"
+                "• Cumprir obrigações legais e regulatórias",
+              ),
+              _buildSectionTitle("4. Compartilhamento de Dados"),
+              _buildParagraph(
+                "NÃO vendemos, alugamos ou comercializamos seus dados pessoais.\n\n"
+                "Compartilhamos apenas com:\n\n"
+                "Firebase (Google):\n"
+                "• Autenticação de usuários\n"
+                "• Armazenamento seguro em nuvem (Firestore)\n"
+                "• Hospedagem de arquivos (Storage)\n\n"
+                "Google Play Store:\n"
+                "• Processamento de pagamentos\n"
+                "• Gestão de assinaturas",
+              ),
+              _buildSectionTitle("5. Segurança dos Dados"),
+              _buildParagraph(
+                "Medidas de Proteção:\n"
+                "• Criptografia SSL/TLS em todas as comunicações\n"
+                "• Senhas armazenadas com hash bcrypt\n"
+                "• Autenticação via Firebase Authentication\n"
+                "• Servidores protegidos em data centers Google Cloud\n"
+                "• Monitoramento contínuo contra acessos não autorizados",
+              ),
+              _buildSectionTitle("6. Seus Direitos (LGPD)"),
+              _buildParagraph(
+                "Você tem direito a:\n\n"
+                "• Acessar: Solicitar cópia de seus dados pessoais\n"
+                "• Corrigir: Atualizar informações incorretas ou desatualizadas\n"
+                "• Excluir: Solicitar remoção definitiva de seus dados\n"
+                "• Portabilidade: Exportar seus dados em formato legível\n"
+                "• Revogar consentimento: Desativar notificações a qualquer momento\n"
+                "• Oposição: Contestar o uso de seus dados\n\n"
+                "Para exercer seus direitos:\n📧 albertofbezerra@gmail.com",
+              ),
+              _buildSectionTitle("7. Retenção de Dados"),
+              _buildParagraph(
+                "• Dados de conta ativa: Mantidos enquanto você usar o app\n"
+                "• Após exclusão da conta: Removidos em até 30 dias\n"
+                "• Dados obrigatórios por lei: Retidos pelo período legal exigido\n"
+                "• Backups automáticos: Removidos após 60 dias",
+              ),
+              _buildSectionTitle("8. Cookies e Tecnologias"),
+              _buildParagraph(
+                "Usamos cookies e tecnologias similares para:\n"
+                "• Manter sua sessão de login ativa\n"
+                "• Lembrar suas preferências\n"
+                "• Analisar uso do app (dados anônimos)\n\n"
+                "Você pode gerenciar cookies nas configurações do dispositivo.",
+              ),
+              _buildSectionTitle("9. Menores de Idade"),
+              _buildParagraph(
+                "O GuardaCorpo não é destinado a menores de 18 anos. Se você for menor, use apenas com autorização e supervisão de um responsável legal.",
+              ),
+              _buildSectionTitle("10. Alterações nesta Política"),
+              _buildParagraph(
+                "Podemos atualizar esta política periodicamente. Mudanças importantes serão notificadas via:\n"
+                "• E-mail cadastrado\n"
+                "• Notificação no app\n"
+                "• Aviso ao fazer login",
+              ),
+              _buildSectionTitle("11. Contato - Proteção de Dados"),
+              _buildParagraph(
+                "Para dúvidas, solicitações ou reclamações sobre privacidade:\n\n"
+                "📧 E-mail: albertofbezerra@gmail.com\n"
+                "📍 Responsável: Alberto Bezerra\n"
+                "⏰ Resposta em até 5 dias úteis",
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Fechar", style: TextStyle(fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
+
+// HELPERS PARA FORMATAÇÃO DOS DIALOGS
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 6),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: AppTheme.primaryColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParagraph(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 13, height: 1.5, color: Colors.grey[800]),
+      ),
+    );
+  }
+
   Widget _buildSwitchTile(String title, bool value, Function(bool) onChanged) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -251,27 +519,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
       ),
     );
-  }
-
-  // ABRIR URLs (Termos/Privacidade)
-  Future<void> _launchURL(String url) async {
-    final uri = Uri.parse(url);
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Não foi possível abrir o link';
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Erro ao abrir link: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 
   // BOTTOM SHEET DE EDIÇÃO

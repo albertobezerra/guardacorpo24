@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -7,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:guarda_corpo_2024/screens/faq/simple_faq_screen.dart';
 import 'package:guarda_corpo_2024/screens/settings/settings_screen.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:guarda_corpo_2024/theme/app_theme.dart';
@@ -27,19 +29,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   User? get _currentUser => FirebaseAuth.instance.currentUser;
 
-  // UPLOAD FOTO PARA STORAGE (COM COMPRESSÃO)
+  // UPLOAD FOTO PARA STORAGE (COM CROP E COMPRESSÃO)
   Future<void> _pickAndUploadImage(ImageSource source) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
       source: source,
       imageQuality: 85,
-      maxWidth: 800,
-      maxHeight: 800,
     );
 
     if (pickedFile == null) return;
 
-    final imageFile = File(pickedFile.path);
+    // ✅ CROP DA IMAGEM
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: pickedFile.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Quadrado
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Ajustar Foto',
+          toolbarColor: AppTheme.primaryColor,
+          toolbarWidgetColor: Colors.white,
+          activeControlsWidgetColor: AppTheme.primaryColor,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true, // Força aspecto quadrado
+          hideBottomControls: false,
+        ),
+        IOSUiSettings(
+          title: 'Ajustar Foto',
+          aspectRatioLockEnabled: true,
+          resetAspectRatioEnabled: false,
+        ),
+      ],
+    );
+
+    if (croppedFile == null) return; // Usuário cancelou
+
+    final imageFile = File(croppedFile.path);
 
     setState(() {
       _localImagePreview = imageFile;
@@ -52,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception('Usuário não autenticado');
       }
 
-      // Comprime a imagem antes do upload
+      // Comprime a imagem após o crop
       final compressedBytes = await FlutterImageCompress.compressWithFile(
         imageFile.absolute.path,
         quality: 70,
@@ -69,7 +93,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .child('profile_photos')
           .child('${user.uid}.jpg');
 
-      // Upload da imagem comprimida
       await storageRef.putData(
         compressedBytes,
         SettableMetadata(contentType: 'image/jpeg'),
@@ -77,16 +100,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final downloadUrl = await storageRef.getDownloadURL();
 
-      // Atualiza no Firebase Auth
       await user.updatePhotoURL(downloadUrl);
 
-      // Atualiza no Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .set({'photoURL': downloadUrl}, SetOptions(merge: true));
 
-      // Atualiza no Provider
       if (!mounted) return;
       Provider.of<UserProvider>(context, listen: false)
           .setUserPhotoUrl(downloadUrl);
@@ -243,8 +263,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                               const SizedBox(height: 4),
+                              // ✅ DEPOIS:
                               Text(
-                                "Válido até: ${_formatDate(userProvider.expiryDate ?? userProvider.rewardExpiryDate)}",
+                                "Válido até: ${_formatDate(userProvider.getActiveExpiryDate())}",
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.9),
                                   fontSize: 12,
@@ -387,13 +408,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     User? user,
     String badgeText,
   ) {
-    ImageProvider? imageProvider;
     if (_localImagePreview != null) {
-      imageProvider = FileImage(_localImagePreview!);
     } else if (provider.userPhotoUrl != null &&
-        provider.userPhotoUrl!.isNotEmpty) {
-      imageProvider = NetworkImage(provider.userPhotoUrl!);
-    }
+        provider.userPhotoUrl!.isNotEmpty) {}
 
     final Color badgeColor;
     if (badgeText == 'Premium') {
@@ -401,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else if (badgeText == 'Sem anúncios') {
       badgeColor = const Color.fromARGB(255, 158, 255, 161);
     } else {
-      badgeColor = Colors.grey;
+      badgeColor = Colors.white;
     }
 
     return Container(
@@ -433,18 +450,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.white,
-                    backgroundImage: imageProvider,
                     child: _isUploading
                         ? const CircularProgressIndicator(
                             color: AppTheme.primaryColor,
                           )
-                        : (imageProvider == null
-                            ? Icon(
-                                Icons.person,
-                                size: 50,
-                                color: Colors.grey[300],
+                        : _localImagePreview != null
+                            ? ClipOval(
+                                child: Image.file(
+                                  _localImagePreview!,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
                               )
-                            : null),
+                            : provider.userPhotoUrl != null
+                                ? ClipOval(
+                                    child: CachedNetworkImage(
+                                      imageUrl: provider.userPhotoUrl!,
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          const CircularProgressIndicator(
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: Colors.grey[300],
+                                      ),
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Colors.grey[300],
+                                  ),
                   ),
                 ),
               ),
